@@ -11,3 +11,12 @@
 [docs-url]: https://docs.rs/slow5lib-sys
 
 Low level bindings to the slow5lib C library
+
+## Usage
+
+Add the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+slow5lib-sys = "0.2.0"
+```
