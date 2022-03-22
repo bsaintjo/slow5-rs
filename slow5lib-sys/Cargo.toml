@@ -1,0 +1,16 @@
+[package]
+name = "slow5lib-sys"
+version = "0.1.0"
+edition = "2021"
+links = "slow5lib"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+bindgen = "0.59.2"
+cc = "1.0.73"
+dunce = "1.0.2"
+
+[dependencies]
+libz-sys = "1.1.5"
+zstd-sys = "2.0.1"
