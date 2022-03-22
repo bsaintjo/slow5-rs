@@ -7,10 +7,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let streamvbyte = realpath("slow5lib/thirdparty/streamvbyte/include")?;
     let library_path = realpath("slow5lib/include")?;
+    let other_includes = realpath("slow5lib/src")?;
+    let slow5_include = realpath("slow5lib/include/slow5")?;
 
     let mut cfg = cc::Build::new();
 
-    let mut includes = vec![library_path, streamvbyte];
+    let mut includes = vec![library_path, streamvbyte, other_includes, slow5_include];
     if let Some(include) = std::env::var_os("DEP_Z_INCLUDE") {
         includes.push(PathBuf::from(include));
     }
@@ -50,9 +52,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bindings = bindgen::Builder::default()
         .header("slow5lib/include/slow5/slow5.h")
         .header("slow5lib/include/slow5/klib/khash.h")
+        .header("slow5lib/include/slow5/klib/kvec.h")
         .header("slow5lib/include/slow5/slow5_defs.h")
         .header("slow5lib/include/slow5/slow5_error.h")
         .header("slow5lib/include/slow5/slow5_press.h")
+        .header("slow5lib/src/slow5_misc.h")
+        .header("slow5lib/src/slow5_idx.h")
+        .header("slow5lib/src/slow5_extra.h")
+        .clang_arg("-Islow5lib/include")
         .allowlist_function("slow5_.*")
         .allowlist_type("slow5_.*")
         .allowlist_var("SLOW5_.*")
