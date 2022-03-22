@@ -2,6 +2,14 @@
 name = "slow5lib-sys"
 version = "0.1.0"
 edition = "2021"
+license = "MIT/Apache-2.0"
+readme = "README.md"
+authors = ["Brandon Saint-John <bsaintjo@ucsc.edu>"]
+repository = "https://github.com/bsaintjo/slow5-rs"
+homepage = "https://github.com/hasindu2008/slow5lib"
+description = "Low-level bindings to the slow5lib C library"
+documentation = "https://doc.rs/slow5lib-sys"
+
 links = "slow5lib"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
