@@ -11,7 +11,9 @@
 [docs-badge]: https://img.shields.io/docsrs/slow5?style=flat-square
 [docs-url]: https://docs.rs/slow5
 
-A library for interacting with SLOW5 files in rust.
+A library for interacting with SLOW5 files in rust. 
+
+*Note*: Library design is in flux and care should be taken in upgrading this crate.
 
 ## Usage
 
@@ -19,7 +21,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5 = "0.2.0"
+slow5 = "0.3.0"
 ```
 
 Note: version does not directly translate to version of slow5lib.
@@ -47,12 +49,11 @@ fn iterating_example() -> Result<(), Box<dyn Error>> {
     let mut slow5_file = slow5::Builder::default()
         .picoamps(true)
         .open(file_path)?;
-    for slow5_read in slow5_file.seq_reads() {
+    let mut rec_iter = slow5_file.seq_reads();
+    while let Some(Ok(slow5_rec)) = rec_iter.next() {
         // Iterate over every read
-        if let Ok(result) = slow5_read {
-            for signal in result.signal_iter() {
-                // Iterate over signal measurements in pA
-            }
+        for signal in slow5_rec.signal_iter() {
+            // Iterate over signal measurements in pA
         }
     }
     Ok(())
