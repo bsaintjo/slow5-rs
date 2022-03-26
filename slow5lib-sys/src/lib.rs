@@ -1,17 +1,19 @@
 #![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
 #![allow(non_snake_case)]
+#![doc = include_str!("../README.md")]
+
+use libc::*;
+use libz_sys::z_stream;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 #[cfg(test)]
 mod tests {
-    use std::ffi::CString;
-
     #[test]
     fn test_slow5_open() {
-        let file = CString::new("slow5lib/examples/example.slow5").expect("CString::new failed");
-        let mode = CString::new("r").expect("CString::new failed");
+        let file = cstr::cstr!("slow5lib/examples/example.slow5");
+        let mode = cstr::cstr!("r");
         unsafe {
             crate::slow5_open(file.as_ptr(), mode.as_ptr());
         }

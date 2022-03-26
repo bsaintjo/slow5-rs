@@ -1,7 +1,7 @@
 extern crate slow5lib_sys;
 
+use std::error::Error;
 use std::ptr::null_mut;
-use std::{error::Error, ffi::CString};
 
 fn to_picoamps(raw_val: i16, digitisation: f64, offset: f64, range: f64) -> f64 {
     ((raw_val as f64) + offset) * (range / digitisation)
@@ -10,8 +10,8 @@ fn to_picoamps(raw_val: i16, digitisation: f64, offset: f64, range: f64) -> f64 
 #[test]
 fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
-        let file_path = CString::new("slow5lib/examples/example.slow5")?;
-        let mode = CString::new("r")?;
+        let file_path = cstr::cstr!("slow5lib/examples/example.slow5");
+        let mode = cstr::cstr!("r");
         let sp = slow5lib_sys::slow5_open(file_path.as_ptr(), mode.as_ptr());
 
         let mut rec: *mut slow5lib_sys::slow5_rec_t = null_mut();
@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             panic!("Error in loading index");
         }
 
-        let read_id = CString::new("r3")?;
+        let read_id = cstr::cstr!("r3");
         let rec_mut_ptr: *mut *mut slow5lib_sys::slow5_rec_t = &mut rec;
         let ret = slow5lib_sys::slow5_get(read_id.as_ptr(), rec_mut_ptr, sp);
         if ret < 0 {

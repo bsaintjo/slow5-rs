@@ -1,8 +1,8 @@
 [package]
 name = "slow5"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
 authors = ["Brandon Saint-John <bsaintjo@ucsc.edu>"]
 repository = "https://github.com/bsaintjo/slow5-rs"
@@ -16,7 +16,7 @@ documentation = "https://doc.rs/slow5"
 
 [dependencies]
 cstr = "0.2.10"
-slow5lib-sys = { version = "0.2.0", path="slow5lib-sys" }
+slow5lib-sys = { version = "0.3.0", path="slow5lib-sys" }
 thiserror = "1.0.30"
 
 [dev-dependencies]

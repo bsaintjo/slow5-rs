@@ -1,8 +1,8 @@
 [package]
 name = "slow5lib-sys"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
 authors = ["Brandon Saint-John <bsaintjo@ucsc.edu>"]
 repository = "https://github.com/bsaintjo/slow5-rs"
@@ -22,3 +22,7 @@ dunce = "1.0.2"
 [dependencies]
 libz-sys = "1.1.5"
 zstd-sys = "2.0.1"
+libc = "0.2.121"
+
+[dev-dependencies]
+cstr = "0.2.10"
