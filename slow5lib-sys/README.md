@@ -11,7 +11,7 @@
 [docs-badge]: https://img.shields.io/docsrs/slow5lib-sys?style=flat-square
 [docs-url]: https://docs.rs/slow5lib-sys
 
-Low level bindings to the slow5lib C library
+Low level bindings to the slow5lib C library version 0.4.0
 
 ## Installation
 
