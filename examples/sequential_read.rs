@@ -1,16 +1,17 @@
+use slow5::RecordExt;
+use slow5::SignalIterExt;
+
 use anyhow::Result;
-use slow5::Builder;
+use slow5::FileReader;
 
 fn main() -> Result<()> {
     let mut acc = Vec::new();
-    let mut slow5_file = Builder::default()
-        .picoamps(true)
-        .open("examples/example.slow5")?;
-    let mut iter = slow5_file.seq_reads();
-    while let Some(Ok(slow5_rec)) = iter.next() {
-        println!("{}", std::str::from_utf8(slow5_rec.read_id())?);
-        for signal in slow5_rec.signal_iter() {
-            acc.push(signal)
+    let mut reader = FileReader::open("examples/example.slow5")?;
+    for read in reader.records() {
+        let read = read?;
+        println!("{}", read.read_id());
+        for signal in read.signal_iter() {
+            acc.push(signal);
         }
     }
 
