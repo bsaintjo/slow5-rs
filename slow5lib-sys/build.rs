@@ -68,29 +68,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         .header("slow5lib/src/slow5_extra.h")
         .header("slow5lib/src/klib/ksort.h")
         .clang_arg("-Islow5lib/include")
-        
         // slow5*.h
         .allowlist_function("slow5_.*")
         .allowlist_var("SLOW5_.*")
         .allowlist_type("slow5_.*")
         .allowlist_type("__slow5_press")
         .allowlist_type("__va_list_tag")
-
         // khash.h
         .allowlist_type("kh.*")
         .allowlist_function("kh.*")
         .allowlist_type("k.*")
         .allowlist_function("k.*")
         .allowlist_type("__k.*")
-
         // // kvec.h
         .allowlist_type("kv.*")
         .allowlist_function("kv.*")
-
         // // ksort.h
         // .allowlist_type("ks.*")
         // .allowlist_function("ks.*")
-
         .size_t_is_usize(true)
         .rustfmt_bindings(true)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))

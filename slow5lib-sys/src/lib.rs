@@ -15,7 +15,8 @@ mod tests {
         let file = cstr::cstr!("slow5lib/examples/example.slow5");
         let mode = cstr::cstr!("r");
         unsafe {
-            crate::slow5_open(file.as_ptr(), mode.as_ptr());
+            let slow_file = crate::slow5_open(file.as_ptr(), mode.as_ptr());
+            crate::slow5_close(slow_file);
         }
     }
 }
