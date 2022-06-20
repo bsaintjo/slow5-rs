@@ -12,7 +12,7 @@
 [docs-badge]: https://img.shields.io/docsrs/slow5?style=flat-square
 [docs-url]: https://docs.rs/slow5
 
-A library for interacting with SLOW5 files in rust.
+A library for interacting with SLOW5 files in rust. Not official.
 
 *Note*: Library design is in flux and care should be taken in upgrading this crate.
 
@@ -29,12 +29,11 @@ Note: version does not directly translate to version of slow5lib.
 
 ## TODO
 
-- [x] Read slow5 file
-- [x] Iterating over records
-- [x] Iterating over raw or picoamp measurements
-- [ ] Parity with pyslow5
+- [x] Read SLOW5 files
+- [x] Iterating over SLOW5 records
+- [x] Iterating over picoamp measurements in records
 - [ ] Write slow5 file
-- [ ] Read blow5 file (haven't tested)
+- [ ] Handle BLOW5 files
 - [ ] Reading headers
 - [ ] Reading aux info
 
