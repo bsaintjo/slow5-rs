@@ -41,6 +41,8 @@ impl<'a> Header<'a> {
     }
 }
 
+trait HeaderExt {}
+
 trait AuxField: Clone {
     fn aux_meta(&self, name: &[u8], header: Header);
 }

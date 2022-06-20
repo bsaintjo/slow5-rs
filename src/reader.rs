@@ -1,10 +1,11 @@
 use slow5lib_sys::slow5_get;
 use slow5lib_sys::slow5_rec_t;
-use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem::size_of;
+use std::os::unix::prelude::OsStrExt;
+use std::path::Path;
 
-use slow5lib_sys::slow5_file;
+use slow5lib_sys::slow5_file_t;
 use slow5lib_sys::slow5_hdr_t;
 
 use cstr::cstr;
@@ -13,25 +14,35 @@ use crate::error::Slow5Error;
 use crate::header::HeaderView;
 use crate::record::Record;
 use crate::record::RecordIter;
+use crate::to_cstring;
 
-fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
-    CString::new(x).map_err(Slow5Error::InteriorNul)
-}
-
+/// Read from a SLOW5 file
 pub struct FileReader {
-    slow5_file: *mut slow5_file,
+    pub(crate) slow5_file: *mut slow5_file_t,
 }
 
 impl FileReader {
-    fn new(slow5_file: *mut slow5_file) -> Self {
+    fn new(slow5_file: *mut slow5_file_t) -> Self {
         Self { slow5_file }
     }
 
-    // TODO Change to AsRef<Path>
-    pub fn open<T: Into<Vec<u8>>>(filename: T) -> Result<Self, Slow5Error> {
-        let filename = to_cstring(filename)?;
+    /// Open a SLOW5 file, creates an index if one doesn't exist.
+    /// # Example
+    /// ```
+    /// # use std::error::Error;
+    /// use slow5::FileReader;
+    ///
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// let reader = FileReader::open("examples/example.slow5")?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn open<P: AsRef<Path>>(file_path: P) -> Result<Self, Slow5Error> {
+        let file_path = file_path.as_ref().as_os_str().as_bytes();
+        let file_path = to_cstring(file_path)?;
         let mode = cstr!("r");
-        let slow5_file = unsafe { slow5lib_sys::slow5_open(filename.as_ptr(), mode.as_ptr()) };
+        let slow5_file: *mut slow5_file_t =
+            unsafe { slow5lib_sys::slow5_open(file_path.as_ptr(), mode.as_ptr()) };
         let ret = unsafe { slow5lib_sys::slow5_idx_load(slow5_file) };
         if ret == -1 {
             Err(Slow5Error::NoIndex)
@@ -45,13 +56,45 @@ impl FileReader {
         HeaderView::new(header, PhantomData)
     }
 
-    pub fn records(&mut self) -> RecordIter<'_> {
+    /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
+    /// # Example
+    /// ```
+    /// # use std::error::Error;
+    /// # use slow5::FileReader;
+    /// use slow5::RecordExt;
+    ///
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// # let mut reader = FileReader::open("examples/example.slow5")?;
+    /// for record in reader.records() {
+    ///     println!("{}", record?.read_id());
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn records(self) -> RecordIter {
         let slow5_rec_ptr =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
-        RecordIter::new(slow5_rec_ptr, self.slow5_file)
+        RecordIter::new(slow5_rec_ptr, self)
     }
 
-    pub fn get_record<T: Into<Vec<u8>>>(&self, read_id: T) -> Result<Record, Slow5Error> {
+    /// Random-access a single [`Record`] by read_id
+    /// # Example
+    /// ```
+    /// # use slow5::FileReader;
+    /// # use std::error::Error;
+    /// use slow5::RecordExt;
+    ///
+    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// # let reader = FileReader::open("examples/example.slow5")?;
+    /// let read_id = b"r3";
+    /// let record = reader.get_record(read_id)?;
+    /// assert_eq!(record.read_id(), read_id);
+    /// # Ok(())
+    /// # }
+    /// ```
+    /// 
+    /// Mutating the Record will not cause changes in the SLOW5 file.
+    pub fn get_record(&self, read_id: &[u8]) -> Result<Record, Slow5Error> {
         let mut slow5_rec =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
         let read_id = to_cstring(read_id)?;
@@ -78,12 +121,19 @@ impl Drop for FileReader {
 
 #[cfg(test)]
 mod test {
+    use crate::RecordExt;
+
     use super::*;
 
     #[test]
-    fn test_iter() {
+    fn test_reader() {
         let filename = "examples/example.slow5";
-        let mut reader = FileReader::open(filename).unwrap();
+        let reader = FileReader::open(filename).unwrap();
+
+        let read_id = b"r3";
+        let rec = reader.get_record(read_id).unwrap();
+        assert_eq!(rec.read_id(), read_id);
+
         let mut acc = Vec::new();
         for rec in reader.records() {
             acc.push(rec);

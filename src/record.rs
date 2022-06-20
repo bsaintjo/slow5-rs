@@ -1,61 +1,135 @@
 use libc::c_char;
-use slow5lib_sys::slow5_file;
+use libc::c_void;
 use slow5lib_sys::slow5_rec_free;
 use slow5lib_sys::slow5_rec_t;
 use std::ffi::CStr;
 use std::marker::PhantomData;
+use std::mem::size_of;
 
 use crate::error::Slow5Error;
+use crate::FileReader;
 
-struct RecordBuilder {
+/// Builder to create a Record, call methods to set parameters and build to convert into a [`Record`]
+/// # Example
+/// ```
+/// # use anyhow::Result;
+/// # use slow5::record::RecordBuilder;
+/// # fn main() -> Result<()> {
+/// let record = RecordBuilder::default()
+///     .read_id(b"test_id")
+///     .read_group(0)
+///     .digitisation(4096.0)
+///     .offset(4.0)
+///     .range(12.0)
+///     .sampling_rate(4000.0)
+///     .raw_signal(&[0, 1, 2, 3])
+///     .build()?;
+/// # Ok(())
+/// # }
+/// ```
+#[derive(Default)]
+pub struct RecordBuilder {
     read_id: Vec<u8>,
-    read_group: usize,
+    read_group: u32,
     digitisation: f64,
     offset: f64,
     range: f64,
     sampling_rate: f64,
-    raw_signal: Vec<f64>,
+    raw_signal: Vec<i16>,
 }
 
 impl RecordBuilder {
-    fn read_id(self, read_id: &[u8]) -> Self {
+    pub fn read_id(mut self, read_id: &[u8]) -> Self {
+        let read_id = read_id.to_vec();
+        self.read_id = read_id;
+        self
+    }
+
+    pub fn read_group(mut self, read_group: u32) -> Self {
+        self.read_group = read_group;
+        self
+    }
+
+    pub fn digitisation(mut self, digitisation: f64) -> Self {
+        self.digitisation = digitisation;
+        self
+    }
+
+    pub fn offset(mut self, offset: f64) -> Self {
+        self.offset = offset;
+        self
+    }
+
+    pub fn range(mut self, range: f64) -> Self {
+        self.range = range;
+        self
+    }
+
+    pub fn sampling_rate(mut self, sampling_rate: f64) -> Self {
+        self.sampling_rate = sampling_rate;
+        self
+    }
+
+    pub fn raw_signal(mut self, raw_signal: &[i16]) -> Self {
+        let raw_signal = raw_signal.to_vec();
+        self.raw_signal = raw_signal;
+        self
+    }
+
+    fn picoamps(mut self, picoamps: &[f64]) -> Self {
         unimplemented!()
     }
 
-    fn read_group(self, read_group: usize) -> Self {
-        unimplemented!()
-    }
+    pub fn build(self) -> Result<Record, Slow5Error> {
+        unsafe {
+            let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
+            if record.is_null() {
+                return Err(Slow5Error::Allocation);
+            }
 
-    // TODO check float type
-    fn digitisation(self, digitisation: f64) -> Self {
-        unimplemented!()
-    }
+            let read_id_len = self.read_id.len();
+            let read_id_ptr = allocate(read_id_len)? as *mut c_char;
+            (*record).read_id = read_id_ptr;
+            (*record).read_id_len = read_id_len.try_into().map_err(|_| Slow5Error::Conversion)?;
 
-    fn offset(self, offset: f64) -> Self {
-        unimplemented!()
-    }
+            (*record).read_group = self.read_group;
+            (*record).digitisation = self.digitisation;
+            (*record).offset = self.offset;
+            (*record).range = self.range;
+            (*record).sampling_rate = self.sampling_rate;
 
-    fn range(self, range: f64) -> Self {
-        unimplemented!()
-    }
+            let len_raw_signal = self
+                .raw_signal
+                .len()
+                .try_into()
+                .map_err(|_| Slow5Error::Conversion)?;
+            (*record).len_raw_signal = len_raw_signal;
+            let raw_signal_ptr = allocate(size_of::<i16>() * self.raw_signal.len())? as *mut i16;
 
-    fn sampling_rate(self, sampling_rate: f64) -> Self {
-        unimplemented!()
-    }
+            for idx in 0..self.raw_signal.len() {
+                *raw_signal_ptr.add(idx) = self.raw_signal[idx];
+            }
 
-    fn raw_signal(self, raw_signal: &[f64]) -> Self {
-        unimplemented!()
-    }
-
-    fn build(self) -> Record {
-        unimplemented!()
+            Ok(Record::new(true, record))
+        }
     }
 }
 
+/// malloc with moving the error checking into a Result enum
+unsafe fn allocate(size: usize) -> Result<*mut c_void, Slow5Error> {
+    let ptr = libc::malloc(size);
+    if ptr.is_null() {
+        Err(Slow5Error::Allocation)
+    } else {
+        Ok(ptr)
+    }
+}
+
+/// Owned-type representing a SLOW5 record
 pub struct Record {
     // TODO Figure out whether to keep picoamps
     picoamps: bool,
-    slow5_rec: *mut slow5_rec_t,
+    pub(crate) slow5_rec: *mut slow5_rec_t,
 }
 
 impl Record {
@@ -75,66 +149,71 @@ impl Drop for Record {
     }
 }
 
-pub struct RecordView<'a> {
+/// Immutable view into a single SLOW5 record
+#[derive(Clone)]
+pub struct RecordView {
     slow5_rec: *mut slow5_rec_t,
-    _lifetime: PhantomData<&'a ()>,
 }
 
-impl<'a> RecordView<'a> {
+impl RecordView {
     fn new(slow5_rec: *mut slow5_rec_t) -> Self {
-        Self {
-            slow5_rec,
-            _lifetime: PhantomData,
-        }
+        Self { slow5_rec }
     }
 }
 
+/// Trait for common record methods
 pub trait RecordExt {
-    fn read_id(&self) -> &str;
+    /// Get record's read id
+    fn read_id(&self) -> &[u8];
 }
 
-impl<'a> RecordExt for RecordView<'a> {
-    fn read_id(&self) -> &str {
+impl RecordExt for RecordView {
+    fn read_id(&self) -> &[u8] {
         let str_ptr: *mut c_char = unsafe { (*self.slow5_rec).read_id };
         let read_id = unsafe { CStr::from_ptr(str_ptr) };
 
-        read_id.to_str().unwrap()
+        read_id.to_bytes()
     }
 }
 
 impl RecordExt for Record {
-    fn read_id(&self) -> &str {
+    fn read_id(&self) -> &[u8] {
         let str_ptr: *mut c_char = unsafe { (*self.slow5_rec).read_id };
         let read_id = unsafe { CStr::from_ptr(str_ptr) };
 
-        read_id.to_str().unwrap()
+        read_id.to_bytes()
     }
 }
 
-pub struct RecordIter<'a> {
+/// Iterator over Records from a SLOW5 file
+///
+/// If error occurs, iterator will produce Some(Err(_)) and then subsequent iterations will be None
+/// This struct is generated by calling [`records`] on a [`FileReader`]
+///
+/// [`records`]: FileReader::records
+pub struct RecordIter {
     slow5_rec_ptr: *mut slow5_rec_t,
-    slow5_file: *mut slow5_file,
+    slow5_file: FileReader,
     errored: bool,
-    _lifetime: PhantomData<&'a ()>,
 }
 
-/// Iterator over records of a Slow5 file
-impl<'a> RecordIter<'a> {
-    pub(crate) fn new(slow5_rec_ptr: *mut slow5_rec_t, slow5_file: *mut slow5_file) -> Self {
+impl RecordIter {
+    pub(crate) fn new(slow5_rec_ptr: *mut slow5_rec_t, slow5_file: FileReader) -> Self {
         Self {
             slow5_rec_ptr,
             slow5_file,
             errored: false,
-            _lifetime: PhantomData,
         }
     }
 }
 
-impl<'a> Iterator for RecordIter<'a> {
-    type Item = Result<RecordView<'a>, Slow5Error>;
+impl Iterator for RecordIter {
+    type Item = Result<RecordView, Slow5Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let ret = unsafe { slow5lib_sys::slow5_get_next(&mut self.slow5_rec_ptr, self.slow5_file) };
+        let ret = unsafe {
+            slow5lib_sys::slow5_get_next(&mut self.slow5_rec_ptr, self.slow5_file.slow5_file)
+        };
         if self.errored {
             None
         } else if ret >= 0 {
@@ -156,7 +235,7 @@ impl<'a> Iterator for RecordIter<'a> {
     }
 }
 
-impl<'a> Drop for RecordIter<'a> {
+impl Drop for RecordIter {
     fn drop(&mut self) {
         unsafe { slow5_rec_free(self.slow5_rec_ptr) }
     }
@@ -166,7 +245,11 @@ fn to_picoamps(raw_val: f64, digitisation: f64, offset: f64, range: f64) -> f64 
     ((raw_val) + offset) * (range / digitisation)
 }
 
-/// Iterator over signal data from Record
+/// Iterator over signal in picoamps from Record.
+///
+/// This struct is generally created by calling [`signal_iter`] on a record type.
+///
+/// [`signal_iter`]: SignalIterExt::signal_iter
 pub struct SignalIter<'a> {
     picoamps: bool,
     i: u64,
@@ -209,6 +292,7 @@ impl<'a> Iterator for SignalIter<'a> {
     }
 }
 
+/// Extension trait to get a SignalIter from record-like types
 // TODO maybe combine this with RecordExt
 pub trait SignalIterExt {
     fn signal_iter(&self) -> SignalIter<'_>;
@@ -220,8 +304,18 @@ impl SignalIterExt for Record {
     }
 }
 
-impl<'a> SignalIterExt for RecordView<'a> {
+impl<'a> SignalIterExt for RecordView {
     fn signal_iter(&self) -> SignalIter<'_> {
         SignalIter::new(true, self.slow5_rec)
+    }
+}
+
+trait RecPtr {
+    fn ptr(&self) -> &*mut slow5_rec_t;
+}
+
+impl RecPtr for Record {
+    fn ptr(&self) -> &*mut slow5_rec_t {
+        &self.slow5_rec
     }
 }

@@ -17,6 +17,14 @@ pub enum Slow5Error {
     Argument,
     #[error("Record parsing error")]
     RecordParse,
+    #[error("Failed to convert integer type due to overflow")]
+    Conversion,
+    #[error("Failed to allocate space")]
+    Allocation,
+    #[error("Unexpected null pointer given as argument")]
+    NullArgument,
     #[error("Unknown error")]
     Unknown,
+    #[error("Read ID {0} is a duplicate")]
+    DuplicateReadId(String),
 }

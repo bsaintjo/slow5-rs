@@ -6,7 +6,7 @@ use slow5::RecordExt;
 fn main() -> Result<()> {
     let file_path = "examples/example.slow5";
     let slow5 = FileReader::open(file_path)?;
-    let rec = slow5.get_record("r3")?;
-    assert_eq!("r3", rec.read_id());
+    let rec = slow5.get_record(b"r3")?;
+    assert_eq!(b"r3", rec.read_id());
     Ok(())
 }

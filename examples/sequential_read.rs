@@ -6,10 +6,10 @@ use slow5::FileReader;
 
 fn main() -> Result<()> {
     let mut acc = Vec::new();
-    let mut reader = FileReader::open("examples/example.slow5")?;
+    let reader = FileReader::open("examples/example.slow5")?;
     for read in reader.records() {
         let read = read?;
-        println!("{}", read.read_id());
+        println!("{:?}", read.read_id());
         for signal in read.signal_iter() {
             acc.push(signal);
         }
