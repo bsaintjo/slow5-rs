@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(generic_associated_types)]
 // #![warn(missing_docs)]
 
 mod error;
