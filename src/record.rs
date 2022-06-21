@@ -88,8 +88,7 @@ impl RecordBuilder {
             }
 
             let read_id_len = self.read_id.len();
-            let read_id_ptr = allocate(read_id_len)? as *mut c_char;
-            (*record).read_id = read_id_ptr;
+            (*record).read_id = libc::strdup(self.read_id.as_ptr() as *const c_char);
             (*record).read_id_len = read_id_len.try_into().map_err(|_| Slow5Error::Conversion)?;
 
             (*record).read_group = self.read_group;

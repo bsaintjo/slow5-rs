@@ -1,12 +1,13 @@
 use slow5lib_sys::slow5_add_rec;
 use slow5lib_sys::slow5_fmt_SLOW5_FORMAT_ASCII;
+use slow5lib_sys::slow5_hdr_add_rg;
 use slow5lib_sys::slow5_init_empty;
 use std::{os::unix::prelude::OsStrExt, path::Path};
 
 use slow5lib_sys::slow5_file;
 
 use crate::RecordExt;
-use crate::{record::RecordBuilder, to_cstring, record::Record, Slow5Error};
+use crate::{record::Record, record::RecordBuilder, to_cstring, Slow5Error};
 
 use cstr::cstr;
 
@@ -47,12 +48,22 @@ impl FileWriter {
 
         let slow5_file = unsafe {
             let fp = libc::fopen(file_path.as_ptr(), mode.as_ptr());
-            slow5_init_empty(fp, file_path.as_ptr(), slow5_fmt_SLOW5_FORMAT_ASCII)
-        };
+            let slow5_file = slow5_init_empty(fp, file_path.as_ptr(), slow5_fmt_SLOW5_FORMAT_ASCII);
 
-        if slow5_file.is_null() {
-            return Err(Slow5Error::Allocation);
-        }
+            if slow5_file.is_null() {
+                return Err(Slow5Error::Allocation);
+            }
+
+            let header = (*slow5_file).header;
+
+            let ret = slow5_hdr_add_rg(header);
+            if ret < 0 {
+                return Err(Slow5Error::NullArgument);
+            }
+
+            (*header).num_read_groups = 1;
+            slow5_file
+        };
 
         let ret = unsafe { slow5lib_sys::slow5_idx_load(slow5_file) };
         if ret == -1 {
@@ -158,7 +169,8 @@ mod test {
     use anyhow::Result;
     use assert_fs::{fixture::PathChild, TempDir};
 
-    #[test] #[ignore]
+    #[test]
+    #[ignore]
     fn test_writer() -> Result<()> {
         let tmp_dir = TempDir::new()?;
         let file_path = "test.slow5";
