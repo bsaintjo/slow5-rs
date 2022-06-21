@@ -92,7 +92,7 @@ impl FileReader {
     /// # Ok(())
     /// # }
     /// ```
-    /// 
+    ///
     /// Mutating the Record will not cause changes in the SLOW5 file.
     pub fn get_record(&self, read_id: &[u8]) -> Result<Record, Slow5Error> {
         let mut slow5_rec =

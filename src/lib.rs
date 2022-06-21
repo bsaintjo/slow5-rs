@@ -13,8 +13,8 @@ pub use error::Slow5Error;
 pub use reader::FileReader;
 pub use record::Record;
 pub use record::RecordExt;
-pub use record::RecordView;
 pub use record::RecordIter;
+pub use record::RecordView;
 pub use record::SignalIter;
 pub use record::SignalIterExt;
 

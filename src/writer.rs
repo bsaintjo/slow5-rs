@@ -1,11 +1,11 @@
-use slow5lib_sys::slow5_press_method_t;
-use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_NONE;
-use slow5lib_sys::slow5_hdr_fwrite;
-use slow5lib_sys::slow5_aux_meta_init_empty;
 use slow5lib_sys::slow5_add_rec;
+use slow5lib_sys::slow5_aux_meta_init_empty;
 use slow5lib_sys::slow5_fmt_SLOW5_FORMAT_ASCII;
 use slow5lib_sys::slow5_hdr_add_rg;
+use slow5lib_sys::slow5_hdr_fwrite;
 use slow5lib_sys::slow5_init_empty;
+use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_NONE;
+use slow5lib_sys::slow5_press_method_t;
 use std::{os::unix::prelude::OsStrExt, path::Path};
 
 use slow5lib_sys::slow5_file;
