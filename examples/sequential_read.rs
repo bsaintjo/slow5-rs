@@ -1,8 +1,5 @@
-use slow5::RecordExt;
-use slow5::SignalIterExt;
-
 use anyhow::Result;
-use slow5::FileReader;
+use slow5::{FileReader, RecordExt, SignalIterExt};
 
 fn main() -> Result<()> {
     let mut acc = Vec::new();

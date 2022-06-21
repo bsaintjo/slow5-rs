@@ -11,12 +11,7 @@ use std::ffi::CString;
 
 pub use error::Slow5Error;
 pub use reader::FileReader;
-pub use record::Record;
-pub use record::RecordExt;
-pub use record::RecordIter;
-pub use record::RecordView;
-pub use record::SignalIter;
-pub use record::SignalIterExt;
+pub use record::{Record, RecordExt, RecordIter, RecordView, SignalIter, SignalIterExt};
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
     CString::new(x).map_err(Slow5Error::InteriorNul)

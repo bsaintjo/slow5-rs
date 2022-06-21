@@ -1,19 +1,16 @@
-use slow5lib_sys::slow5_add_rec;
-use slow5lib_sys::slow5_aux_meta_init_empty;
-use slow5lib_sys::slow5_fmt_SLOW5_FORMAT_ASCII;
-use slow5lib_sys::slow5_hdr_add_rg;
-use slow5lib_sys::slow5_hdr_fwrite;
-use slow5lib_sys::slow5_init_empty;
-use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_NONE;
-use slow5lib_sys::slow5_press_method_t;
 use std::{os::unix::prelude::OsStrExt, path::Path};
 
-use slow5lib_sys::slow5_file;
-
-use crate::RecordExt;
-use crate::{record::Record, record::RecordBuilder, to_cstring, Slow5Error};
-
 use cstr::cstr;
+use slow5lib_sys::{
+    slow5_add_rec, slow5_aux_meta_init_empty, slow5_file, slow5_fmt_SLOW5_FORMAT_ASCII,
+    slow5_hdr_add_rg, slow5_hdr_fwrite, slow5_init_empty, slow5_press_method_SLOW5_COMPRESS_NONE,
+    slow5_press_method_t,
+};
+
+use crate::{
+    record::{Record, RecordBuilder},
+    to_cstring, RecordExt, Slow5Error,
+};
 
 pub(crate) struct FileWriter {
     slow5_file: *mut slow5_file,
@@ -24,7 +21,9 @@ impl FileWriter {
         Self { slow5_file }
     }
 
-    /// Create a new SLOW5 file, if one already exists, file will be written over
+    /// Create a new SLOW5 file, if one already exists, file will be written
+    /// over.
+    /// 
     /// # Example
     /// ```ignore
     /// # use anyhow::Result;
@@ -88,7 +87,8 @@ impl FileWriter {
         }
     }
 
-    /// Add [`Record`] to SLOW5 file, not thread safe
+    /// Add [`Record`] to SLOW5 file, not thread safe.
+    /// 
     /// # Example
     /// ```ignore
     /// # use anyhow::Result;
@@ -127,8 +127,9 @@ impl FileWriter {
         }
     }
 
-    /// Write record to SLOW5 file, with a closure that makes a one-shot [`RecordBuilder`],
-    /// an alternative to add_record. Not thread safe
+    /// Write record to SLOW5 file, with a closure that makes a one-shot
+    /// [`RecordBuilder`], an alternative to add_record. Not thread safe.
+    /// 
     /// # Example
     /// ```ignore
     /// # use anyhow::Result;
@@ -178,11 +179,11 @@ impl Drop for FileWriter {
 #[cfg(test)]
 mod test {
 
-    use crate::FileReader;
-
-    use super::*;
     use anyhow::Result;
     use assert_fs::{fixture::PathChild, TempDir};
+
+    use super::*;
+    use crate::FileReader;
 
     #[test]
     #[ignore]

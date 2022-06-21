@@ -1,20 +1,14 @@
-use slow5lib_sys::slow5_get;
-use slow5lib_sys::slow5_rec_t;
-use std::marker::PhantomData;
-use std::mem::size_of;
-use std::os::unix::prelude::OsStrExt;
-use std::path::Path;
-
-use slow5lib_sys::slow5_file_t;
-use slow5lib_sys::slow5_hdr_t;
+use std::{marker::PhantomData, mem::size_of, os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
+use slow5lib_sys::{slow5_file_t, slow5_get, slow5_hdr_t, slow5_rec_t};
 
-use crate::error::Slow5Error;
-use crate::header::HeaderView;
-use crate::record::Record;
-use crate::record::RecordIter;
-use crate::to_cstring;
+use crate::{
+    error::Slow5Error,
+    header::HeaderView,
+    record::{Record, RecordIter},
+    to_cstring,
+};
 
 /// Read from a SLOW5 file
 pub struct FileReader {
@@ -27,6 +21,7 @@ impl FileReader {
     }
 
     /// Open a SLOW5 file, creates an index if one doesn't exist.
+    /// 
     /// # Example
     /// ```
     /// # use std::error::Error;
@@ -57,6 +52,7 @@ impl FileReader {
     }
 
     /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
+    /// 
     /// # Example
     /// ```
     /// # use std::error::Error;
@@ -77,7 +73,8 @@ impl FileReader {
         RecordIter::new(slow5_rec_ptr, self)
     }
 
-    /// Random-access a single [`Record`] by read_id
+    /// Random-access a single [`Record`] by read_id.
+    /// 
     /// # Example
     /// ```
     /// # use slow5::FileReader;
@@ -121,9 +118,8 @@ impl Drop for FileReader {
 
 #[cfg(test)]
 mod test {
-    use crate::RecordExt;
-
     use super::*;
+    use crate::RecordExt;
 
     #[test]
     fn test_reader() {

@@ -1,6 +1,5 @@
 use anyhow::Result;
-use slow5::FileReader;
-use slow5::RecordExt;
+use slow5::{FileReader, RecordExt};
 
 #[test]
 fn main() -> Result<()> {

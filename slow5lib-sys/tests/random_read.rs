@@ -1,7 +1,6 @@
 extern crate slow5lib_sys;
 
-use std::error::Error;
-use std::ptr::null_mut;
+use std::{error::Error, ptr::null_mut};
 
 fn to_picoamps(raw_val: i16, digitisation: f64, offset: f64, range: f64) -> f64 {
     ((raw_val as f64) + offset) * (range / digitisation)
