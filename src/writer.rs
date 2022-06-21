@@ -1,3 +1,7 @@
+use slow5lib_sys::slow5_press_method_t;
+use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_NONE;
+use slow5lib_sys::slow5_hdr_fwrite;
+use slow5lib_sys::slow5_aux_meta_init_empty;
 use slow5lib_sys::slow5_add_rec;
 use slow5lib_sys::slow5_fmt_SLOW5_FORMAT_ASCII;
 use slow5lib_sys::slow5_hdr_add_rg;
@@ -62,6 +66,17 @@ impl FileWriter {
             }
 
             (*header).num_read_groups = 1;
+            let aux_meta = slow5_aux_meta_init_empty();
+            if aux_meta.is_null() {
+                // TODO Return proper error
+                return Err(Slow5Error::Unknown);
+            }
+            (*header).aux_meta = aux_meta;
+            let slow5_press = slow5_press_method_t {
+                record_method: slow5_press_method_SLOW5_COMPRESS_NONE,
+                signal_method: slow5_press_method_SLOW5_COMPRESS_NONE,
+            };
+            slow5_hdr_fwrite(fp, header, slow5_fmt_SLOW5_FORMAT_ASCII, slow5_press);
             slow5_file
         };
 
