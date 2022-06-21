@@ -103,7 +103,7 @@ impl FileWriter {
     /// # let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
     /// # let mut writer = FileWriter::create(&file_path)?;
-    /// let rec = RecordBuilder::default().read_id(b"test").build()?;
+    /// let rec = RecordBuilder::builder().read_id(b"test").build()?;
     /// writer.add_record(&rec)?;
     /// # drop(writer);
     /// # assert!(file_path.exists());
@@ -145,7 +145,7 @@ impl FileWriter {
     /// # let file_path = tmp_dir.child(file_path);
     /// # let tmp_path = file_path.to_path_buf();
     /// # let mut writer = FileWriter::create(file_path)?;
-    /// # let rec = RecordBuilder::default().read_id(b"test").build()?;
+    /// # let rec = RecordBuilder::builder().read_id(b"test").build()?;
     /// let read_id = b"test";
     /// writer.write_record(|builder| builder.read_id(read_id).build())?;
     /// # drop(writer);
@@ -192,7 +192,7 @@ mod test {
         let file_path = "test.slow5";
         let file_path = tmp_dir.child(file_path);
         let mut writer = FileWriter::create(&file_path)?;
-        let rec = RecordBuilder::default().read_id(b"test").build()?;
+        let rec = RecordBuilder::builder().read_id(b"test").build()?;
         writer.add_record(&rec)?;
         drop(writer);
         assert!(file_path.exists());

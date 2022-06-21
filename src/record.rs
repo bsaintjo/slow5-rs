@@ -13,7 +13,7 @@ use crate::{error::Slow5Error, FileReader};
 /// # use anyhow::Result;
 /// # use slow5::record::RecordBuilder;
 /// # fn main() -> Result<()> {
-/// let record = RecordBuilder::default()
+/// let record = RecordBuilder::builder()
 ///     .read_id(b"test_id")
 ///     .read_group(0)
 ///     .digitisation(4096.0)
@@ -37,48 +37,51 @@ pub(crate) struct RecordBuilder {
 }
 
 impl RecordBuilder {
-    pub fn read_id(mut self, read_id: &[u8]) -> Self {
+    pub fn builder() -> Self {
+        Default::default()
+    }
+    pub fn read_id(&mut self, read_id: &[u8]) -> &mut Self {
         let read_id = read_id.to_vec();
         self.read_id = read_id;
         self
     }
 
-    pub fn read_group(mut self, read_group: u32) -> Self {
+    pub fn read_group(&mut self, read_group: u32) -> &mut Self {
         self.read_group = read_group;
         self
     }
 
-    pub fn digitisation(mut self, digitisation: f64) -> Self {
+    pub fn digitisation(&mut self, digitisation: f64) -> &mut Self {
         self.digitisation = digitisation;
         self
     }
 
-    pub fn offset(mut self, offset: f64) -> Self {
+    pub fn offset(&mut self, offset: f64) -> &mut Self {
         self.offset = offset;
         self
     }
 
-    pub fn range(mut self, range: f64) -> Self {
+    pub fn range(&mut self, range: f64) -> &mut Self {
         self.range = range;
         self
     }
 
-    pub fn sampling_rate(mut self, sampling_rate: f64) -> Self {
+    pub fn sampling_rate(&mut self, sampling_rate: f64) -> &mut Self {
         self.sampling_rate = sampling_rate;
         self
     }
 
-    pub fn raw_signal(mut self, raw_signal: &[i16]) -> Self {
+    pub fn raw_signal(&mut self, raw_signal: &[i16]) -> &mut Self {
         let raw_signal = raw_signal.to_vec();
         self.raw_signal = raw_signal;
         self
     }
 
-    fn picoamps(mut self, picoamps: &[f64]) -> Self {
+    fn picoamps(&mut self, picoamps: &[f64]) -> &mut Self {
         unimplemented!()
     }
 
-    pub fn build(self) -> Result<Record, Slow5Error> {
+    pub fn build(&mut self) -> Result<Record, Slow5Error> {
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
             if record.is_null() {
