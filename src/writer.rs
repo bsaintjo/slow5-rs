@@ -10,7 +10,7 @@ use crate::{record::RecordBuilder, to_cstring, record::Record, Slow5Error};
 
 use cstr::cstr;
 
-pub struct FileWriter {
+pub(crate) struct FileWriter {
     slow5_file: *mut slow5_file,
 }
 
@@ -21,9 +21,9 @@ impl FileWriter {
 
     /// Create a new SLOW5 file, if one already exists, file will be written over
     /// # Example
-    /// ```
+    /// ```ignore
     /// # use anyhow::Result;
-    /// use slow5::FileWriter;
+    /// use slow5::writer::FileWriter;
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
@@ -64,14 +64,14 @@ impl FileWriter {
 
     /// Add [`Record`] to SLOW5 file, not thread safe
     /// # Example
-    /// ```
+    /// ```ignore
     /// # use anyhow::Result;
-    /// # use slow5::FileWriter;
+    /// # use slow5::writer::FileWriter;
     /// # use slow5::FileReader;
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # use slow5::RecordBuilder;
+    /// # use slow5::record::RecordBuilder;
     /// # fn main() -> Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// # let file_path = "test.slow5";
@@ -104,13 +104,14 @@ impl FileWriter {
     /// Write record to SLOW5 file, with a closure that makes a one-shot [`RecordBuilder`],
     /// an alternative to add_record. Not thread safe
     /// # Example
-    /// ```
+    /// ```ignore
     /// # use anyhow::Result;
-    /// # use slow5::FileWriter;
+    /// # use slow5::writer::FileWriter;
+    /// # use slow5::reader::FileReader;
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # use slow5::RecordBuilder;
+    /// # use slow5::record::RecordBuilder;
     /// # fn main() -> Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// # let file_path = "test.slow5";
@@ -120,7 +121,7 @@ impl FileWriter {
     /// # let rec = RecordBuilder::default().read_id(b"test").build()?;
     /// let read_id = b"test";
     /// writer.write_record(|builder| builder.read_id(read_id).build())?;
-    /// # drop(writer)
+    /// # drop(writer);
     /// # assert!(tmp_path.exists());
     /// # let reader = FileReader::open(&file_path)?;
     /// # let rec = reader.get_record(b"test")?;
@@ -157,7 +158,7 @@ mod test {
     use anyhow::Result;
     use assert_fs::{fixture::PathChild, TempDir};
 
-    #[test]
+    #[test] #[ignore]
     fn test_writer() -> Result<()> {
         let tmp_dir = TempDir::new()?;
         let file_path = "test.slow5";

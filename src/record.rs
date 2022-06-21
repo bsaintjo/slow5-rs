@@ -11,7 +11,7 @@ use crate::FileReader;
 
 /// Builder to create a Record, call methods to set parameters and build to convert into a [`Record`]
 /// # Example
-/// ```
+/// ```ignore
 /// # use anyhow::Result;
 /// # use slow5::record::RecordBuilder;
 /// # fn main() -> Result<()> {
@@ -28,7 +28,7 @@ use crate::FileReader;
 /// # }
 /// ```
 #[derive(Default)]
-pub struct RecordBuilder {
+pub(crate) struct RecordBuilder {
     read_id: Vec<u8>,
     read_group: u32,
     digitisation: f64,

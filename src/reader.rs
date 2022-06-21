@@ -66,7 +66,7 @@ impl FileReader {
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let mut reader = FileReader::open("examples/example.slow5")?;
     /// for record in reader.records() {
-    ///     println!("{}", record?.read_id());
+    ///     println!("{:?}", record?.read_id());
     /// }
     /// # Ok(())
     /// # }
