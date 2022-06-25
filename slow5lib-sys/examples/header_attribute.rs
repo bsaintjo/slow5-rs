@@ -2,10 +2,9 @@ use std::{error::Error, ffi::CStr};
 
 extern crate slow5lib_sys;
 
-#[test]
 fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
-        let file_path = cstr::cstr!("slow5lib/examples/example.slow5");
+        let file_path = cstr::cstr!("slow5lib-sys/slow5lib/examples/example.slow5");
         let mode = cstr::cstr!("r");
         let sp = slow5lib_sys::slow5_open(file_path.as_ptr(), mode.as_ptr());
         if sp.is_null() {

@@ -1,15 +1,12 @@
-extern crate slow5lib_sys;
-
 use std::{error::Error, ptr::null_mut};
 
 fn to_picoamps(raw_val: i16, digitisation: f64, offset: f64, range: f64) -> f64 {
     ((raw_val as f64) + offset) * (range / digitisation)
 }
 
-#[test]
 fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
-        let file_path = cstr::cstr!("slow5lib/examples/example.slow5");
+        let file_path = cstr::cstr!("slow5lib-sys/slow5lib/examples/example.slow5");
         let mode = cstr::cstr!("r");
         let sp = slow5lib_sys::slow5_open(file_path.as_ptr(), mode.as_ptr());
 
