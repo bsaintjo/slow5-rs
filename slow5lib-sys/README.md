@@ -19,7 +19,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5lib-sys = "0.5.0"
+slow5lib-sys = "0.6.0"
 ```
 
 ## License
