@@ -32,7 +32,7 @@ Note: version does not directly translate to version of slow5lib.
 - [x] Read SLOW5 files
 - [x] Iterating over SLOW5 records
 - [x] Iterating over picoamp measurements in records
-- [ ] Write slow5 file
+- [x] Write slow5 file
 - [ ] Handle BLOW5 files
 - [ ] Reading headers
 - [ ] Reading aux info

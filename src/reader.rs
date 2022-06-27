@@ -1,4 +1,6 @@
-use std::{marker::PhantomData, mem::size_of, os::unix::prelude::OsStrExt, path::Path};
+use std::{
+    ffi::CString, marker::PhantomData, mem::size_of, os::unix::prelude::OsStrExt, path::Path,
+};
 
 use cstr::cstr;
 use slow5lib_sys::{slow5_file_t, slow5_get, slow5_hdr_t, slow5_rec_t};
@@ -21,7 +23,7 @@ impl FileReader {
     }
 
     /// Open a SLOW5 file, creates an index if one doesn't exist.
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use std::error::Error;
@@ -52,7 +54,7 @@ impl FileReader {
     }
 
     /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use std::error::Error;
@@ -67,6 +69,9 @@ impl FileReader {
     /// # Ok(())
     /// # }
     /// ```
+    // TODO I could avoid the reader being consumed by using rewinding the file ptr
+    // and making it &mut self. RecordIter would need to do the rewinding once its
+    // finished.
     pub fn records(self) -> RecordIter {
         let slow5_rec_ptr =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
@@ -74,7 +79,7 @@ impl FileReader {
     }
 
     /// Random-access a single [`Record`] by read_id.
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use slow5::FileReader;
@@ -95,7 +100,9 @@ impl FileReader {
         let mut slow5_rec =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
         let read_id = to_cstring(read_id)?;
-        let ret = unsafe { slow5_get(read_id.as_ptr(), &mut slow5_rec, self.slow5_file) };
+        let rid_ptr = read_id.into_raw();
+        let ret = unsafe { slow5_get(rid_ptr, &mut slow5_rec, self.slow5_file) };
+        let _ = unsafe { CString::from_raw(rid_ptr) };
         if ret >= 0 {
             Ok(Record::new(true, slow5_rec))
         } else {
@@ -108,9 +115,6 @@ impl FileReader {
 impl Drop for FileReader {
     fn drop(&mut self) {
         unsafe {
-            if !(*self.slow5_file).index.is_null() {
-                slow5lib_sys::slow5_idx_unload(self.slow5_file);
-            }
             slow5lib_sys::slow5_close(self.slow5_file);
         }
     }

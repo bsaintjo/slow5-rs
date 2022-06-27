@@ -1,4 +1,8 @@
-use std::{ffi::CStr, marker::PhantomData, mem::size_of};
+use std::{
+    ffi::{CStr, CString},
+    marker::PhantomData,
+    mem::size_of,
+};
 
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
@@ -9,9 +13,9 @@ use crate::{error::Slow5Error, FileReader};
 /// convert into a [`Record`].
 ///
 /// # Example
-/// ```ignore
+/// ```
 /// # use anyhow::Result;
-/// # use slow5::record::RecordBuilder;
+/// # use slow5::RecordBuilder;
 /// # fn main() -> Result<()> {
 /// let record = RecordBuilder::builder()
 ///     .read_id(b"test_id")
@@ -26,7 +30,7 @@ use crate::{error::Slow5Error, FileReader};
 /// # }
 /// ```
 #[derive(Default)]
-pub(crate) struct RecordBuilder {
+pub struct RecordBuilder {
     read_id: Vec<u8>,
     read_group: u32,
     digitisation: f64,
@@ -88,9 +92,13 @@ impl RecordBuilder {
                 return Err(Slow5Error::Allocation);
             }
 
+            let read_id =
+                CString::new(self.read_id.clone()).map_err(Slow5Error::InteriorNul)?;
+            let read_id_ptr = read_id.into_raw();
             let read_id_len = self.read_id.len();
-            (*record).read_id = libc::strdup(self.read_id.as_ptr() as *const c_char);
+            (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
             (*record).read_id_len = read_id_len.try_into().map_err(|_| Slow5Error::Conversion)?;
+            let _ = CString::from_raw(read_id_ptr);
 
             (*record).read_group = self.read_group;
             (*record).digitisation = self.digitisation;
@@ -109,6 +117,7 @@ impl RecordBuilder {
             for idx in 0..self.raw_signal.len() {
                 *raw_signal_ptr.add(idx) = self.raw_signal[idx];
             }
+            (*record).raw_signal = raw_signal_ptr;
 
             Ok(Record::new(true, record))
         }
