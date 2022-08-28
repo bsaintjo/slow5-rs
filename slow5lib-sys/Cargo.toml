@@ -26,3 +26,4 @@ libc = "0.2.121"
 
 [dev-dependencies]
 cstr = "0.2.10"
+version-sync = "0.9.4"
