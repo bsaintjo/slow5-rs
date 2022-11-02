@@ -8,6 +8,17 @@ use crate::{
     to_cstring, Slow5Error,
 };
 
+enum RecordCompression {
+    None,
+    Zlib,
+    ZStd,
+}
+
+enum SignalCompression {
+    None,
+    SvbZd,
+}
+
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
 }

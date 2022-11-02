@@ -9,7 +9,7 @@ use crate::{
     error::Slow5Error,
     header::HeaderView,
     record::{Record, RecordIter},
-    to_cstring,
+    to_cstring, RecordExt,
 };
 
 /// Read from a SLOW5 file
@@ -110,6 +110,22 @@ impl FileReader {
             // TODO Handle error code properly
             Err(Slow5Error::Unknown)
         }
+    }
+
+    /// Returns iterator over all the read ids in a SLOW5 file
+    /// ```
+    /// # use slow5::FileReader;
+    ///
+    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
+    /// let read_ids = slow5.get_read_ids().collect::<Vec<_>>();
+    /// # assert_eq!(read_ids.len(), 5);
+    /// ```
+    // TODO figure out how to seek back after
+    // Records has to take ownership because the file pointer is changed during iteration
+    // Maybe ideal to fseek + other with the fp after dropping the RecordIter
+    pub fn get_read_ids(self) -> impl Iterator<Item = Result<Vec<u8>, Slow5Error>> {
+        self.records()
+            .map(|rrv| rrv.map(|rv| rv.read_id().to_vec()))
     }
 }
 
