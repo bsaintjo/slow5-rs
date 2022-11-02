@@ -48,7 +48,8 @@ impl FileReader {
         }
     }
 
-    fn header(&self) -> HeaderView<'_> {
+    /// Access header of a SLOW5 file
+    pub fn header(&self) -> HeaderView<'_> {
         let header: *mut slow5_hdr_t = unsafe { (*self.slow5_file).header };
         HeaderView::new(header, PhantomData)
     }

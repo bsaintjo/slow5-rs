@@ -92,8 +92,7 @@ impl RecordBuilder {
                 return Err(Slow5Error::Allocation);
             }
 
-            let read_id =
-                CString::new(self.read_id.clone()).map_err(Slow5Error::InteriorNul)?;
+            let read_id = CString::new(self.read_id.clone()).map_err(Slow5Error::InteriorNul)?;
             let read_id_ptr = read_id.into_raw();
             let read_id_len = self.read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
@@ -147,6 +146,13 @@ impl Record {
             picoamps,
             slow5_rec,
         }
+    }
+    fn add_aux_field<K, V>(&mut self, key: K, value: V) -> Result<(), Slow5Error>
+    where
+        K: Into<Vec<u8>>,
+        V: Into<Vec<u8>>,
+    {
+        todo!()
     }
 }
 

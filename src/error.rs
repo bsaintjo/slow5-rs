@@ -27,4 +27,6 @@ pub enum Slow5Error {
     Unknown,
     #[error("Read ID {0} is a duplicate")]
     DuplicateReadId(String),
+    #[error("Failed to write header to SLOW5 file")]
+    HeaderWriteFailed,
 }
