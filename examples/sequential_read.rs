@@ -1,3 +1,5 @@
+use std::str::from_utf8;
+
 use anyhow::Result;
 use slow5::{FileReader, RecordExt, SignalIterExt};
 
@@ -6,7 +8,8 @@ fn main() -> Result<()> {
     let reader = FileReader::open("examples/example.slow5")?;
     for read in reader.records() {
         let read = read?;
-        println!("{:?}", read.read_id());
+        let read_id = from_utf8(read.read_id())?;
+        println!("{read_id}");
         for signal in read.signal_iter() {
             acc.push(signal);
         }
