@@ -121,8 +121,9 @@ impl FileReader {
     /// # assert_eq!(read_ids.len(), 5);
     /// ```
     // TODO figure out how to seek back after
-    // Records has to take ownership because the file pointer is changed during iteration
-    // Maybe ideal to fseek + other with the fp after dropping the RecordIter
+    // Records has to take ownership because the file pointer is changed during
+    // iteration Maybe ideal to fseek + other with the fp after dropping the
+    // RecordIter
     pub fn get_read_ids(self) -> impl Iterator<Item = Result<Vec<u8>, Slow5Error>> {
         self.records()
             .map(|rrv| rrv.map(|rv| rv.read_id().to_vec()))

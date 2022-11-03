@@ -50,7 +50,12 @@ pub(crate) struct Header<'a> {
 }
 
 impl<'a> Header<'a> {
-    pub(crate) fn new(header: *mut slow5_hdr_t) -> Self { Self { header, _lifetime: PhantomData } }
+    pub(crate) fn new(header: *mut slow5_hdr_t) -> Self {
+        Self {
+            header,
+            _lifetime: PhantomData,
+        }
+    }
 
     fn add_attribute(&mut self, attr: &[u8]) -> Result<(), Slow5Error> {
         unimplemented!()
@@ -64,8 +69,12 @@ impl<'a> Header<'a> {
     where
         S: Into<String>,
     {
-        todo!(); 
-        Ok(Aux { name: name.into(), header: self, _value: PhantomData })
+        todo!();
+        Ok(Aux {
+            name: name.into(),
+            header: self,
+            _value: PhantomData,
+        })
     }
 }
 

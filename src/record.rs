@@ -377,16 +377,14 @@ impl RecPtr for Record {
 
 #[cfg(test)]
 mod test {
-    use crate::FileWriter;
-
     use super::*;
+    use crate::FileWriter;
 
     #[ignore = "Brainstorming api"]
     #[test]
-    fn test_aux() -> anyhow::Result<()>{
+    fn test_aux() -> anyhow::Result<()> {
         // use anyhow::Result;
-        use assert_fs::fixture::PathChild;
-        use assert_fs::TempDir;
+        use assert_fs::{fixture::PathChild, TempDir};
         // use slow5::FileWriter;
         // fn main() -> Result<()> {
         let tmp_dir = TempDir::new()?;
