@@ -7,7 +7,11 @@ use std::{
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
 
-use crate::{error::Slow5Error, FileReader};
+use crate::{
+    error::Slow5Error,
+    header::{Aux, Header},
+    FileReader,
+};
 
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].
@@ -147,11 +151,45 @@ impl Record {
             slow5_rec,
         }
     }
-    fn add_aux_field<K, V>(&mut self, key: K, value: V) -> Result<(), Slow5Error>
-    where
-        K: Into<Vec<u8>>,
-        V: Into<Vec<u8>>,
-    {
+    // Expected API
+    /// ```ignore
+    /// # use anyhow::Result;
+    /// # use slow5::FileWriter;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> Result<()> {
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// let path = "new.slow5";
+    /// # let path = tmp_dir.child(path);
+    /// let mut slow5 = FileWriter::create(path)?;
+    /// let header = slow5.header();
+    /// let mut aux: Aux<f64> = header.add_aux_field("median")?;
+    /// let rec = RecordBuilder::default().build()?;
+    /// rec.add_aux_field(&mut aux, 10.0)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn add_aux_field<T>(&mut self, aux: &mut Aux<T>, value: T) -> Result<(), Slow5Error> {
+        todo!()
+    }
+
+    // Expected API
+    /// ```ignore
+    /// # use anyhow::Result;
+    /// # use slow5::FileWriter;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> Result<()> {
+    /// let path = "examples/example.slow5";
+    /// let slow5 = FileReader::open(path)?;
+    /// let rec = slow5.get_record_id("r1");
+    /// let header = slow5.header();
+    /// let aux: Aux<f64> = header.get_aux_field("median")?;
+    /// let value = rec.get_aux_field(aux)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn get_aux_field<T>(&mut self, aux: Aux<T>) -> Result<T, Slow5Error> {
         todo!()
     }
 }
@@ -334,5 +372,32 @@ trait RecPtr {
 impl RecPtr for Record {
     fn ptr(&self) -> &*mut slow5_rec_t {
         &self.slow5_rec
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::FileWriter;
+
+    use super::*;
+
+    #[ignore = "Brainstorming api"]
+    #[test]
+    fn test_aux() -> anyhow::Result<()>{
+        // use anyhow::Result;
+        use assert_fs::fixture::PathChild;
+        use assert_fs::TempDir;
+        // use slow5::FileWriter;
+        // fn main() -> Result<()> {
+        let tmp_dir = TempDir::new()?;
+        let path = "new.slow5";
+        let path = tmp_dir.child(path);
+        let mut slow5 = FileWriter::create(path)?;
+        let mut header = slow5.header();
+        let mut aux: Aux<f64> = header.add_aux_field("median")?;
+        let mut rec = RecordBuilder::default().build()?;
+        rec.add_aux_field(&mut aux, 10.0)?;
+        Ok(())
+        // }
     }
 }

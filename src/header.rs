@@ -21,14 +21,18 @@ impl<'a> HeaderView<'a> {
     /// Get the value of an attribute in a read group
     /// ```
     /// use slow5::FileReader;
-    /// 
+    ///
     /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
     /// let header = slow5.header();
     /// let attr = header.attribute(0, "run_id").unwrap();
     /// # assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
     /// ```
     // TODO how to handle allocated string from slow5_hdr_get
-    pub fn attribute<S: Into<Vec<u8>>>(&self, read_group: u32, attr: S) -> Result<&str, Slow5Error> {
+    pub fn attribute<S: Into<Vec<u8>>>(
+        &self,
+        read_group: u32,
+        attr: S,
+    ) -> Result<&str, Slow5Error> {
         let attr = CString::new(attr).unwrap();
         let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
         if !rg_value.is_null() {
@@ -46,6 +50,8 @@ pub(crate) struct Header<'a> {
 }
 
 impl<'a> Header<'a> {
+    pub(crate) fn new(header: *mut slow5_hdr_t) -> Self { Self { header, _lifetime: PhantomData } }
+
     fn add_attribute(&mut self, attr: &[u8]) -> Result<(), Slow5Error> {
         unimplemented!()
     }
@@ -54,12 +60,19 @@ impl<'a> Header<'a> {
         unimplemented!()
     }
 
-    fn add_aux_field<T>(&mut self, aux_field: T) -> Result<(), Slow5Error>
+    pub(crate) fn add_aux_field<S, T>(&'a mut self, name: S) -> Result<Aux<'a, T>, Slow5Error>
     where
-        T: AuxField,
+        S: Into<String>,
     {
-        unimplemented!()
+        todo!(); 
+        Ok(Aux { name: name.into(), header: self, _value: PhantomData })
     }
+}
+
+pub(crate) struct Aux<'a, T> {
+    name: String,
+    header: &'a mut Header<'a>,
+    _value: PhantomData<T>,
 }
 
 trait HeaderExt {}

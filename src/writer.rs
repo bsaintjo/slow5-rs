@@ -1,9 +1,10 @@
-use std::{os::unix::prelude::OsStrExt, path::Path};
+use std::{marker::PhantomData, os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
 use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_write};
 
 use crate::{
+    header::Header,
     record::{Record, RecordBuilder},
     to_cstring, Slow5Error,
 };
@@ -106,6 +107,11 @@ impl FileWriter {
         } else {
             Err(Slow5Error::Unknown)
         }
+    }
+
+    pub(crate) fn header(&mut self) -> Header {
+        let h = unsafe { (*self.slow5_file).header };
+        Header::new(h)
     }
 
     /// Write record to SLOW5 file, with a closure that makes a one-shot
