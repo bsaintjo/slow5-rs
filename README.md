@@ -27,16 +27,6 @@ slow5 = "0.7.0"
 
 Note: version does not directly translate to version of slow5lib.
 
-## TODO
-
-- [x] Read SLOW5 files
-- [x] Iterating over SLOW5 records
-- [x] Iterating over picoamp measurements in records
-- [x] Write slow5 file
-- [ ] Handle BLOW5 files
-- [ ] Reading headers
-- [ ] Reading aux info
-
 ## License
 
 Licensed under either of
