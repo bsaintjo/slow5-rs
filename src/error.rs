@@ -29,4 +29,6 @@ pub enum Slow5Error {
     DuplicateReadId(String),
     #[error("Failed to write header to SLOW5 file")]
     HeaderWriteFailed,
+    #[error("Failed to load auxiliary field")]
+    AuxLoadFailure,
 }

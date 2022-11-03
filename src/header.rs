@@ -3,9 +3,9 @@ use std::{
     marker::PhantomData,
 };
 
-use slow5lib_sys::{slow5_hdr_get, slow5_hdr_t};
+use slow5lib_sys::{slow5_aux_get_uint64, slow5_hdr_get, slow5_hdr_t};
 
-use crate::error::Slow5Error;
+use crate::{error::Slow5Error, Record};
 
 /// Get an immutable access to the headers of a SLOW5 file.
 pub struct HeaderView<'a> {
@@ -86,6 +86,40 @@ pub(crate) struct Aux<'a, T> {
 
 trait HeaderExt {}
 
-trait AuxField: Clone {
-    fn aux_meta(&self, name: &[u8], header: Header);
+trait AuxField {
+    fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error>
+    where
+        Self: std::marker::Sized;
 }
+
+// macro_rules! impl_auxfield {
+//     ($rtype:ty, $ctype:ident) => {
+//         impl AuxField for $rtype {
+//             fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
+//                 let mut ret = 0;
+//                 let name = CString::new(name).unwrap();
+//                 // TODO try to use paste! from paste crate
+//                 let data = unsafe { concat_idents!(slow5_aux_get_, $ctype)(rec.slow5_rec, name.as_ptr(), &mut ret) };
+//                 if ret != 0 {
+//                     Err(Slow5Error::AuxLoadFailure)
+//                 } else {
+//                     Ok(data)
+//                 }
+//             }
+//         }
+//     };
+// }
+// impl_auxfield!(u64, uint64);
+
+// impl AuxField for u64 {
+//     fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
+//         let mut ret = 0;
+//         let name = CString::new(name).unwrap();
+//         let data = unsafe { slow5_aux_get_uint64(rec.slow5_rec, name.as_ptr(), &mut ret) };
+//         if ret != 0 {
+//             Err(Slow5Error::AuxLoadFailure)
+//         } else {
+//             Ok(data)
+//         }
+//     }
+// }
