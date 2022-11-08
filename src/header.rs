@@ -24,14 +24,14 @@ impl<'a> HeaderView<'a> {
     ///
     /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
     /// let header = slow5.header();
-    /// let attr = header.attribute(0, "run_id").unwrap();
+    /// let attr = header.attribute("run_id", 0).unwrap();
     /// # assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
     /// ```
     // TODO how to handle allocated string from slow5_hdr_get
     pub fn attribute<S: Into<Vec<u8>>>(
         &self,
-        read_group: u32,
         attr: S,
+        read_group: u32,
     ) -> Result<&str, Slow5Error> {
         let attr = CString::new(attr).unwrap();
         let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
@@ -95,13 +95,13 @@ trait AuxField {
 // macro_rules! impl_auxfield {
 //     ($rtype:ty, $ctype:ident) => {
 //         impl AuxField for $rtype {
-//             fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
-//                 let mut ret = 0;
+//             fn aux_get(&self, rec: &Record, name: &str) -> Result<Self,
+// Slow5Error> {                 let mut ret = 0;
 //                 let name = CString::new(name).unwrap();
 //                 // TODO try to use paste! from paste crate
-//                 let data = unsafe { concat_idents!(slow5_aux_get_, $ctype)(rec.slow5_rec, name.as_ptr(), &mut ret) };
-//                 if ret != 0 {
-//                     Err(Slow5Error::AuxLoadFailure)
+//                 let data = unsafe { concat_idents!(slow5_aux_get_,
+// $ctype)(rec.slow5_rec, name.as_ptr(), &mut ret) };                 if ret !=
+// 0 {                     Err(Slow5Error::AuxLoadFailure)
 //                 } else {
 //                     Ok(data)
 //                 }
@@ -115,8 +115,8 @@ trait AuxField {
 //     fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
 //         let mut ret = 0;
 //         let name = CString::new(name).unwrap();
-//         let data = unsafe { slow5_aux_get_uint64(rec.slow5_rec, name.as_ptr(), &mut ret) };
-//         if ret != 0 {
+//         let data = unsafe { slow5_aux_get_uint64(rec.slow5_rec,
+// name.as_ptr(), &mut ret) };         if ret != 0 {
 //             Err(Slow5Error::AuxLoadFailure)
 //         } else {
 //             Ok(data)

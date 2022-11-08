@@ -17,6 +17,7 @@ documentation = "https://doc.rs/slow5"
 [dependencies]
 cstr = "0.2.10"
 libc = "0.2.126"
+log = "0.4.17"
 slow5lib-sys = { version = "0.7.0", path="slow5lib-sys" }
 thiserror = "1.0.30"
 

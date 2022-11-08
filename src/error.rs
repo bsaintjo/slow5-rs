@@ -31,4 +31,6 @@ pub enum Slow5Error {
     HeaderWriteFailed,
     #[error("Failed to load auxiliary field")]
     AuxLoadFailure,
+    #[error("Error setting compression method")]
+    CompressionError,
 }

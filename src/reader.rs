@@ -12,6 +12,12 @@ use crate::{
     to_cstring, RecordExt,
 };
 
+struct Slow5Version {
+    major: u8,
+    minor: u8,
+    patch: u8,
+}
+
 /// Read from a SLOW5 file
 pub struct FileReader {
     pub(crate) slow5_file: *mut slow5_file_t,
@@ -105,7 +111,7 @@ impl FileReader {
         let ret = unsafe { slow5_get(rid_ptr, &mut slow5_rec, self.slow5_file) };
         let _ = unsafe { CString::from_raw(rid_ptr) };
         if ret >= 0 {
-            Ok(Record::new(true, slow5_rec))
+            Ok(Record::new(slow5_rec))
         } else {
             // TODO Handle error code properly
             Err(Slow5Error::Unknown)

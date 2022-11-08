@@ -85,10 +85,6 @@ impl RecordBuilder {
         self
     }
 
-    fn picoamps(&mut self, picoamps: &[f64]) -> &mut Self {
-        unimplemented!()
-    }
-
     pub fn build(&mut self) -> Result<Record, Slow5Error> {
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
@@ -122,7 +118,7 @@ impl RecordBuilder {
             }
             (*record).raw_signal = raw_signal_ptr;
 
-            Ok(Record::new(true, record))
+            Ok(Record::new(record))
         }
     }
 }
@@ -139,17 +135,12 @@ unsafe fn allocate(size: usize) -> Result<*mut c_void, Slow5Error> {
 
 /// Owned-type representing a SLOW5 record.
 pub struct Record {
-    // TODO Figure out whether to keep picoamps
-    picoamps: bool,
     pub(crate) slow5_rec: *mut slow5_rec_t,
 }
 
 impl Record {
-    pub(crate) fn new(picoamps: bool, slow5_rec: *mut slow5_rec_t) -> Self {
-        Self {
-            picoamps,
-            slow5_rec,
-        }
+    pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
+        Self { slow5_rec }
     }
     // Expected API
     /// ```ignore
@@ -215,28 +206,42 @@ impl RecordView {
 }
 
 /// Trait for common record methods.
-pub trait RecordExt {
+pub trait RecordExt: RecPtr {
     /// Get record's read id.
-    fn read_id(&self) -> &[u8];
-}
-
-impl RecordExt for RecordView {
     fn read_id(&self) -> &[u8] {
-        let str_ptr: *mut c_char = unsafe { (*self.slow5_rec).read_id };
+        let str_ptr: *mut c_char = unsafe { (*self.ptr().ptr).read_id };
         let read_id = unsafe { CStr::from_ptr(str_ptr) };
 
         read_id.to_bytes()
     }
-}
 
-impl RecordExt for Record {
-    fn read_id(&self) -> &[u8] {
-        let str_ptr: *mut c_char = unsafe { (*self.slow5_rec).read_id };
-        let read_id = unsafe { CStr::from_ptr(str_ptr) };
+    fn digitisation(&self) -> f64 {
+        unsafe { (*self.ptr().ptr).digitisation }
+    }
 
-        read_id.to_bytes()
+    fn offset(&self) -> f64 {
+        unsafe { (*self.ptr().ptr).offset }
+    }
+
+    fn range(&self) -> f64 {
+        unsafe { (*self.ptr().ptr).range }
+    }
+
+    fn read_group(&self) -> u32 {
+        unsafe { (*self.ptr().ptr).read_group }
+    }
+
+    fn len_signal(&self) -> u64 {
+        unsafe { (*self.ptr().ptr).len_raw_signal }
+    }
+
+    fn sampling_rate(&self) -> f64 {
+        unsafe { (*self.ptr().ptr).sampling_rate }
     }
 }
+
+impl RecordExt for RecordView {}
+impl RecordExt for Record {}
 
 /// Iterator over Records from a SLOW5 file.
 ///
@@ -301,21 +306,19 @@ fn to_picoamps(raw_val: f64, digitisation: f64, offset: f64, range: f64) -> f64 
 
 /// Iterator over signal in picoamps from Record.
 ///
-/// This struct is generally created by calling [`signal_iter`] on a record
-/// type.
+/// This struct is generally created by calling [`picoamps_signal_iter`] on a
+/// record type.
 ///
-/// [`signal_iter`]: SignalIterExt::signal_iter
-pub struct SignalIter<'a> {
-    picoamps: bool,
+/// [`picoamps_signal_iter`]: SignalIterExt::picoamps_signal_iter
+pub struct PicoAmpsSignalIter<'a> {
     i: u64,
     read: *mut slow5_rec_t,
     _lifetime: PhantomData<&'a ()>,
 }
 
-impl<'a> SignalIter<'a> {
-    fn new(picoamps: bool, read: *mut slow5_rec_t) -> Self {
+impl<'a> PicoAmpsSignalIter<'a> {
+    fn new(read: *mut slow5_rec_t) -> Self {
         Self {
-            picoamps,
             i: 0,
             read,
             _lifetime: PhantomData,
@@ -323,21 +326,19 @@ impl<'a> SignalIter<'a> {
     }
 }
 
-impl<'a> Iterator for SignalIter<'a> {
+impl<'a> Iterator for PicoAmpsSignalIter<'a> {
     type Item = f64;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
             if self.i < (*self.read).len_raw_signal {
-                let mut signal = *(*self.read).raw_signal.offset(self.i as isize) as f64;
-                if self.picoamps {
-                    signal = to_picoamps(
-                        signal,
-                        (*self.read).digitisation,
-                        (*self.read).offset,
-                        (*self.read).range,
-                    );
-                }
+                let signal = *(*self.read).raw_signal.offset(self.i as isize) as f64;
+                let signal = to_picoamps(
+                    signal,
+                    (*self.read).digitisation,
+                    (*self.read).offset,
+                    (*self.read).range,
+                );
                 self.i += 1;
                 Some(signal as f64)
             } else {
@@ -347,31 +348,75 @@ impl<'a> Iterator for SignalIter<'a> {
     }
 }
 
+pub struct RawSignalIter<'a> {
+    i: u64,
+    read: *mut slow5_rec_t,
+    _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> RawSignalIter<'a> {
+    fn new(read: *mut slow5_rec_t) -> Self {
+        Self {
+            i: 0,
+            read,
+            _lifetime: PhantomData,
+        }
+    }
+}
+
+impl<'a> Iterator for RawSignalIter<'a> {
+    type Item = i16;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        unsafe {
+            if self.i < (*self.read).len_raw_signal {
+                let signal = *(*self.read).raw_signal.offset(self.i as isize);
+                self.i += 1;
+                Some(signal)
+            } else {
+                None
+            }
+        }
+    }
+}
+
 /// Extension trait to get a SignalIter from record-like types
 // TODO maybe combine this with RecordExt
-pub trait SignalIterExt {
-    fn signal_iter(&self) -> SignalIter<'_>;
-}
-
-impl SignalIterExt for Record {
-    fn signal_iter(&self) -> SignalIter<'_> {
-        SignalIter::new(self.picoamps, self.slow5_rec)
+pub trait SignalIterExt: RecPtr {
+    fn picoamps_signal_iter(&self) -> PicoAmpsSignalIter<'_> {
+        PicoAmpsSignalIter::new(self.ptr().ptr)
+    }
+    fn raw_signal_iter(&self) -> RawSignalIter<'_> {
+        RawSignalIter::new(self.ptr().ptr)
     }
 }
 
-impl SignalIterExt for RecordView {
-    fn signal_iter(&self) -> SignalIter<'_> {
-        SignalIter::new(true, self.slow5_rec)
+impl SignalIterExt for Record {}
+impl SignalIterExt for RecordView {}
+
+pub struct RecordPointer {
+    pub(crate) ptr: *mut slow5_rec_t,
+}
+
+impl RecordPointer {
+    pub(crate) fn new(ptr: *mut slow5_rec_t) -> Self {
+        RecordPointer { ptr }
     }
 }
 
-trait RecPtr {
-    fn ptr(&self) -> &*mut slow5_rec_t;
+pub trait RecPtr {
+    fn ptr(&self) -> RecordPointer;
 }
 
 impl RecPtr for Record {
-    fn ptr(&self) -> &*mut slow5_rec_t {
-        &self.slow5_rec
+    fn ptr(&self) -> RecordPointer {
+        RecordPointer::new(self.slow5_rec)
+    }
+}
+
+impl RecPtr for RecordView {
+    fn ptr(&self) -> RecordPointer {
+        RecordPointer::new(self.slow5_rec)
     }
 }
 

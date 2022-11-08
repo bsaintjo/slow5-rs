@@ -10,7 +10,7 @@ fn main() -> Result<()> {
         let read = read?;
         let read_id = from_utf8(read.read_id())?;
         println!("{read_id}");
-        for signal in read.signal_iter() {
+        for signal in read.picoamps_signal_iter() {
             acc.push(signal);
         }
     }

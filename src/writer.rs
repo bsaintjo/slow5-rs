@@ -1,25 +1,14 @@
 use std::{marker::PhantomData, os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
-use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_write};
+use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
 
 use crate::{
+    compression::Options,
     header::Header,
     record::{Record, RecordBuilder},
     to_cstring, Slow5Error,
 };
-
-enum RecordCompression {
-    None,
-    Zlib,
-    ZStd,
-}
-
-enum SignalCompression {
-    None,
-    SvbZd,
-}
-
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
 }
@@ -53,15 +42,67 @@ impl FileWriter {
     where
         P: AsRef<Path>,
     {
-        let file_path = file_path.as_ref().as_os_str().as_bytes();
+        Self::with_options(file_path, Default::default())
+    }
+
+    /// Create a file with record and signal compression.
+    ///
+    /// # Details
+    /// If the extension of `file_path` is not blow5 (ie "test.blow5"), the
+    /// compression options are ignored.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::FileWriter;
+    /// # use slow5::SignalCompression;
+    /// # use slow5::RecordCompression;
+    /// # use slow5::Options;
+    ///
+    /// let file_path = "test.blow5";
+    /// let opts = Options::new(RecordCompression::ZStd, SignalCompression::SvbZd);
+    /// let writer = FileWriter::with_options(file_path, opts).unwrap();
+    /// ```
+    // TODO avoid having to check extension, either by adding it manually
+    // or use a lower level API.
+    pub fn with_options<P>(file_path: P, opts: Options) -> Result<Self, Slow5Error>
+    where
+        P: AsRef<Path>,
+    {
+        let file_path = file_path.as_ref();
+        let is_blow5 = {
+            if let Some(ext) = file_path.extension() {
+                ext == "blow5"
+            } else {
+                false
+            }
+        };
+        let file_path = file_path.as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
         let mode = cstr!("w");
 
         let slow5_file = unsafe {
             let slow5_file = slow5_open(file_path.as_ptr(), mode.as_ptr());
+
             if slow5_file.is_null() {
                 return Err(Slow5Error::Allocation);
             }
+
+            // Compression
+            if is_blow5 {
+                let comp_ret = slow5_set_press(
+                    slow5_file,
+                    opts.rec_comp.to_slow5_rep(),
+                    opts.sig_comp.to_slow5_rep(),
+                );
+                if comp_ret < 0 {
+                    return Err(Slow5Error::CompressionError);
+                }
+            } else {
+                log::info!("Not a BLOW5 file, skipping compression");
+            }
+
+            // Header
+            // TODO Do this at the end?
             let hdr_ret = slow5_hdr_write(slow5_file);
             if hdr_ret == -1 {
                 return Err(Slow5Error::HeaderWriteFailed);
