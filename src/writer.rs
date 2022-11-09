@@ -53,14 +53,19 @@ impl FileWriter {
     ///
     /// # Example
     /// ```
+    /// # use assert_fs::TempDir;
     /// # use slow5::FileWriter;
     /// # use slow5::SignalCompression;
     /// # use slow5::RecordCompression;
     /// # use slow5::Options;
     ///
+    /// # let tmpdir = TempDir::new().unwrap();
     /// let file_path = "test.blow5";
+    /// # let file_path = tmpdir.child(file_path);
     /// let opts = Options::new(RecordCompression::ZStd, SignalCompression::SvbZd);
     /// let writer = FileWriter::with_options(file_path, opts).unwrap();
+    /// # writer.close();
+    /// 
     /// ```
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
