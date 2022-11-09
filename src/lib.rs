@@ -8,6 +8,7 @@ mod reader;
 mod record;
 mod writer;
 mod aux;
+mod experimental;
 
 use std::ffi::CString;
 
