@@ -33,4 +33,6 @@ pub enum Slow5Error {
     AuxLoadFailure,
     #[error("Error setting compression method")]
     CompressionError,
+    #[error("Either no slow index or read ID list not in index")]
+    ReadIdIterError,
 }
