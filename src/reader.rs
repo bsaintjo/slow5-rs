@@ -1,4 +1,3 @@
-use slow5lib_sys::slow5_get_rids;
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
@@ -9,13 +8,13 @@ use std::{
 
 use cstr::cstr;
 use libc::c_char;
-use slow5lib_sys::{slow5_file_t, slow5_get, slow5_hdr_t, slow5_rec_t};
+use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_rec_t};
 
 use crate::{
     error::Slow5Error,
     header::HeaderView,
     record::{Record, RecordIter},
-    to_cstring, RecordExt,
+    to_cstring,
 };
 
 struct Slow5Version {

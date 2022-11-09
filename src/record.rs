@@ -7,11 +7,7 @@ use std::{
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
 
-use crate::{
-    error::Slow5Error,
-    header::{Header},
-    FileReader, aux::Aux,
-};
+use crate::{aux::Aux, error::Slow5Error, FileReader};
 
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].

@@ -1,16 +1,10 @@
-use slow5lib_sys::slow5_aux_get_char;
-use slow5lib_sys::slow5_aux_get_double;
-use slow5lib_sys::slow5_aux_get_float;
-use slow5lib_sys::slow5_aux_get_int16;
-use slow5lib_sys::slow5_aux_get_int32;
-use slow5lib_sys::slow5_aux_get_int64;
-use slow5lib_sys::slow5_aux_get_int8;
-use slow5lib_sys::slow5_aux_get_uint16;
-use slow5lib_sys::slow5_aux_get_uint32;
-use slow5lib_sys::slow5_aux_get_uint64;
-use slow5lib_sys::slow5_aux_get_uint8;
-use std::ffi::CString;
-use std::marker::PhantomData;
+use std::{ffi::CString, marker::PhantomData};
+
+use slow5lib_sys::{
+    slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16, slow5_aux_get_int32,
+    slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_uint16, slow5_aux_get_uint32,
+    slow5_aux_get_uint64, slow5_aux_get_uint8,
+};
 
 use crate::{header::Header, record::RecPtr, Record, Slow5Error};
 

@@ -1,14 +1,14 @@
 #![doc = include_str!("../README.md")]
 // #![warn(missing_docs)]
 
+mod aux;
 mod compression;
 mod error;
+mod experimental;
 mod header;
 mod reader;
 mod record;
 mod writer;
-mod aux;
-mod experimental;
 
 use std::ffi::CString;
 

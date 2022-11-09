@@ -1,11 +1,10 @@
-use slow5lib_sys::slow5_get_aux_names;
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
 };
 
 use libc::c_char;
-use slow5lib_sys::{slow5_hdr_get, slow5_hdr_t};
+use slow5lib_sys::{slow5_get_aux_names, slow5_hdr_get, slow5_hdr_t};
 
 use crate::{aux::Aux, error::Slow5Error};
 

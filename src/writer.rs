@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, os::unix::prelude::OsStrExt, path::Path};
+use std::{os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
 use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
@@ -65,7 +65,6 @@ impl FileWriter {
     /// let opts = Options::new(RecordCompression::ZStd, SignalCompression::SvbZd);
     /// let writer = FileWriter::with_options(file_path, opts).unwrap();
     /// # writer.close();
-    /// 
     /// ```
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
