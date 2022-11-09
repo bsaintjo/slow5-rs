@@ -1,11 +1,13 @@
+use slow5lib_sys::slow5_get_aux_names;
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
 };
 
-use slow5lib_sys::{slow5_aux_get_uint64, slow5_hdr_get, slow5_hdr_t};
+use libc::c_char;
+use slow5lib_sys::{slow5_hdr_get, slow5_hdr_t};
 
-use crate::{error::Slow5Error, Record};
+use crate::{aux::Aux, error::Slow5Error};
 
 /// Get an immutable access to the headers of a SLOW5 file.
 pub struct HeaderView<'a> {
@@ -65,61 +67,52 @@ impl<'a> Header<'a> {
         unimplemented!()
     }
 
+    pub(crate) fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
+        let mut num_aux = 0;
+        let auxs = unsafe { slow5_get_aux_names(self.header, &mut num_aux) };
+        if auxs.is_null() || num_aux == 0 {
+            Err(Slow5Error::AuxNameIterError)
+        } else {
+            Ok(AuxNamesIter::new(0, num_aux, auxs))
+        }
+    }
+
     pub(crate) fn add_aux_field<S, T>(&'a mut self, name: S) -> Result<Aux<'a, T>, Slow5Error>
     where
         S: Into<String>,
     {
         todo!();
-        Ok(Aux {
-            name: name.into(),
-            header: self,
-            _value: PhantomData,
-        })
     }
 }
 
-pub(crate) struct Aux<'a, T> {
-    name: String,
-    header: &'a mut Header<'a>,
-    _value: PhantomData<T>,
+pub struct AuxNamesIter<'a> {
+    idx: u64,
+    num_aux: u64,
+    auxs: *mut *mut c_char,
+    _lifetime: PhantomData<&'a ()>,
 }
 
-trait HeaderExt {}
-
-trait AuxField {
-    fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error>
-    where
-        Self: std::marker::Sized;
+impl<'a> AuxNamesIter<'a> {
+    fn new(idx: u64, num_aux: u64, auxs: *mut *mut c_char) -> Self {
+        Self {
+            idx,
+            num_aux,
+            auxs,
+            _lifetime: PhantomData,
+        }
+    }
 }
 
-// macro_rules! impl_auxfield {
-//     ($rtype:ty, $ctype:ident) => {
-//         impl AuxField for $rtype {
-//             fn aux_get(&self, rec: &Record, name: &str) -> Result<Self,
-// Slow5Error> {                 let mut ret = 0;
-//                 let name = CString::new(name).unwrap();
-//                 // TODO try to use paste! from paste crate
-//                 let data = unsafe { concat_idents!(slow5_aux_get_,
-// $ctype)(rec.slow5_rec, name.as_ptr(), &mut ret) };                 if ret !=
-// 0 {                     Err(Slow5Error::AuxLoadFailure)
-//                 } else {
-//                     Ok(data)
-//                 }
-//             }
-//         }
-//     };
-// }
-// impl_auxfield!(u64, uint64);
+impl<'a> Iterator for AuxNamesIter<'a> {
+    type Item = &'a [u8];
 
-// impl AuxField for u64 {
-//     fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
-//         let mut ret = 0;
-//         let name = CString::new(name).unwrap();
-//         let data = unsafe { slow5_aux_get_uint64(rec.slow5_rec,
-// name.as_ptr(), &mut ret) };         if ret != 0 {
-//             Err(Slow5Error::AuxLoadFailure)
-//         } else {
-//             Ok(data)
-//         }
-//     }
-// }
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx < self.num_aux {
+            let aux_name = unsafe { self.auxs.offset(self.idx as isize) };
+            let aux_name = unsafe { CStr::from_ptr(*aux_name) };
+            Some(aux_name.to_bytes())
+        } else {
+            None
+        }
+    }
+}

@@ -9,8 +9,8 @@ use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
 
 use crate::{
     error::Slow5Error,
-    header::{Aux, Header},
-    FileReader,
+    header::{Header},
+    FileReader, aux::Aux,
 };
 
 /// Builder to create a Record, call methods to set parameters and build to

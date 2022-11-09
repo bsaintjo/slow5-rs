@@ -35,4 +35,6 @@ pub enum Slow5Error {
     CompressionError,
     #[error("Either no slow index or read ID list not in index")]
     ReadIdIterError,
+    #[error("Error in getting list of aux field names")]
+    AuxNameIterError,
 }
