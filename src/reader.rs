@@ -1,8 +1,14 @@
+use slow5lib_sys::slow5_get_rids;
 use std::{
-    ffi::CString, marker::PhantomData, mem::size_of, os::unix::prelude::OsStrExt, path::Path,
+    ffi::{CStr, CString},
+    marker::PhantomData,
+    mem::size_of,
+    os::unix::prelude::OsStrExt,
+    path::Path,
 };
 
 use cstr::cstr;
+use libc::c_char;
 use slow5lib_sys::{slow5_file_t, slow5_get, slow5_hdr_t, slow5_rec_t};
 
 use crate::{
@@ -121,18 +127,25 @@ impl FileReader {
     /// Returns iterator over all the read ids in a SLOW5 file
     /// ```
     /// # use slow5::FileReader;
+    /// use std::str;
     ///
     /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
-    /// let read_ids = slow5.get_read_ids().collect::<Vec<_>>();
+    /// # let mut read_ids = Vec::new();
+    /// let read_id_iter = slow5.iter_read_ids().unwrap();
+    /// for rid in read_id_iter {
+    ///     println!("{}", str::from_utf8(rid).unwrap());
+    /// #   read_ids.push(rid);
+    /// }
     /// # assert_eq!(read_ids.len(), 5);
+    /// # assert_eq!(read_ids[0], b"r1");
+    /// # assert_eq!(read_ids[1], b"r2");
     /// ```
     // TODO figure out how to seek back after
     // Records has to take ownership because the file pointer is changed during
     // iteration Maybe ideal to fseek + other with the fp after dropping the
     // RecordIter
-    pub fn get_read_ids(self) -> impl Iterator<Item = Result<Vec<u8>, Slow5Error>> {
-        self.records()
-            .map(|rrv| rrv.map(|rv| rv.read_id().to_vec()))
+    pub fn iter_read_ids(&self) -> Result<ReadIdIter<'_>, Slow5Error> {
+        ReadIdIter::new(self)
     }
 }
 
@@ -140,6 +153,45 @@ impl Drop for FileReader {
     fn drop(&mut self) {
         unsafe {
             slow5lib_sys::slow5_close(self.slow5_file);
+        }
+    }
+}
+
+pub struct ReadIdIter<'a> {
+    idx: u64,
+    num_reads: u64,
+    read_id_ptr: *mut *mut c_char,
+    _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> ReadIdIter<'a> {
+    fn new(reader: &FileReader) -> Result<Self, Slow5Error> {
+        let mut num_reads = 0;
+        let rids = unsafe { slow5_get_rids(reader.slow5_file, &mut num_reads) };
+        if rids.is_null() || num_reads == 0 {
+            Err(Slow5Error::ReadIdIterError)
+        } else {
+            Ok(ReadIdIter {
+                idx: 0,
+                num_reads,
+                read_id_ptr: rids,
+                _lifetime: PhantomData,
+            })
+        }
+    }
+}
+
+impl<'a> Iterator for ReadIdIter<'a> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx < self.num_reads {
+            let rid = unsafe { self.read_id_ptr.offset(self.idx as isize) };
+            let rid = unsafe { CStr::from_ptr(*rid) };
+            self.idx += 1;
+            Some(rid.to_bytes())
+        } else {
+            None
         }
     }
 }
