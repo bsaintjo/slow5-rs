@@ -1,6 +1,18 @@
+use slow5lib_sys::slow5_aux_get_char;
+use slow5lib_sys::slow5_aux_get_double;
+use slow5lib_sys::slow5_aux_get_float;
+use slow5lib_sys::slow5_aux_get_int16;
+use slow5lib_sys::slow5_aux_get_int32;
+use slow5lib_sys::slow5_aux_get_int64;
+use slow5lib_sys::slow5_aux_get_int8;
+use slow5lib_sys::slow5_aux_get_uint16;
+use slow5lib_sys::slow5_aux_get_uint32;
+use slow5lib_sys::slow5_aux_get_uint64;
+use slow5lib_sys::slow5_aux_get_uint8;
+use std::ffi::CString;
 use std::marker::PhantomData;
 
-use crate::{record::RecPtr, Slow5Error, header::Header, Record};
+use crate::{header::Header, record::RecPtr, Record, Slow5Error};
 
 enum AuxType {
     I8(i8),
@@ -17,7 +29,10 @@ enum AuxType {
 }
 
 impl AuxType {
-    fn from_rec<R>(rec: R, field: &str) -> Result<AuxType, Slow5Error> where R: RecPtr {
+    fn from_rec<R>(rec: R, field: &str) -> Result<AuxType, Slow5Error>
+    where
+        R: RecPtr,
+    {
         todo!()
     }
 }
@@ -32,24 +47,37 @@ trait AuxField {
         Self: std::marker::Sized;
 }
 
-// macro_rules! impl_auxfield {
-//     ($rtype:ty, $ctype:ident) => {
-//         impl AuxField for $rtype {
-//             fn aux_get(&self, rec: &Record, name: &str) -> Result<Self,
-// Slow5Error> {                 let mut ret = 0;
-//                 let name = CString::new(name).unwrap();
-//                 // TODO try to use paste! from paste crate
-//                 let data = unsafe { concat_idents!(slow5_aux_get_,
-// $ctype)(rec.slow5_rec, name.as_ptr(), &mut ret) };                 if ret !=
-// 0 {                     Err(Slow5Error::AuxLoadFailure)
-//                 } else {
-//                     Ok(data)
-//                 }
-//             }
-//         }
-//     };
-// }
-// impl_auxfield!(u64, uint64);
+macro_rules! impl_auxfield {
+    ($rtype:ty, $ctype:ident) => {
+        impl AuxField for $rtype {
+            fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
+                let mut ret = 0;
+                let name = CString::new(name).unwrap();
+                let data = unsafe {
+                    paste::paste!( [<slow5_aux_get_ $ctype>] )(rec.slow5_rec, name.as_ptr(), &mut ret)
+                };
+                if ret != 0 {
+                    Err(Slow5Error::AuxLoadFailure)
+                } else {
+                    Ok(data)
+                }
+            }
+        }
+    };
+}
+
+impl_auxfield!(i8, int8);
+impl_auxfield!(i16, int16);
+impl_auxfield!(i32, int32);
+impl_auxfield!(i64, int64);
+
+impl_auxfield!(u8, uint8);
+impl_auxfield!(u16, uint16);
+impl_auxfield!(u32, uint32);
+impl_auxfield!(u64, uint64);
+impl_auxfield!(f32, float);
+impl_auxfield!(f64, double);
+// impl_auxfield!(char, char);
 
 // impl AuxField for u64 {
 //     fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
