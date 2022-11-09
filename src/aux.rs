@@ -1,3 +1,4 @@
+use slow5lib_sys::slow5_aux_get_char;
 use std::{ffi::CString, marker::PhantomData};
 
 use slow5lib_sys::{
@@ -71,17 +72,16 @@ impl_auxfield!(u32, uint32);
 impl_auxfield!(u64, uint64);
 impl_auxfield!(f32, float);
 impl_auxfield!(f64, double);
-// impl_auxfield!(char, char);
 
-// impl AuxField for u64 {
-//     fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
-//         let mut ret = 0;
-//         let name = CString::new(name).unwrap();
-//         let data = unsafe { slow5_aux_get_uint64(rec.slow5_rec,
-// name.as_ptr(), &mut ret) };         if ret != 0 {
-//             Err(Slow5Error::AuxLoadFailure)
-//         } else {
-//             Ok(data)
-//         }
-//     }
-// }
+impl AuxField for char {
+    fn aux_get(&self, rec: &Record, name: &str) -> Result<Self, Slow5Error> {
+        let mut ret = 0;
+        let name = CString::new(name).unwrap();
+        let data = unsafe { slow5_aux_get_char(rec.slow5_rec, name.as_ptr(), &mut ret) };
+        if ret != 0 {
+            Err(Slow5Error::AuxLoadFailure)
+        } else {
+            Ok(data as u8 as char)
+        }
+    }
+}
