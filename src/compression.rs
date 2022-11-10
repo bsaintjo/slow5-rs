@@ -3,9 +3,13 @@ use slow5lib_sys::{
     slow5_press_method_SLOW5_COMPRESS_ZLIB, slow5_press_method_SLOW5_COMPRESS_ZSTD,
 };
 
+/// How to compress the SLOW5 records
 pub enum RecordCompression {
+    /// No compression
     None,
+    /// Compress using zlib
     Zlib,
+    /// Compress using zstd
     ZStd,
 }
 
@@ -19,8 +23,11 @@ impl RecordCompression {
     }
 }
 
+/// How to compress the signal data
 pub enum SignalCompression {
+    /// No signal compression
     None,
+    /// Compress using SVB-ZD algorithm
     SvbZd,
 }
 
@@ -33,6 +40,7 @@ impl SignalCompression {
     }
 }
 
+/// Set record and signal compression
 pub struct Options {
     pub(crate) rec_comp: RecordCompression,
     pub(crate) sig_comp: SignalCompression,

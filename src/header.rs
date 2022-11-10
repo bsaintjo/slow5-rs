@@ -6,7 +6,7 @@ use std::{
 use libc::c_char;
 use slow5lib_sys::{slow5_get_aux_names, slow5_hdr_get, slow5_hdr_t};
 
-use crate::{aux::Aux, error::Slow5Error};
+use crate::{aux::Field, error::Slow5Error};
 
 /// Get an immutable access to the headers of a SLOW5 file.
 pub struct HeaderView<'a> {
@@ -26,7 +26,7 @@ impl<'a> HeaderView<'a> {
     /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
     /// let header = slow5.header();
     /// let attr = header.attribute("run_id", 0).unwrap();
-    /// # assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
+    /// assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
     /// ```
     // TODO how to handle allocated string from slow5_hdr_get
     pub fn attribute<S: Into<Vec<u8>>>(
@@ -45,8 +45,8 @@ impl<'a> HeaderView<'a> {
     }
 }
 
-pub(crate) struct Header<'a> {
-    header: *mut slow5_hdr_t,
+pub struct Header<'a> {
+    pub(crate) header: *mut slow5_hdr_t,
     _lifetime: PhantomData<&'a ()>,
 }
 
@@ -58,15 +58,25 @@ impl<'a> Header<'a> {
         }
     }
 
+    fn get_attribute(&self, read_group: u32) -> Result<&[u8], Slow5Error> {
+        todo!()
+    }
+
     fn add_attribute(&mut self, attr: &[u8]) -> Result<(), Slow5Error> {
         unimplemented!()
     }
 
-    fn set_attribute_read_group(&mut self) -> Result<i64, Slow5Error> {
+    fn set_attribute(
+        &mut self,
+        attr: &[u8],
+        value: &[u8],
+        read_group: u32,
+    ) -> Result<(), Slow5Error> {
         unimplemented!()
     }
 
-    pub(crate) fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
+    /// Return iterator over auxiliary field names
+    pub fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
         let mut num_aux = 0;
         let auxs = unsafe { slow5_get_aux_names(self.header, &mut num_aux) };
         if auxs.is_null() || num_aux == 0 {
@@ -76,14 +86,19 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub(crate) fn add_aux_field<S, T>(&'a mut self, name: S) -> Result<Aux<'a, T>, Slow5Error>
+    /// Add auxiliary field to header, and return a [`Field`] that can be
+    /// used for setting the auxiliary field of [`crate::Record`].
+    pub(crate) fn add_aux_field<B, T>(&'a mut self, name: B) -> Result<Field<'a, T>, Slow5Error>
     where
-        S: Into<String>,
+        B: Into<Vec<u8>>,
     {
         todo!();
     }
 }
 
+/// Iterator over auxiliary field names of a [`Header`], usually using [`aux_names_iter`]
+/// 
+/// [`aux_names_iter`]: crate::Header::aux_names_iter
 pub struct AuxNamesIter<'a> {
     idx: u64,
     num_aux: u64,

@@ -37,4 +37,6 @@ pub enum Slow5Error {
     ReadIdIterError,
     #[error("Error in getting list of aux field names")]
     AuxNameIterError,
+    #[error("Error setting auxiliary field")]
+    SetAuxFieldError,
 }

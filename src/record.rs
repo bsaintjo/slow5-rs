@@ -1,13 +1,17 @@
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
-    mem::size_of,
+    mem::{size_of, transmute},
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
+use slow5lib_sys::{slow5_aux_set, slow5_rec_free, slow5_rec_t};
 
-use crate::{aux::Aux, error::Slow5Error, FileReader};
+use crate::{
+    aux::{AuxField, Field},
+    error::Slow5Error,
+    FileReader,
+};
 
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].
@@ -44,43 +48,60 @@ impl RecordBuilder {
     pub fn builder() -> Self {
         Default::default()
     }
+
+    /// Set the read id of the Record
     pub fn read_id(&mut self, read_id: &[u8]) -> &mut Self {
         let read_id = read_id.to_vec();
         self.read_id = read_id;
         self
     }
 
+    /// Set the read group of the Record
     pub fn read_group(&mut self, read_group: u32) -> &mut Self {
         self.read_group = read_group;
         self
     }
 
+    /// Set the digitisation of the Record
     pub fn digitisation(&mut self, digitisation: f64) -> &mut Self {
         self.digitisation = digitisation;
         self
     }
 
+    /// Set the offset of the Record
     pub fn offset(&mut self, offset: f64) -> &mut Self {
         self.offset = offset;
         self
     }
 
+    /// Set the range of the Record
     pub fn range(&mut self, range: f64) -> &mut Self {
         self.range = range;
         self
     }
 
+    /// Set the sampling rate of the Record
     pub fn sampling_rate(&mut self, sampling_rate: f64) -> &mut Self {
         self.sampling_rate = sampling_rate;
         self
     }
 
+    /// Set the signal of the Record using raw values
     pub fn raw_signal(&mut self, raw_signal: &[i16]) -> &mut Self {
         let raw_signal = raw_signal.to_vec();
         self.raw_signal = raw_signal;
         self
     }
 
+    /// Attempt to convert to Record
+    ///
+    /// # Errors
+    /// `RecordBuilder::build` will fail if
+    /// A) Unable to allocate memory for Record
+    // TODO Should be able to prevent this?
+    /// B) Read ID contains an interior NUL character
+    /// C) Length of Read ID is greater than u16
+    /// D) Length of signal is greater than u64
     pub fn build(&mut self) -> Result<Record, Slow5Error> {
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
@@ -150,14 +171,24 @@ impl Record {
     /// # let path = tmp_dir.child(path);
     /// let mut slow5 = FileWriter::create(path)?;
     /// let header = slow5.header();
-    /// let mut aux: Aux<f64> = header.add_aux_field("median")?;
+    /// let mut aux: Field<f64> = header.add_aux_field("median")?;
     /// let rec = RecordBuilder::default().build()?;
     /// rec.add_aux_field(&mut aux, 10.0)?;
     /// # Ok(())
     /// # }
     /// ```
-    fn add_aux_field<T>(&mut self, aux: &mut Aux<T>, value: T) -> Result<(), Slow5Error> {
-        todo!()
+    pub fn set_aux_field<T>(&mut self, aux: &Field<T>, value: &T) -> Result<(), Slow5Error>
+    where
+        T: AuxField,
+    {
+        let value: *const c_void = unsafe { transmute(&value) };
+        let name = aux.name().as_ptr() as *const c_char;
+        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, aux.header_ptr()) };
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
     }
 
     // Expected API
@@ -171,13 +202,16 @@ impl Record {
     /// let slow5 = FileReader::open(path)?;
     /// let rec = slow5.get_record_id("r1");
     /// let header = slow5.header();
-    /// let aux: Aux<f64> = header.get_aux_field("median")?;
+    /// let aux: Field<f64> = header.get_aux_field("median")?;
     /// let value = rec.get_aux_field(aux)?;
     /// # Ok(())
     /// # }
     /// ```
-    fn get_aux_field<T>(&mut self, aux: Aux<T>) -> Result<T, Slow5Error> {
-        todo!()
+    pub fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
+    where
+        T: AuxField,
+    {
+        T::aux_get(self, name)
     }
 }
 
@@ -233,6 +267,16 @@ pub trait RecordExt: RecPtr {
 
     fn sampling_rate(&self) -> f64 {
         unsafe { (*self.ptr().ptr).sampling_rate }
+    }
+
+    /// Return iterator over signal in terms of picoamps
+    fn picoamps_signal_iter(&self) -> PicoAmpsSignalIter<'_> {
+        PicoAmpsSignalIter::new(self.ptr().ptr)
+    }
+
+    /// Return iterator over raw signal measurements
+    fn raw_signal_iter(&self) -> RawSignalIter<'_> {
+        RawSignalIter::new(self.ptr().ptr)
     }
 }
 
@@ -305,7 +349,7 @@ fn to_picoamps(raw_val: f64, digitisation: f64, offset: f64, range: f64) -> f64 
 /// This struct is generally created by calling [`picoamps_signal_iter`] on a
 /// record type.
 ///
-/// [`picoamps_signal_iter`]: SignalIterExt::picoamps_signal_iter
+/// [`picoamps_signal_iter`]: RecordExt::picoamps_signal_iter
 pub struct PicoAmpsSignalIter<'a> {
     i: u64,
     read: *mut slow5_rec_t,
@@ -344,6 +388,12 @@ impl<'a> Iterator for PicoAmpsSignalIter<'a> {
     }
 }
 
+/// Iterator over signal in picoamps from Record.
+///
+/// This struct is generally created by calling [`raw_signal_iter`] on a
+/// record type.
+///
+/// [`raw_signal_iter`]: RecordExt::raw_signal_iter
 pub struct RawSignalIter<'a> {
     i: u64,
     read: *mut slow5_rec_t,
@@ -376,20 +426,6 @@ impl<'a> Iterator for RawSignalIter<'a> {
     }
 }
 
-/// Extension trait to get a SignalIter from record-like types
-// TODO maybe combine this with RecordExt
-pub trait SignalIterExt: RecPtr {
-    fn picoamps_signal_iter(&self) -> PicoAmpsSignalIter<'_> {
-        PicoAmpsSignalIter::new(self.ptr().ptr)
-    }
-    fn raw_signal_iter(&self) -> RawSignalIter<'_> {
-        RawSignalIter::new(self.ptr().ptr)
-    }
-}
-
-impl SignalIterExt for Record {}
-impl SignalIterExt for RecordView {}
-
 pub struct RecordPointer {
     pub(crate) ptr: *mut slow5_rec_t,
 }
@@ -400,6 +436,7 @@ impl RecordPointer {
     }
 }
 
+// TODO Hide docs, since it isnt useful to have in the documented API
 pub trait RecPtr {
     fn ptr(&self) -> RecordPointer;
 }
@@ -433,9 +470,9 @@ mod test {
         let path = tmp_dir.child(path);
         let mut slow5 = FileWriter::create(path)?;
         let mut header = slow5.header();
-        let mut aux: Aux<f64> = header.add_aux_field("median")?;
+        let aux: Field<f64> = header.add_aux_field("median")?;
         let mut rec = RecordBuilder::default().build()?;
-        rec.add_aux_field(&mut aux, 10.0)?;
+        rec.set_aux_field(&aux, &10.0)?;
         Ok(())
         // }
     }

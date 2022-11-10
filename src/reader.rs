@@ -17,12 +17,6 @@ use crate::{
     to_cstring,
 };
 
-struct Slow5Version {
-    major: u8,
-    minor: u8,
-    patch: u8,
-}
-
 /// Read from a SLOW5 file
 pub struct FileReader {
     pub(crate) slow5_file: *mut slow5_file_t,

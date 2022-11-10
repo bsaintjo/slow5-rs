@@ -16,7 +16,7 @@ pub use compression::{Options, RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::HeaderView;
 pub use reader::FileReader;
-pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordView, SignalIterExt};
+pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordView};
 pub use writer::FileWriter;
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {

@@ -9,6 +9,8 @@ use crate::{
     record::{Record, RecordBuilder},
     to_cstring, Slow5Error,
 };
+
+/// Write a SLOW5 file
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
 }
@@ -54,6 +56,7 @@ impl FileWriter {
     /// # Example
     /// ```
     /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
     /// # use slow5::FileWriter;
     /// # use slow5::SignalCompression;
     /// # use slow5::RecordCompression;
@@ -154,7 +157,8 @@ impl FileWriter {
         }
     }
 
-    pub(crate) fn header(&mut self) -> Header {
+    /// Access header of FileWriter
+    pub fn header(&mut self) -> Header {
         let h = unsafe { (*self.slow5_file).header };
         Header::new(h)
     }

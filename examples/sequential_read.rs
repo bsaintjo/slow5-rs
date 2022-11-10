@@ -1,7 +1,7 @@
 use std::str::from_utf8;
 
 use anyhow::Result;
-use slow5::{FileReader, RecordExt, SignalIterExt};
+use slow5::{FileReader, RecordExt};
 
 fn main() -> Result<()> {
     let mut acc = Vec::new();
