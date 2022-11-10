@@ -1,11 +1,11 @@
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
-    mem::{size_of, transmute},
+    mem::{size_of, transmute}, ptr::{null, null_mut},
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_aux_set, slow5_rec_free, slow5_rec_t};
+use slow5lib_sys::{slow5_aux_set, slow5_rec_free, slow5_rec_t, slow5_file};
 
 use crate::{
     aux::{AuxField, Field},
@@ -278,6 +278,30 @@ pub trait RecordExt: RecPtr {
     fn raw_signal_iter(&self) -> RawSignalIter<'_> {
         RawSignalIter::new(self.ptr().ptr)
     }
+
+    // Expected API
+    /// ```ignore
+    /// # use anyhow::Result;
+    /// # use slow5::FileWriter;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> Result<()> {
+    /// let path = "examples/example.slow5";
+    /// let slow5 = FileReader::open(path)?;
+    /// let rec = slow5.get_record_id("r1");
+    /// let header = slow5.header();
+    /// let aux: Field<f64> = header.get_aux_field("median")?;
+    /// let value = rec.get_aux_field(aux)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
+    where
+        T: AuxField,
+        Self: Sized,
+    {
+        T::aux_get(self, name)
+    }
 }
 
 impl RecordExt for RecordView {}
@@ -290,33 +314,34 @@ impl RecordExt for Record {}
 /// [`FileReader`].
 ///
 /// [`records`]: FileReader::records
-pub struct RecordIter {
-    slow5_rec_ptr: *mut slow5_rec_t,
-    slow5_file: FileReader,
+pub struct RecordIter<'a> {
+    slow5_file: *mut slow5_file,
     errored: bool,
+    _lifetime: PhantomData<&'a ()>
 }
 
-impl RecordIter {
-    pub(crate) fn new(slow5_rec_ptr: *mut slow5_rec_t, slow5_file: FileReader) -> Self {
+impl<'a> RecordIter<'a> {
+    pub(crate) fn new(slow5_file: *mut slow5_file) -> Self {
         Self {
-            slow5_rec_ptr,
             slow5_file,
             errored: false,
+            _lifetime: PhantomData,
         }
     }
 }
 
-impl Iterator for RecordIter {
-    type Item = Result<RecordView, Slow5Error>;
+impl<'a> Iterator for RecordIter<'a> {
+    type Item = Result<Record, Slow5Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let mut rec = null_mut() as *mut slow5_rec_t;
         let ret = unsafe {
-            slow5lib_sys::slow5_get_next(&mut self.slow5_rec_ptr, self.slow5_file.slow5_file)
+            slow5lib_sys::slow5_get_next(&mut rec, self.slow5_file)
         };
         if self.errored {
             None
         } else if ret >= 0 {
-            Some(Ok(RecordView::new(self.slow5_rec_ptr)))
+            Some(Ok(Record::new(rec)))
         } else if ret == -1 {
             None
         } else if ret == -2 {
@@ -331,12 +356,6 @@ impl Iterator for RecordIter {
             self.errored = true;
             Some(Err(Slow5Error::IOError))
         }
-    }
-}
-
-impl Drop for RecordIter {
-    fn drop(&mut self) {
-        unsafe { slow5_rec_free(self.slow5_rec_ptr) }
     }
 }
 

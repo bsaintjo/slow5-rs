@@ -78,10 +78,8 @@ impl FileReader {
     // TODO I could avoid the reader being consumed by using rewinding the file ptr
     // and making it &mut self. RecordIter would need to do the rewinding once its
     // finished.
-    pub fn records(self) -> RecordIter {
-        let slow5_rec_ptr =
-            unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
-        RecordIter::new(slow5_rec_ptr, self)
+    pub fn records(&mut self) -> RecordIter {
+        RecordIter::new(self.slow5_file)
     }
 
     /// Random-access a single [`Record`] by read_id.
@@ -197,7 +195,7 @@ mod test {
     #[test]
     fn test_reader() {
         let filename = "examples/example.slow5";
-        let reader = FileReader::open(filename).unwrap();
+        let mut reader = FileReader::open(filename).unwrap();
 
         let read_id = b"r3";
         let rec = reader.get_record(read_id).unwrap();
