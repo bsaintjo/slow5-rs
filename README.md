@@ -22,7 +22,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5 = "0.7.0"
+slow5 = "0.8.0"
 ```
 
 Note: version does not directly translate to version of slow5lib.
