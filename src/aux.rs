@@ -7,7 +7,7 @@ use slow5lib_sys::{
     slow5_aux_get_uint64, slow5_aux_get_uint8,
 };
 
-use crate::{header::Header, Record, Slow5Error};
+use crate::{header::Header, Record, RecordExt, Slow5Error};
 
 pub struct Field<'a, T> {
     name: String,
@@ -32,21 +32,26 @@ impl<'a, T> Field<'a, T> {
     }
 }
 pub trait AuxField {
-    fn aux_get<B>(rec: &Record, name: B) -> Result<Self, Slow5Error>
+    fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where
         B: Into<Vec<u8>>,
+        R: RecordExt,
         Self: std::marker::Sized;
 }
 
 macro_rules! impl_auxfield {
     ($rtype:ty, $ctype:ident) => {
         impl AuxField for $rtype {
-            fn aux_get<B>(rec: &Record, name: B) -> Result<Self, Slow5Error> where B: Into<Vec<u8>> {
+            fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
+            where
+                B: Into<Vec<u8>>,
+                R: RecordExt,
+            {
                 let mut ret = 0;
                 let name: Vec<u8> = name.into();
                 let name = CString::new(name).map_err(Slow5Error::InteriorNul)?;
                 let data = unsafe {
-                    paste::paste!( [<slow5_aux_get_ $ctype>] )(rec.slow5_rec, name.as_ptr(), &mut ret)
+                    paste::paste!( [<slow5_aux_get_ $ctype>] )(rec.ptr().ptr, name.as_ptr(), &mut ret)
                 };
                 if ret != 0 {
                     Err(Slow5Error::AuxLoadFailure)
@@ -72,13 +77,14 @@ impl_auxfield!(f32, float);
 impl_auxfield!(f64, double);
 
 impl AuxField for char {
-    fn aux_get<B>(rec: &Record, name: B) -> Result<Self, Slow5Error>
+    fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where
         B: Into<Vec<u8>>,
+        R: RecordExt,
     {
         let mut ret = 0;
         let name = CString::new(name.into()).unwrap();
-        let data = unsafe { slow5_aux_get_char(rec.slow5_rec, name.as_ptr(), &mut ret) };
+        let data = unsafe { slow5_aux_get_char(rec.ptr().ptr, name.as_ptr(), &mut ret) };
         if ret != 0 {
             Err(Slow5Error::AuxLoadFailure)
         } else {
