@@ -96,8 +96,9 @@ impl<'a> Header<'a> {
     }
 }
 
-/// Iterator over auxiliary field names of a [`Header`], usually using [`aux_names_iter`]
-/// 
+/// Iterator over auxiliary field names of a [`Header`], usually using
+/// [`aux_names_iter`]
+///
 /// [`aux_names_iter`]: crate::Header::aux_names_iter
 pub struct AuxNamesIter<'a> {
     idx: u64,
