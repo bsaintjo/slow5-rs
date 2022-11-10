@@ -1,7 +1,10 @@
 use std::{os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
-use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
+use slow5lib_sys::{
+    slow5_file, slow5_hdr_write, slow5_log_level_opt_SLOW5_LOG_OFF, slow5_open,
+    slow5_set_log_level, slow5_set_press, slow5_write,
+};
 
 use crate::{
     compression::Options,
@@ -75,6 +78,12 @@ impl FileWriter {
     where
         P: AsRef<Path>,
     {
+        // If we aren't testing or running in debug mode, silence slow5lib logs
+        #[cfg(any(not(test), not(debug_assertions)))]
+        unsafe {
+            slow5_set_log_level(slow5_log_level_opt_SLOW5_LOG_OFF);
+        }
+
         let file_path = file_path.as_ref();
         let is_blow5 = {
             if let Some(ext) = file_path.extension() {

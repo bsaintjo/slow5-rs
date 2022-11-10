@@ -8,7 +8,10 @@ use std::{
 
 use cstr::cstr;
 use libc::c_char;
-use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_rec_t};
+use slow5lib_sys::{
+    slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_log_level_opt_SLOW5_LOG_OFF,
+    slow5_rec_t, slow5_set_log_level,
+};
 
 use crate::{
     error::Slow5Error,
@@ -40,6 +43,12 @@ impl FileReader {
     /// # }
     /// ```
     pub fn open<P: AsRef<Path>>(file_path: P) -> Result<Self, Slow5Error> {
+        // If we aren't testing or running in debug mode, silence slow5lib logs
+        #[cfg(any(not(test), not(debug_assertions)))]
+        unsafe {
+            slow5_set_log_level(slow5_log_level_opt_SLOW5_LOG_OFF);
+        }
+
         let file_path = file_path.as_ref().as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
         let mode = cstr!("r");
