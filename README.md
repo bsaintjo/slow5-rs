@@ -38,6 +38,7 @@ git clone --recursive https://github.com/bsaintjo/slow5-rs.git
 ## TODO
 
 - [ ] Allow for configuring slow5lib log level
+- [ ] Set exit condition to SLOW5_EXIT_ON_ERR during testing?
 - [ ] Handle string, array and enum auxiliary fields
 - [ ] Use thread-safe C API to allow use Rust parallelism
 
