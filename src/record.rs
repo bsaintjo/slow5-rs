@@ -1,16 +1,16 @@
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
-    mem::{size_of, transmute}, ptr::{null, null_mut},
+    mem::{size_of, transmute},
+    ptr::null_mut,
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_aux_set, slow5_rec_free, slow5_rec_t, slow5_file};
+use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
 use crate::{
     aux::{AuxField, Field},
     error::Slow5Error,
-    FileReader,
 };
 
 /// Builder to create a Record, call methods to set parameters and build to
@@ -317,7 +317,7 @@ impl RecordExt for Record {}
 pub struct RecordIter<'a> {
     slow5_file: *mut slow5_file,
     errored: bool,
-    _lifetime: PhantomData<&'a ()>
+    _lifetime: PhantomData<&'a ()>,
 }
 
 impl<'a> RecordIter<'a> {
@@ -335,9 +335,7 @@ impl<'a> Iterator for RecordIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut rec = null_mut() as *mut slow5_rec_t;
-        let ret = unsafe {
-            slow5lib_sys::slow5_get_next(&mut rec, self.slow5_file)
-        };
+        let ret = unsafe { slow5lib_sys::slow5_get_next(&mut rec, self.slow5_file) };
         if self.errored {
             None
         } else if ret >= 0 {

@@ -27,6 +27,12 @@ slow5 = "0.7.0"
 
 Note: version does not directly translate to version of slow5lib.
 
+## TODO
+
+[ ] Allow for configuring slow5lib log level
+[ ] Handle string, array and enum auxiliary fields
+[ ] Use thread-safe C API to allow use Rust parallelism
+
 ## License
 
 Licensed under either of
