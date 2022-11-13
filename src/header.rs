@@ -4,9 +4,9 @@ use std::{
 };
 
 use libc::c_char;
-use slow5lib_sys::{slow5_get_aux_names, slow5_hdr_get, slow5_hdr_t};
+use slow5lib_sys::{slow5_get_aux_names, slow5_hdr_get, slow5_hdr_t, slow5_aux_add};
 
-use crate::{aux::Field, error::Slow5Error};
+use crate::{aux::{Field, AuxField, FieldType}, error::Slow5Error};
 
 /// Get an immutable access to the headers of a SLOW5 file.
 pub struct HeaderView<'a> {
@@ -88,11 +88,17 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub(crate) fn add_aux_field<B, T>(&'a mut self, name: B) -> Result<Field<'a, T>, Slow5Error>
+    pub(crate) fn add_aux_field<B>(&'a mut self, name: B, field_type: FieldType) -> Result<Field<'a>, Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
-        todo!();
+        let name = CString::new(name.into()).map_err(Slow5Error::InteriorNul)?;
+        let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header)};
+        if ret < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(Field::new(name, self, field_type))
+        }
     }
 }
 

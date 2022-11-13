@@ -2,10 +2,14 @@
 //! Alternate API following a pattern more similarly to PathBuf/&Path and
 //! OsString/&OsStr Record is an owned type and Rec represents the borrowed
 //! type, and you can only get &Rec
-use std::{ffi::CStr, ops::Deref};
+use std::{ffi::CStr, ops::Deref, mem::transmute};
 
-use libc::c_char;
-use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
+use libc::{c_char, c_void};
+use slow5lib_sys::{slow5_rec_free, slow5_rec_t, slow5_aux_set};
+
+use crate::{aux::AuxField, Slow5Error};
+
+use super::field_t::Field;
 
 macro_rules! rec_getter {
     ($field:ident, $ftype:ty) => {
@@ -19,6 +23,22 @@ struct RecPtr(*mut slow5_rec_t);
 
 pub struct Record {
     rec_ptr: RecPtr,
+}
+
+impl Record {
+    fn set_aux_field<T>(&mut self, aux: &Field<T>, value: &T) -> Result<(), Slow5Error>
+    where
+        T: AuxField,
+    {
+        let value: *const c_void = unsafe { transmute(&value) };
+        let name = aux.name().as_ptr() as *const c_char;
+        let ret = unsafe { slow5_aux_set(self.rec_ptr.0, name, value, aux.header_ptr()) };
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl Deref for Record {

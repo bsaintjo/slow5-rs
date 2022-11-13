@@ -11,6 +11,7 @@ use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 use crate::{
     aux::{AuxField, Field},
     error::Slow5Error,
+    to_cstring,
 };
 
 /// Builder to create a Record, call methods to set parameters and build to
@@ -109,7 +110,7 @@ impl RecordBuilder {
                 return Err(Slow5Error::Allocation);
             }
 
-            let read_id = CString::new(self.read_id.clone()).map_err(Slow5Error::InteriorNul)?;
+            let read_id = to_cstring(self.read_id.clone())?;
             let read_id_ptr = read_id.into_raw();
             let read_id_len = self.read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
@@ -177,13 +178,13 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<T>(&mut self, aux: &Field<T>, value: &T) -> Result<(), Slow5Error>
+    pub fn set_aux_field<T>(&mut self, field: &Field, value: &T) -> Result<(), Slow5Error>
     where
         T: AuxField,
     {
         let value: *const c_void = unsafe { transmute(&value) };
-        let name = aux.name().as_ptr() as *const c_char;
-        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, aux.header_ptr()) };
+        let name = field.name().as_ptr() as *const c_char;
+        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, field.header_ptr()) };
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
@@ -473,7 +474,7 @@ impl RecPtr for RecordView {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::FileWriter;
+    use crate::{aux::FieldType, FileWriter};
 
     #[ignore = "Brainstorming api"]
     #[test]
@@ -487,9 +488,9 @@ mod test {
         let path = tmp_dir.child(path);
         let mut slow5 = FileWriter::create(path)?;
         let mut header = slow5.header();
-        let aux: Field<f64> = header.add_aux_field("median")?;
+        let field = header.add_aux_field("median", FieldType::Float)?;
         let mut rec = RecordBuilder::default().build()?;
-        rec.set_aux_field(&aux, &10.0)?;
+        rec.set_aux_field(&field, &10.0)?;
         Ok(())
         // }
     }
