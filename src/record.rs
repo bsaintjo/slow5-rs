@@ -94,6 +94,10 @@ impl RecordBuilder {
         self
     }
 
+    pub(crate) fn build_with_fields(&mut self, fields: &[Field]) -> Record {
+        todo!()
+    }
+
     /// Attempt to convert to Record
     ///
     /// # Errors

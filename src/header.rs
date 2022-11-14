@@ -4,9 +4,15 @@ use std::{
 };
 
 use libc::c_char;
-use slow5lib_sys::{slow5_get_aux_names, slow5_hdr_get, slow5_hdr_t, slow5_aux_add};
+use slow5lib_sys::{
+    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t,
+};
 
-use crate::{aux::{Field, AuxField, FieldType}, error::Slow5Error};
+use crate::{
+    aux::{AuxField, Field, FieldType},
+    error::Slow5Error,
+    to_cstring,
+};
 
 /// Get an immutable access to the headers of a SLOW5 file.
 pub struct HeaderView<'a> {
@@ -62,17 +68,37 @@ impl<'a> Header<'a> {
         todo!()
     }
 
-    fn add_attribute(&mut self, attr: &[u8]) -> Result<(), Slow5Error> {
-        unimplemented!()
+    pub fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let attr = to_cstring(attr.into())?;
+        let ret = unsafe { slow5_hdr_add(attr.as_ptr(), self.header) };
+        if ret < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(())
+        }
     }
 
-    fn set_attribute(
+    pub fn set_attribute<B, C>(
         &mut self,
-        attr: &[u8],
-        value: &[u8],
+        attr: B,
+        value: C,
         read_group: u32,
-    ) -> Result<(), Slow5Error> {
-        unimplemented!()
+    ) -> Result<(), Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+        C: Into<Vec<u8>>,
+    {
+        let attr = to_cstring(attr.into())?;
+        let value = to_cstring(value.into())?;
+        let ret = unsafe { slow5_hdr_set(attr.as_ptr(), value.as_ptr(), read_group, self.header) };
+        if ret < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(())
+        }
     }
 
     /// Return iterator over auxiliary field names
@@ -88,12 +114,16 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub(crate) fn add_aux_field<B>(&'a mut self, name: B, field_type: FieldType) -> Result<Field<'a>, Slow5Error>
+    pub fn add_aux_field<B>(
+        &'a mut self,
+        name: B,
+        field_type: FieldType,
+    ) -> Result<Field<'a>, Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
         let name = CString::new(name.into()).map_err(Slow5Error::InteriorNul)?;
-        let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header)};
+        let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
         } else {

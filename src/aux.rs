@@ -47,6 +47,7 @@ impl FieldType {
     }
 }
 
+#[derive(Clone)]
 pub struct Field<'a> {
     name: Vec<u8>,
     header: &'a Header<'a>,

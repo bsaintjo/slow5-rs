@@ -12,9 +12,10 @@ mod writer;
 
 use std::ffi::CString;
 
+pub use aux::{Field, FieldType};
 pub use compression::{Options, RecordCompression, SignalCompression};
 pub use error::Slow5Error;
-pub use header::HeaderView;
+pub use header::{Header, HeaderView};
 pub use reader::FileReader;
 pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordView};
 pub use writer::FileWriter;
