@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- aux: Field represents an auxiliary field from a header and add/set a Records auxiliary field with type-checking
+- aux: Field represents an auxiliary field from a header and add/set a Records auxiliary field
 - aux: AuxField trait map Rust types and C types that can represent auxiliary fields, currently only supports primitive data types
 - writer: FileWriter can now be opened with compression options using Options and FileWriter::with_options
 - writer: Added FileWriter::header to get access to SLOW5 header
