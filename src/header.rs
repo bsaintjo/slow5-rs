@@ -115,7 +115,7 @@ impl<'a> Header<'a> {
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
     pub fn add_aux_field<B>(
-        &'a mut self,
+        &'a self,
         name: B,
         field_type: FieldType,
     ) -> Result<Field<'a>, Slow5Error>
