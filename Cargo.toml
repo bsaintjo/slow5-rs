@@ -1,28 +1,18 @@
-[package]
-name = "slow5"
-version = "0.8.0"
-edition = "2021"
-license = "MIT OR Apache-2.0"
-readme = "README.md"
-authors = ["Brandon Saint-John <bsaintjo@ucsc.edu>"]
-repository = "https://github.com/bsaintjo/slow5-rs"
-homepage = "https://github.com/hasindu2008/slow5lib"
-description = "Library for interacting with slow5"
-documentation = "https://doc.rs/slow5"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [workspace]
 
-[dependencies]
+members = [
+    "slow5",
+    "slow5-derive",
+    "slow5lib-sys",
+]
+
+[workspace.package]
+authors = ["Brandon Saint-John <bsaintjo@ucsc.edu>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bsaintjo/slow5-rs"
+
+[workspace.dependencies]
+version-sync = "0.9.4"
 cstr = "0.2.10"
 libc = "0.2.126"
-log = "0.4.17"
-paste = "1.0.9"
-slow5lib-sys = { version = "0.7.0", path="slow5lib-sys" }
-thiserror = "1.0.30"
-
-[dev-dependencies]
-anyhow = "1.0.56"
-assert_fs = "1.0.7"
-version-sync = "0.9.4"
