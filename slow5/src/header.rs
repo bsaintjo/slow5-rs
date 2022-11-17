@@ -9,8 +9,9 @@ use slow5lib_sys::{
 };
 
 use crate::{
-    aux::{AuxField, Field, FieldType},
+    aux::{Field, FieldType},
     error::Slow5Error,
+    experimental::field_t::{self, AuxFieldTExt},
     to_cstring,
 };
 
@@ -64,7 +65,10 @@ impl<'a> Header<'a> {
         }
     }
 
-    fn get_attribute(&self, read_group: u32) -> Result<&[u8], Slow5Error> {
+    fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
         todo!()
     }
 
@@ -128,6 +132,24 @@ impl<'a> Header<'a> {
             Err(Slow5Error::Unknown)
         } else {
             Ok(Field::new(name, self, field_type))
+        }
+    }
+
+    pub(crate) fn add_aux_field_t<B, T>(
+        &'a self,
+        name: B,
+    ) -> Result<field_t::Field<'a, T>, Slow5Error>
+    where
+        B: Into<Vec<u8>> + Clone,
+        T: AuxFieldTExt,
+    {
+        let cname = to_cstring(name.clone())?;
+        let field_type = T::to_slow5_t();
+        let ret = unsafe { slow5_aux_add(cname.as_ptr(), field_type.to_slow5_t().0, self.header) };
+        if ret < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(field_t::Field::new(name.into(), self.header))
         }
     }
 }

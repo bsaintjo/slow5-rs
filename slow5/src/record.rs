@@ -11,7 +11,7 @@ use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 use crate::{
     aux::{AuxField, Field},
     error::Slow5Error,
-    to_cstring,
+    to_cstring, experimental::field_t,
 };
 
 /// Builder to create a Record, call methods to set parameters and build to
@@ -183,6 +183,38 @@ impl Record {
     /// # }
     /// ```
     pub fn set_aux_field<T>(&mut self, field: &Field, value: &T) -> Result<(), Slow5Error>
+    where
+        T: AuxField,
+    {
+        let value: *const c_void = unsafe { transmute(&value) };
+        let name = field.name().as_ptr() as *const c_char;
+        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, field.header_ptr()) };
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
+    }
+
+    // Expected API
+    /// ```ignore
+    /// # use anyhow::Result;
+    /// # use slow5::FileWriter;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> Result<()> {
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// let path = "new.slow5";
+    /// # let path = tmp_dir.child(path);
+    /// let mut slow5 = FileWriter::create(path)?;
+    /// let header = slow5.header();
+    /// let mut aux: Field<f64> = header.add_aux_field("median")?;
+    /// let rec = RecordBuilder::default().build()?;
+    /// rec.add_aux_field(&mut aux, 10.0)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub(crate) fn set_aux_field_t<T>(&mut self, field: &field_t::Field<T>, value: &T) -> Result<(), Slow5Error>
     where
         T: AuxField,
     {
