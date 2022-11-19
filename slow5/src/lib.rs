@@ -19,7 +19,14 @@ pub use header::{Header, HeaderView};
 pub use reader::FileReader;
 pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordView};
 pub use writer::FileWriter;
+pub use aux::RecordAuxiliaries;
+
+pub use slow5_derive::FieldExt;
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
     CString::new(x).map_err(Slow5Error::InteriorNul)
+}
+
+pub trait FieldExt {
+    fn set_header_aux_fields();
 }

@@ -9,7 +9,7 @@ use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
 use crate::{
-    aux::{AuxField, Field},
+    aux::{AuxField, Field, RecordAuxiliaries},
     error::Slow5Error,
     to_cstring, experimental::field_t,
 };
@@ -158,6 +158,32 @@ unsafe fn allocate(size: usize) -> Result<*mut c_void, Slow5Error> {
 /// Owned-type representing a SLOW5 record.
 pub struct Record {
     pub(crate) slow5_rec: *mut slow5_rec_t,
+}
+
+pub(crate) struct RecordT<A = ()> {
+    pub(crate) slow5_rec: *mut slow5_rec_t,
+    _aux: PhantomData<A>,
+}
+
+impl<A> RecPtr for RecordT<A> {
+    fn ptr(&self) -> RecordPointer {
+        RecordPointer { ptr: self.slow5_rec }
+    }
+}
+
+impl<A> RecordExt for RecordT<A> {}
+
+impl<A> RecordT<A> {
+    pub(crate) fn aux(&self) -> RecordAuxiliaries<A> {
+        RecordAuxiliaries::new(self)
+    }
+
+    pub(crate) fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
+    where
+        T: AuxField,
+    {
+        T::aux_get(self, name)
+    }
 }
 
 impl Record {

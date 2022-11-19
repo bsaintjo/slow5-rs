@@ -10,7 +10,7 @@ use slow5lib_sys::{
     slow5_aux_type_SLOW5_UINT8_T, slow5_hdr_t,
 };
 
-use crate::{header::Header, Record, RecordExt, Slow5Error};
+use crate::{header::Header, record::RecordT, Record, RecordExt, Slow5Error};
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldType {
@@ -77,13 +77,13 @@ impl<'a> Field<'a> {
     pub(crate) fn header_ptr(&self) -> *mut slow5_hdr_t {
         self.header.header
     }
-    // TODO easy to implement but is it worth having?
-    pub fn aux_get<T>(&self, rec: &Record) -> Result<T, Slow5Error>
-    where
-        T: AuxField,
-    {
-        T::aux_get(rec, self.name.clone())
-    }
+    // // TODO easy to implement but is it worth having?
+    // pub fn aux_get<T>(&self, rec: &Record) -> Result<T, Slow5Error>
+    // where
+    //     T: AuxField,
+    // {
+    //     T::aux_get(rec, self.name.clone())
+    // }
 }
 pub trait AuxField {
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
@@ -144,5 +144,15 @@ impl AuxField for char {
         } else {
             Ok(data as u8 as char)
         }
+    }
+}
+
+pub struct RecordAuxiliaries<'a, A> {
+    rec: &'a RecordT<A>,
+}
+
+impl<'a, A> RecordAuxiliaries<'a, A> {
+    pub(crate) fn new(rec: &'a RecordT<A>) -> Self {
+        Self { rec }
     }
 }
