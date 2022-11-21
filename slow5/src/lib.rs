@@ -17,7 +17,7 @@ pub use compression::{Options, RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::{Header, HeaderView};
 pub use reader::FileReader;
-pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordView};
+pub use record::{Record, RecordT, RecordBuilder, RecordExt, RecordIter, RecordView};
 pub use writer::FileWriter;
 pub use aux::RecordAuxiliaries;
 
@@ -28,5 +28,5 @@ pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> 
 }
 
 pub trait FieldExt {
-    fn set_header_aux_fields();
+    fn set_header_aux_fields(header: &Header);
 }

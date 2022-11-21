@@ -160,7 +160,7 @@ pub struct Record {
     pub(crate) slow5_rec: *mut slow5_rec_t,
 }
 
-pub(crate) struct RecordT<A = ()> {
+pub struct RecordT<A = ()> {
     pub(crate) slow5_rec: *mut slow5_rec_t,
     _aux: PhantomData<A>,
 }
@@ -174,11 +174,8 @@ impl<A> RecPtr for RecordT<A> {
 impl<A> RecordExt for RecordT<A> {}
 
 impl<A> RecordT<A> {
-    pub(crate) fn aux(&self) -> RecordAuxiliaries<A> {
-        RecordAuxiliaries::new(self)
-    }
 
-    pub(crate) fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
+    pub fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
     where
         T: AuxField,
     {

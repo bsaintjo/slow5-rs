@@ -4,7 +4,7 @@ use slow5lib_sys::slow5_hdr_t;
 
 use crate::{aux::AuxField, FieldType, RecordExt, Slow5Error, Header, Record};
 
-pub(crate) struct Field<'a, T> {
+pub struct Field<'a, T> {
     name: Vec<u8>,
     header: *mut slow5_hdr_t,
     _value: PhantomData<T>,
@@ -42,7 +42,7 @@ impl<'a, T> Field<'a, T> {
     }
 }
 
-pub(crate) trait AuxFieldTExt {
+pub trait AuxFieldTExt {
     fn to_slow5_t() -> FieldType;
 }
 

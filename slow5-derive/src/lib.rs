@@ -28,14 +28,13 @@ fn derive_record_auxiliary(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenS
         let sfname = format!("{fname}");
         let ty = &f.ty;
         quote! {
-            fn #fname(&self) -> Result<#ty, slow5::Slow5Error> {
-                self.0.rec.get_aux_field(#sfname)
+            fn #fname(rec: &slow5::RecordT<#name>) -> Result<#ty, slow5::Slow5Error> {
+                rec.get_aux_field(#sfname)
             }
         }
     });
     let impl_record_aux = quote! {
-        struct TempRecordAux<'a>(slow5::RecordAuxiliaries<'a, #name>);
-        impl<'a> TempRecordAux<'a> {
+        impl #name {
             #(#fs)*
         }
     };
@@ -49,13 +48,13 @@ fn derive_header_init(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenStream
         let sfname = fname.to_string();
         let ty = &f.ty;
         quote! {
-            header.add_aux_field_t::<#ty>(#sfname)?;
+            header.add_aux_field_t::<&'static str, #ty>(#sfname).unwrap();
         }
     });
 
     quote! {
-        impl FieldExt for #name {
-            fn set_header_aux_fields(header: &slow5::Header) -> Result<(), Box<dyn std::error::Error>> {
+        impl slow5::FieldExt for #name {
+            fn set_header_aux_fields(header: &slow5::Header) {
                 #(#fs)*
             }
         }

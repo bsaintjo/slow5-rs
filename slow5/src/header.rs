@@ -135,7 +135,7 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub(crate) fn add_aux_field_t<B, T>(
+    pub fn add_aux_field_t<B, T>(
         &'a self,
         name: B,
     ) -> Result<field_t::Field<'a, T>, Slow5Error>
