@@ -14,12 +14,12 @@ pub mod typed;
 
 use std::ffi::CString;
 
-pub use aux::{Field, FieldType};
+pub use aux::FieldType;
 pub use compression::{Options, RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::{Header, HeaderView};
 pub use reader::FileReader;
-pub use record::{Record, RecordT, RecordBuilder, RecordExt, RecordIter, RecordView};
+pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordT, RecordView};
 pub use writer::FileWriter;
 
 pub use slow5_derive::FieldExt;

@@ -7,10 +7,9 @@ use slow5lib_sys::{
     slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT32_T, slow5_aux_type_SLOW5_INT64_T, slow5_aux_type_SLOW5_INT8_T,
     slow5_aux_type_SLOW5_UINT16_T, slow5_aux_type_SLOW5_UINT32_T, slow5_aux_type_SLOW5_UINT64_T,
-    slow5_aux_type_SLOW5_UINT8_T, slow5_hdr_t,
-};
+    slow5_aux_type_SLOW5_UINT8_T, };
 
-use crate::{header::Header, RecordExt, Slow5Error};
+use crate::{RecordExt, Slow5Error};
 
 #[derive(Debug, Clone, Copy)]
 pub enum FieldType {
@@ -47,37 +46,6 @@ impl FieldType {
     }
 }
 
-#[derive(Clone)]
-pub struct Field<'a> {
-    name: Vec<u8>,
-    header: &'a Header<'a>,
-    field_t: FieldType,
-}
-
-impl<'a> Field<'a> {
-    pub(crate) fn new<B>(name: B, header: &'a Header<'a>, field_t: FieldType) -> Self
-    where
-        B: Into<Vec<u8>>,
-    {
-        Self {
-            name: name.into(),
-            header,
-            field_t,
-        }
-    }
-
-    pub fn field_t(&self) -> FieldType {
-        self.field_t
-    }
-
-    pub fn name(&self) -> &[u8] {
-        &self.name
-    }
-
-    pub(crate) fn header_ptr(&self) -> *mut slow5_hdr_t {
-        self.header.header
-    }
-}
 pub trait AuxField {
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where

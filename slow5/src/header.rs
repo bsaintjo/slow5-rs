@@ -9,7 +9,7 @@ use slow5lib_sys::{
 };
 
 use crate::{
-    aux::{Field, FieldType},
+    aux::FieldType,
     error::Slow5Error,
     experimental::field_t::{self, AuxFieldTExt},
     to_cstring,
@@ -118,11 +118,7 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub fn add_aux_field<B>(
-        &'a self,
-        name: B,
-        field_type: FieldType,
-    ) -> Result<Field<'a>, Slow5Error>
+    pub fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
@@ -131,14 +127,11 @@ impl<'a> Header<'a> {
         if ret < 0 {
             Err(Slow5Error::Unknown)
         } else {
-            Ok(Field::new(name, self, field_type))
+            Ok(())
         }
     }
 
-    pub fn add_aux_field_t<B, T>(
-        &'a self,
-        name: B,
-    ) -> Result<field_t::Field<'a, T>, Slow5Error>
+    pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<field_t::Field<'a, T>, Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,
         T: AuxFieldTExt,

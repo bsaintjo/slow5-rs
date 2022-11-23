@@ -2,16 +2,16 @@ use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
     mem::{size_of, transmute},
-    ptr::null_mut,
+    ptr::null_mut, borrow::Borrow,
 };
 
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
 use crate::{
-    aux::{AuxField, Field, },
+    aux::{AuxField, },
     error::Slow5Error,
-    to_cstring, experimental::field_t,
+    to_cstring, experimental::field_t, Header,
 };
 
 /// Builder to create a Record, call methods to set parameters and build to
@@ -194,20 +194,20 @@ impl Record {
     /// let path = "new.slow5";
     /// # let path = tmp_dir.child(path);
     /// let mut slow5 = FileWriter::create(path)?;
-    /// let header = slow5.header();
-    /// let mut aux: Field<f64> = header.add_aux_field("median")?;
+    /// let mut header = slow5.header();
+    /// header.add_aux_field("median")?;
     /// let rec = RecordBuilder::default().build()?;
-    /// rec.add_aux_field(&mut aux, 10.0)?;
+    /// rec.set_aux_field(&header, "median", 10.0)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<T>(&mut self, field: &Field, value: &T) -> Result<(), Slow5Error>
+    pub fn set_aux_field<T>(&mut self, hdr: &Header, field_name: &str, value: impl Borrow<T>) -> Result<(), Slow5Error>
     where
         T: AuxField,
     {
-        let value: *const c_void = unsafe { transmute(&value) };
-        let name = field.name().as_ptr() as *const c_char;
-        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, field.header_ptr()) };
+        let value = value.borrow() as *const T as *const c_void;
+        let name = field_name.as_ptr() as *const c_char;
+        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, hdr.header) };
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
@@ -543,9 +543,9 @@ mod test {
         let path = tmp_dir.child(path);
         let mut slow5 = FileWriter::create(path)?;
         let mut header = slow5.header();
-        let field = header.add_aux_field("median", FieldType::Float)?;
+        header.add_aux_field("median", FieldType::Float)?;
         let mut rec = RecordBuilder::default().build()?;
-        rec.set_aux_field(&field, &10.0)?;
+        rec.set_aux_field(&header, "median", 10.0f32)?;
         Ok(())
         // }
     }
