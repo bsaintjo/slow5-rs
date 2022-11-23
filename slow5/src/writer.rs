@@ -1,11 +1,7 @@
 use std::{os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
-
-use slow5lib_sys::{
-    slow5_file, slow5_hdr_write, slow5_open, slow5_set_press,
-    slow5_write,
-};
+use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
 
 use crate::{
     compression::Options,

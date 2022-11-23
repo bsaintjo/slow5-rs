@@ -8,7 +8,6 @@ use std::{
 
 use cstr::cstr;
 use libc::c_char;
-
 use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_rec_t};
 
 use crate::{
@@ -212,8 +211,8 @@ mod test {
         let rec = reader.get_record(read_id).unwrap();
         assert_eq!(rec.read_id(), read_id);
 
-    let mut acc = Vec::new();
-    for rec in reader.records() {
+        let mut acc = Vec::new();
+        for rec in reader.records() {
             acc.push(rec);
         }
         assert!(!acc.is_empty());

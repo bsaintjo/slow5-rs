@@ -2,14 +2,13 @@
 //! Alternate API following a pattern more similarly to PathBuf/&Path and
 //! OsString/&OsStr Record is an owned type and Rec represents the borrowed
 //! type, and you can only get &Rec
-use std::{ffi::CStr, ops::Deref, mem::transmute};
+use std::{ffi::CStr, mem::transmute, ops::Deref};
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_rec_free, slow5_rec_t, slow5_aux_set};
-
-use crate::{aux::AuxField, Slow5Error};
+use slow5lib_sys::{slow5_aux_set, slow5_rec_free, slow5_rec_t};
 
 use super::field_t::Field;
+use crate::{aux::AuxField, Slow5Error};
 
 macro_rules! rec_getter {
     ($field:ident, $ftype:ty) => {

@@ -7,7 +7,8 @@ use slow5lib_sys::{
     slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT32_T, slow5_aux_type_SLOW5_INT64_T, slow5_aux_type_SLOW5_INT8_T,
     slow5_aux_type_SLOW5_UINT16_T, slow5_aux_type_SLOW5_UINT32_T, slow5_aux_type_SLOW5_UINT64_T,
-    slow5_aux_type_SLOW5_UINT8_T, };
+    slow5_aux_type_SLOW5_UINT8_T,
+};
 
 use crate::{RecordExt, Slow5Error};
 

@@ -8,7 +8,6 @@ use std::{
 
 use cstr::cstr;
 use libc::c_char;
-
 use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_rec_t};
 
 use crate::{

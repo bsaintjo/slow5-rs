@@ -1,18 +1,15 @@
 use std::{
+    borrow::Borrow,
     ffi::{CStr, CString},
     marker::PhantomData,
     mem::{size_of, transmute},
-    ptr::null_mut, borrow::Borrow,
+    ptr::null_mut,
 };
 
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
-use crate::{
-    aux::{AuxField, },
-    error::Slow5Error,
-    to_cstring, experimental::field_t, Header,
-};
+use crate::{aux::AuxField, error::Slow5Error, experimental::field_t, to_cstring, Header};
 
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].
@@ -163,14 +160,15 @@ pub struct RecordT<A = ()> {
 
 impl<A> RecPtr for RecordT<A> {
     fn ptr(&self) -> RecordPointer {
-        RecordPointer { ptr: self.slow5_rec }
+        RecordPointer {
+            ptr: self.slow5_rec,
+        }
     }
 }
 
 impl<A> RecordExt for RecordT<A> {}
 
 impl<A> RecordT<A> {
-
     pub fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
     where
         T: AuxField,
@@ -201,7 +199,12 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<T>(&mut self, hdr: &Header, field_name: &str, value: impl Borrow<T>) -> Result<(), Slow5Error>
+    pub fn set_aux_field<T>(
+        &mut self,
+        hdr: &Header,
+        field_name: &str,
+        value: impl Borrow<T>,
+    ) -> Result<(), Slow5Error>
     where
         T: AuxField,
     {
@@ -233,7 +236,11 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub(crate) fn set_aux_field_t<T>(&mut self, field: &field_t::Field<T>, value: &T) -> Result<(), Slow5Error>
+    pub(crate) fn set_aux_field_t<T>(
+        &mut self,
+        field: &field_t::Field<T>,
+        value: &T,
+    ) -> Result<(), Slow5Error>
     where
         T: AuxField,
     {

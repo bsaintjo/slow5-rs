@@ -20,9 +20,8 @@ pub use error::Slow5Error;
 pub use header::{Header, HeaderView};
 pub use reader::FileReader;
 pub use record::{Record, RecordBuilder, RecordExt, RecordIter, RecordT, RecordView};
-pub use writer::FileWriter;
-
 pub use slow5_derive::FieldExt;
+pub use writer::FileWriter;
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
     CString::new(x).map_err(Slow5Error::InteriorNul)
