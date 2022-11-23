@@ -9,7 +9,7 @@ use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
 use crate::{
-    aux::{AuxField, Field, RecordAuxiliaries},
+    aux::{AuxField, Field, },
     error::Slow5Error,
     to_cstring, experimental::field_t,
 };
@@ -92,10 +92,6 @@ impl RecordBuilder {
         let raw_signal = raw_signal.to_vec();
         self.raw_signal = raw_signal;
         self
-    }
-
-    pub(crate) fn build_with_fields(&mut self, fields: &[Field]) -> Record {
-        todo!()
     }
 
     /// Attempt to convert to Record

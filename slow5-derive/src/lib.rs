@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use proc_macro_error::{abort_call_site, proc_macro_error};
-use quote::quote;
+use quote::{quote, format_ident};
 use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Ident};
 
 #[proc_macro_derive(FieldExt)]
@@ -26,11 +26,16 @@ fn derive_record_auxiliary(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenS
     let fs = fields.named.iter().map(|f| {
         let fname = f.ident.as_ref().unwrap();
         let sfname = format!("{fname}");
+        // let set_fname = format_ident!("set_{fname}");
         let ty = &f.ty;
         quote! {
             fn #fname(rec: &slow5::RecordT<#name>) -> Result<#ty, slow5::Slow5Error> {
                 rec.get_aux_field(#sfname)
             }
+
+            // fn #set_fname(rb: &mut slow5::RecordT<#name>, val: #ty) -> Result<(), slow5::Slow5Error> {
+            //     todo!()
+            // }
         }
     });
     let impl_record_aux = quote! {

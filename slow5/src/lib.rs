@@ -10,6 +10,8 @@ mod reader;
 mod record;
 mod writer;
 
+pub mod typed;
+
 use std::ffi::CString;
 
 pub use aux::{Field, FieldType};
@@ -19,7 +21,6 @@ pub use header::{Header, HeaderView};
 pub use reader::FileReader;
 pub use record::{Record, RecordT, RecordBuilder, RecordExt, RecordIter, RecordView};
 pub use writer::FileWriter;
-pub use aux::RecordAuxiliaries;
 
 pub use slow5_derive::FieldExt;
 
