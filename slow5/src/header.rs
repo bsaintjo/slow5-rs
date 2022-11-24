@@ -69,7 +69,14 @@ impl<'a> Header<'a> {
     where
         B: Into<Vec<u8>>,
     {
-        todo!()
+        let attr = to_cstring(attr.into())?;
+        let data = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header)};
+        if data.is_null() {
+            Err(Slow5Error::AttributeError)
+        } else {
+            let data = unsafe { CStr::from_ptr(data) };
+            Ok(data.to_bytes())
+        }
     }
 
     pub fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>

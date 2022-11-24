@@ -41,4 +41,6 @@ pub enum Slow5Error {
     SetAuxFieldError,
     #[error("Input file path does not exist {0}")]
     IncorrectPath(PathBuf),
+    #[error("Error getting attribute, attribute doesn't exist or read_group is out of range")]
+    AttributeError,
 }
