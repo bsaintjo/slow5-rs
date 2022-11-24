@@ -1,0 +1,9 @@
+[test_config]
+exclude-files = [
+    "slow5/src/experimental/*",
+    "slow5-derive/*"
+]
+workspace = true
+timeout = "120s"
+verbose = true
+all-features = true
