@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 //! Alternate API following a pattern more similarly to PathBuf/&Path and
 //! OsString/&OsStr Record is an owned type and Rec represents the borrowed
 //! type, and you can only get &Rec

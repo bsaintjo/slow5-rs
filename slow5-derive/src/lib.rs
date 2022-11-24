@@ -29,7 +29,7 @@ fn derive_record_auxiliary(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenS
         // let set_fname = format_ident!("set_{fname}");
         let ty = &f.ty;
         quote! {
-            fn #fname(rec: &slow5::RecordT<#name>) -> Result<#ty, slow5::Slow5Error> {
+            fn #fname(rec: &slow5::typed::record::RecordT<#name>) -> Result<#ty, slow5::Slow5Error> {
                 rec.get_aux_field(#sfname)
             }
 
@@ -58,7 +58,7 @@ fn derive_header_init(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenStream
     });
 
     quote! {
-        impl slow5::FieldExt for #name {
+        impl slow5::typed::FieldExt for #name {
             fn set_header_aux_fields(header: &slow5::Header) {
                 #(#fs)*
             }

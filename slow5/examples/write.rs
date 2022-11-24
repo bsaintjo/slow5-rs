@@ -13,6 +13,7 @@ fn main() -> Result<()> {
     set_header_aux_fields(&mut hdr)?;
     let rec = set_record_fields(&hdr)?;
     slow5.add_record(&rec)?;
+    slow5.close();
 
     Ok(())
 }

@@ -45,8 +45,12 @@ impl FileReader {
         unsafe {
             slow5lib_sys::slow5_set_log_level(slow5lib_sys::slow5_log_level_opt_SLOW5_LOG_OFF);
         }
+        let file_path = file_path.as_ref();
+        if !file_path.exists() {
+            return Err(Slow5Error::IncorrectPath(file_path.to_owned()));
+        }
 
-        let file_path = file_path.as_ref().as_os_str().as_bytes();
+        let file_path = file_path.as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
         let mode = cstr!("r");
         let slow5_file: *mut slow5_file_t =

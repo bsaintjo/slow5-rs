@@ -153,30 +153,6 @@ pub struct Record {
     pub(crate) slow5_rec: *mut slow5_rec_t,
 }
 
-pub struct RecordT<A = ()> {
-    pub(crate) slow5_rec: *mut slow5_rec_t,
-    _aux: PhantomData<A>,
-}
-
-impl<A> RecPtr for RecordT<A> {
-    fn ptr(&self) -> RecordPointer {
-        RecordPointer {
-            ptr: self.slow5_rec,
-        }
-    }
-}
-
-impl<A> RecordExt for RecordT<A> {}
-
-impl<A> RecordT<A> {
-    pub fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
-    where
-        T: AuxField,
-    {
-        T::aux_get(self, name)
-    }
-}
-
 impl Record {
     pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
         Self { slow5_rec }
@@ -236,6 +212,7 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
+    #[allow(unused)]
     pub(crate) fn set_aux_field_t<T>(
         &mut self,
         field: &field_t::Field<T>,
@@ -283,18 +260,6 @@ impl Drop for Record {
         unsafe {
             slow5_rec_free(self.slow5_rec);
         }
-    }
-}
-
-/// Immutable view into a single SLOW5 record.
-#[derive(Clone)]
-pub struct RecordView {
-    slow5_rec: *mut slow5_rec_t,
-}
-
-impl RecordView {
-    fn new(slow5_rec: *mut slow5_rec_t) -> Self {
-        Self { slow5_rec }
     }
 }
 
@@ -367,7 +332,6 @@ pub trait RecordExt: RecPtr {
     }
 }
 
-impl RecordExt for RecordView {}
 impl RecordExt for Record {}
 
 /// Iterator over Records from a SLOW5 file.
@@ -527,11 +491,6 @@ impl RecPtr for Record {
     }
 }
 
-impl RecPtr for RecordView {
-    fn ptr(&self) -> RecordPointer {
-        RecordPointer::new(self.slow5_rec)
-    }
-}
 
 #[cfg(test)]
 mod test {

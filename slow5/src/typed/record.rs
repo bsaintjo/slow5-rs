@@ -1,3 +1,9 @@
+use std::marker::PhantomData;
+
+use slow5lib_sys::slow5_rec_t;
+
+use crate::{record::{RecPtr, RecordPointer}, RecordExt, aux::AuxField, Slow5Error};
+
 
 pub struct RecordT<A = ()> {
     pub(crate) slow5_rec: *mut slow5_rec_t,

@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use slow5lib_sys::slow5_hdr_t;
 
-use crate::{FieldType, Header, Record, Slow5Error};
+use crate::{FieldType, Record, Slow5Error};
 
 pub struct Field<'a, T> {
     name: Vec<u8>,

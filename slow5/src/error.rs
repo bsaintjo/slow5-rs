@@ -1,4 +1,4 @@
-use std::ffi::NulError;
+use std::{ffi::NulError, path::PathBuf};
 
 use thiserror::Error;
 
@@ -39,4 +39,6 @@ pub enum Slow5Error {
     AuxNameIterError,
     #[error("Error setting auxiliary field")]
     SetAuxFieldError,
+    #[error("Input file path does not exist {0}")]
+    IncorrectPath(PathBuf),
 }
