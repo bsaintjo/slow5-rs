@@ -53,6 +53,7 @@ pub trait AuxField {
         B: Into<Vec<u8>>,
         R: RecordExt,
         Self: std::marker::Sized;
+    fn to_slow5_t() -> FieldType;
 }
 
 macro_rules! impl_auxfield {
@@ -67,7 +68,7 @@ macro_rules! impl_auxfield {
                 let name: Vec<u8> = name.into();
                 let name = crate::to_cstring(name)?;
                 let data = unsafe {
-                    paste::paste!( [<slow5_aux_get_ $ctype>] )(rec.ptr().ptr, name.as_ptr(), &mut ret)
+                    paste::paste!( [<slow5_aux_get_ $ctype:lower >] )(rec.ptr().ptr, name.as_ptr(), &mut ret)
                 };
                 if ret != 0 {
                     Err(Slow5Error::AuxLoadFailure)
@@ -75,22 +76,27 @@ macro_rules! impl_auxfield {
                     Ok(data)
                 }
             }
+
+            fn to_slow5_t() -> FieldType {
+                use FieldType::*;
+                $ctype
+            }
         }
     };
 }
 
-impl_auxfield!(i8, int8);
-impl_auxfield!(i16, int16);
-impl_auxfield!(i32, int32);
-impl_auxfield!(i64, int64);
+impl_auxfield!(i8, Int8);
+impl_auxfield!(i16, Int16);
+impl_auxfield!(i32, Int32);
+impl_auxfield!(i64, Int64);
 
-impl_auxfield!(u8, uint8);
-impl_auxfield!(u16, uint16);
-impl_auxfield!(u32, uint32);
-impl_auxfield!(u64, uint64);
+impl_auxfield!(u8, Uint8);
+impl_auxfield!(u16, Uint16);
+impl_auxfield!(u32, Uint32);
+impl_auxfield!(u64, Uint64);
 
-impl_auxfield!(f32, float);
-impl_auxfield!(f64, double);
+impl_auxfield!(f32, Float);
+impl_auxfield!(f64, Double);
 
 impl AuxField for char {
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
@@ -106,5 +112,9 @@ impl AuxField for char {
         } else {
             Ok(data as u8 as char)
         }
+    }
+
+    fn to_slow5_t() -> FieldType {
+        FieldType::Char
     }
 }

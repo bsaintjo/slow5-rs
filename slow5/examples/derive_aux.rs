@@ -3,7 +3,7 @@ use std::error::Error;
 use slow5::typed::{FieldExt, reader::FileReader};
 
 #[derive(FieldExt)]
-struct MyFields {
+struct MyAuxFields {
     // Primitive types only supported for now
     // Haven't implemented *char, arrays, enums, yet.
     // channel_number: String,
@@ -14,6 +14,6 @@ struct MyFields {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let slow5: FileReader<MyFields> = FileReader::open("slow5/examples/example2.slow5")?;
+    let slow5: FileReader<MyAuxFields> = FileReader::open("slow5/examples/example2.slow5")?;
     Ok(())
 }

@@ -9,9 +9,8 @@ use slow5lib_sys::{
 };
 
 use crate::{
-    aux::FieldType,
+    aux::{AuxField, FieldType},
     error::Slow5Error,
-    experimental::field_t::{self, AuxFieldTExt},
     to_cstring,
 };
 
@@ -32,20 +31,19 @@ impl<'a> HeaderView<'a> {
     ///
     /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
     /// let header = slow5.header();
-    /// let attr = header.attribute("run_id", 0).unwrap();
-    /// assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
+    /// let attr = header.get_attribute("run_id", 0).unwrap();
+    /// assert_eq!(attr, b"d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
     /// ```
-    // TODO how to handle allocated string from slow5_hdr_get
-    pub fn attribute<S: Into<Vec<u8>>>(
+    pub fn get_attribute<S: Into<Vec<u8>>>(
         &self,
         attr: S,
         read_group: u32,
-    ) -> Result<&str, Slow5Error> {
+    ) -> Result<&[u8], Slow5Error> {
         let attr = CString::new(attr).unwrap();
         let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
         if !rg_value.is_null() {
             let cstr = unsafe { CStr::from_ptr(rg_value) };
-            Ok(cstr.to_str().unwrap())
+            Ok(cstr.to_bytes())
         } else {
             Err(Slow5Error::Unknown)
         }
@@ -65,12 +63,12 @@ impl<'a> Header<'a> {
         }
     }
 
-    fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
+    pub fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
         let attr = to_cstring(attr.into())?;
-        let data = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header)};
+        let data = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
         if data.is_null() {
             Err(Slow5Error::AttributeError)
         } else {
@@ -129,7 +127,7 @@ impl<'a> Header<'a> {
     where
         B: Into<Vec<u8>>,
     {
-        let name = CString::new(name.into()).map_err(Slow5Error::InteriorNul)?;
+        let name = to_cstring(name)?;
         let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
@@ -138,18 +136,18 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<field_t::Field<'a, T>, Slow5Error>
+    pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,
-        T: AuxFieldTExt,
+        T: AuxField,
     {
-        let cname = to_cstring(name.clone())?;
+        let cname = to_cstring(name)?;
         let field_type = T::to_slow5_t();
         let ret = unsafe { slow5_aux_add(cname.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
         } else {
-            Ok(field_t::Field::new(name.into(), self.header))
+            Ok(())
         }
     }
 }
