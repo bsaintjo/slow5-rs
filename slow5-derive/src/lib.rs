@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use proc_macro_error::{abort_call_site, proc_macro_error};
-use quote::{quote, format_ident};
+use quote::quote;
 use syn::{parse_macro_input, Data, DataStruct, DeriveInput, Fields, Ident};
 
 #[proc_macro_derive(FieldExt)]
