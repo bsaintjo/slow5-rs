@@ -14,6 +14,6 @@ struct MyAuxFields {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let slow5: FileReader<MyAuxFields> = FileReader::open("slow5/examples/example2.slow5")?;
+    let slow5: FileReader<MyAuxFields> = FileReader::open("examples/example2.slow5")?;
     Ok(())
 }

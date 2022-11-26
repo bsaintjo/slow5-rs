@@ -5,7 +5,7 @@ use slow5::{FileReader, RecordExt};
 
 fn main() -> Result<()> {
     let mut acc = Vec::new();
-    let mut reader = FileReader::open("slow5/examples/example.slow5")?;
+    let mut reader = FileReader::open("examples/example.slow5")?;
     for read in reader.records() {
         let read = read?;
         let read_id = from_utf8(read.read_id())?;

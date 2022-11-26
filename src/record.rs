@@ -175,18 +175,19 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<T>(
+    pub fn set_aux_field<B, T>(
         &mut self,
         hdr: &Header,
-        field_name: &str,
+        field_name: B,
         value: impl Borrow<T>,
     ) -> Result<(), Slow5Error>
     where
+        B: Into<Vec<u8>>,
         T: AuxField,
     {
+        let name = to_cstring(field_name)?;
         let value = value.borrow() as *const T as *const c_void;
-        let name = field_name.as_ptr() as *const c_char;
-        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, hdr.header) };
+        let ret = unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value, hdr.header) };
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
@@ -247,8 +248,9 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
+    pub fn get_aux_field<B, T>(&self, name: B) -> Result<T, Slow5Error>
     where
+        B: Into<Vec<u8>>,
         T: AuxField,
     {
         T::aux_get(self, name)
