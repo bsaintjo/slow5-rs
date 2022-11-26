@@ -102,7 +102,7 @@ impl FileReader {
     ///
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let reader = FileReader::open("examples/example.slow5")?;
-    /// let read_id = b"r3";
+    /// let read_id: &[u8] = b"r3";
     /// let record = reader.get_record(read_id)?;
     /// assert_eq!(record.read_id(), read_id);
     /// # Ok(())
@@ -110,7 +110,10 @@ impl FileReader {
     /// ```
     ///
     /// Mutating the Record will not cause changes in the SLOW5 file.
-    pub fn get_record(&self, read_id: &[u8]) -> Result<Record, Slow5Error> {
+    pub fn get_record<B>(&self, read_id: B) -> Result<Record, Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
         let mut slow5_rec =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
         let read_id = to_cstring(read_id)?;
@@ -207,7 +210,7 @@ mod test {
         let filename = "examples/example.slow5";
         let mut reader = FileReader::open(filename).unwrap();
 
-        let read_id = b"r3";
+        let read_id: &[u8] = b"r3";
         let rec = reader.get_record(read_id).unwrap();
         assert_eq!(rec.read_id(), read_id);
 

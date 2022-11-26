@@ -147,7 +147,7 @@ impl FileWriter {
     /// # writer.close();
     /// # assert!(file_path.exists());
     /// # let reader = FileReader::open(&file_path)?;
-    /// # let rec = reader.get_record(b"test")?;
+    /// # let rec = reader.get_record("test")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -193,7 +193,7 @@ impl FileWriter {
     /// # writer.close();
     /// # assert!(tmp_path.exists());
     /// # let reader = FileReader::open(&file_path)?;
-    /// # let rec = reader.get_record(b"test")?;
+    /// # let rec = reader.get_record("test")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -233,7 +233,7 @@ mod test {
     fn test_writer() -> Result<()> {
         let tmp_dir = TempDir::new()?;
         let file_path = "test.slow5";
-        let read_id = b"test";
+        let read_id: &[u8] = b"test";
         let file_path = tmp_dir.child(file_path);
         let mut writer = FileWriter::create(&file_path)?;
         let rec = RecordBuilder::builder()
@@ -254,7 +254,7 @@ mod test {
     fn test_writer_two() -> Result<()> {
         let tmp_dir = TempDir::new()?;
         let file_path = "test.slow5";
-        let read_id = b"test";
+        let read_id: &[u8] = b"test";
         let file_path = tmp_dir.child(file_path);
         let mut writer = FileWriter::create(&file_path)?;
         writer.write_record(|mut builder| builder.read_id(b"r1").raw_signal(&[1, 2, 3]).build())?;
@@ -267,7 +267,7 @@ mod test {
         assert!(file_path.exists());
 
         let reader = FileReader::open(&file_path)?;
-        let rec = reader.get_record(b"r1")?;
+        let rec = reader.get_record("r1")?;
         assert_eq!(rec.read_id(), b"r1");
 
         let rec = reader.get_record(read_id)?;

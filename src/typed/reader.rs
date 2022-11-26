@@ -102,9 +102,9 @@ impl<A> FileReader<A> {
     ///
     /// # fn main() -> Result<(), Box<dyn Error>> {
     /// # let reader = FileReader::open("examples/example.slow5")?;
-    /// let read_id = b"r3";
+    /// let read_id = "r3";
     /// let record = reader.get_record(read_id)?;
-    /// assert_eq!(record.read_id(), read_id);
+    /// assert_eq!(record.read_id(), read_id.as_bytes());
     /// # Ok(())
     /// # }
     /// ```

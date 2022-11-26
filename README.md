@@ -4,6 +4,7 @@
 [![Crates.io][crates-badge]][crates-url]
 [![docs.rs][docs-badge]][docs-url]
 [![Rust](https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml)
+![Stability][stability-badge]
 
 [license-badge]: https://img.shields.io/crates/l/slow5?style=flat-square
 [license-url]: https://github.com/bsaintjo/slow5-rs#license
@@ -11,6 +12,7 @@
 [crates-url]: https://crates.io/crates/slow5
 [docs-badge]: https://img.shields.io/docsrs/slow5?style=flat-square
 [docs-url]: https://docs.rs/slow5
+[stability-badge]: https://img.shields.io/badge/stability-experimental-orange.svg
 
 A library for interacting with SLOW5 files in rust. Not official.
 

@@ -100,7 +100,7 @@ impl RecordBuilder {
     /// B) Read ID contains an interior NUL character
     /// C) Length of Read ID is greater than u16
     /// D) Length of signal is greater than u64
-    pub fn build(&mut self) -> Result<Record, Slow5Error> {
+    pub fn build(&self) -> Result<Record, Slow5Error> {
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
             if record.is_null() {
@@ -157,10 +157,12 @@ impl Record {
     pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
         Self { slow5_rec }
     }
-    // Expected API
-    /// ```ignore
+    /// ## Example
+    /// ```
     /// # use anyhow::Result;
     /// # use slow5::FileWriter;
+    /// # use slow5::FieldType;
+    /// # use slow5::RecordBuilder;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # fn main() -> Result<()> {
@@ -169,9 +171,9 @@ impl Record {
     /// # let path = tmp_dir.child(path);
     /// let mut slow5 = FileWriter::create(path)?;
     /// let mut header = slow5.header();
-    /// header.add_aux_field("median")?;
-    /// let rec = RecordBuilder::default().build()?;
-    /// rec.set_aux_field(&header, "median", 10.0)?;
+    /// header.add_aux_field("median", FieldType::Float)?;
+    /// let mut rec = RecordBuilder::default().build()?;
+    /// rec.set_aux_field(&header, "median", 10.0f32)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -196,55 +198,17 @@ impl Record {
     }
 
     // Expected API
-    /// ```ignore
-    /// # use anyhow::Result;
-    /// # use slow5::FileWriter;
-    /// # use assert_fs::TempDir;
-    /// # use assert_fs::fixture::PathChild;
-    /// # fn main() -> Result<()> {
-    /// # let tmp_dir = TempDir::new().unwrap();
-    /// let path = "new.slow5";
-    /// # let path = tmp_dir.child(path);
-    /// let mut slow5 = FileWriter::create(path)?;
-    /// let header = slow5.header();
-    /// let mut aux: Field<f64> = header.add_aux_field("median")?;
-    /// let rec = RecordBuilder::default().build()?;
-    /// rec.add_aux_field(&mut aux, 10.0)?;
-    /// # Ok(())
-    /// # }
     /// ```
-    #[allow(unused)]
-    pub(crate) fn set_aux_field_t<T>(
-        &mut self,
-        field: &field_t::Field<T>,
-        value: &T,
-    ) -> Result<(), Slow5Error>
-    where
-        T: AuxField,
-    {
-        let value: *const c_void = unsafe { transmute(&value) };
-        let name = field.name().as_ptr() as *const c_char;
-        let ret = unsafe { slow5_aux_set(self.slow5_rec, name, value, field.header_ptr()) };
-        if ret < 0 {
-            Err(Slow5Error::SetAuxFieldError)
-        } else {
-            Ok(())
-        }
-    }
-
-    // Expected API
-    /// ```ignore
     /// # use anyhow::Result;
-    /// # use slow5::FileWriter;
+    /// # use slow5::FileReader;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # fn main() -> Result<()> {
-    /// let path = "examples/example.slow5";
+    /// let path = "examples/example2.slow5";
     /// let slow5 = FileReader::open(path)?;
-    /// let rec = slow5.get_record_id("r1");
-    /// let header = slow5.header();
-    /// let aux: Field<f64> = header.get_aux_field("median")?;
-    /// let value = rec.get_aux_field(aux)?;
+    /// let rec = slow5.get_record("r0")?;
+    /// let channel_number: i32 = rec.get_aux_field("read_number")?;
+    /// assert_eq!(channel_number, 4019);
     /// # Ok(())
     /// # }
     /// ```
@@ -308,30 +272,6 @@ pub trait RecordExt: RecPtr {
     fn raw_signal_iter(&self) -> RawSignalIter<'_> {
         RawSignalIter::new(self.ptr().ptr)
     }
-
-    // Expected API
-    /// ```ignore
-    /// # use anyhow::Result;
-    /// # use slow5::FileWriter;
-    /// # use assert_fs::TempDir;
-    /// # use assert_fs::fixture::PathChild;
-    /// # fn main() -> Result<()> {
-    /// let path = "examples/example.slow5";
-    /// let slow5 = FileReader::open(path)?;
-    /// let rec = slow5.get_record_id("r1");
-    /// let header = slow5.header();
-    /// let aux: Field<f64> = header.get_aux_field("median")?;
-    /// let value = rec.get_aux_field(aux)?;
-    /// # Ok(())
-    /// # }
-    /// ```
-    fn get_aux_field<T>(&self, name: &str) -> Result<T, Slow5Error>
-    where
-        T: AuxField,
-        Self: Sized,
-    {
-        T::aux_get(self, name)
-    }
 }
 
 impl RecordExt for Record {}
@@ -388,6 +328,10 @@ impl<'a> Iterator for RecordIter<'a> {
 
 fn to_picoamps(raw_val: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
     ((raw_val) + offset) * (range / digitisation)
+}
+
+fn to_raw(picoamps: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
+    (picoamps / (range / digitisation)) - offset
 }
 
 /// Iterator over signal in picoamps from Record.
@@ -493,19 +437,16 @@ impl RecPtr for Record {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::FileReader;
     use crate::{aux::FieldType, FileWriter};
 
     #[ignore = "Brainstorming api"]
     #[test]
     fn test_aux() -> anyhow::Result<()> {
-        // use anyhow::Result;
         use assert_fs::{fixture::PathChild, TempDir};
-        // use slow5::FileWriter;
-        // fn main() -> Result<()> {
         let tmp_dir = TempDir::new()?;
         let path = "new.slow5";
         let path = tmp_dir.child(path);
@@ -515,6 +456,5 @@ mod test {
         let mut rec = RecordBuilder::default().build()?;
         rec.set_aux_field(&header, "median", 10.0f32)?;
         Ok(())
-        // }
     }
 }
