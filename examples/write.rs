@@ -21,7 +21,7 @@ fn main() -> Result<()> {
 fn set_record_fields(hdr: &Header) -> Result<Record> {
     let raw_signal = (0..10).collect::<Vec<_>>();
     let mut rec = RecordBuilder::builder()
-        .read_id(b"read_0")
+        .read_id("read_0")
         .digitisation(4096.)
         .offset(3.0)
         .sampling_rate(4000.)

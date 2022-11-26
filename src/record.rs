@@ -2,14 +2,14 @@ use std::{
     borrow::Borrow,
     ffi::{CStr, CString},
     marker::PhantomData,
-    mem::{size_of, transmute},
+    mem::size_of,
     ptr::null_mut,
 };
 
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
-use crate::{aux::AuxField, error::Slow5Error, experimental::field_t, to_cstring, Header};
+use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
 
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].
@@ -20,7 +20,7 @@ use crate::{aux::AuxField, error::Slow5Error, experimental::field_t, to_cstring,
 /// # use slow5::RecordBuilder;
 /// # fn main() -> Result<()> {
 /// let record = RecordBuilder::builder()
-///     .read_id(b"test_id")
+///     .read_id("test_id")
 ///     .read_group(0)
 ///     .digitisation(4096.0)
 ///     .offset(4.0)
@@ -48,8 +48,8 @@ impl RecordBuilder {
     }
 
     /// Set the read id of the Record
-    pub fn read_id(&mut self, read_id: &[u8]) -> &mut Self {
-        let read_id = read_id.to_vec();
+    pub fn read_id<B: Into<Vec<u8>>>(&mut self, read_id: B) -> &mut Self {
+        let read_id = read_id.into();
         self.read_id = read_id;
         self
     }
@@ -326,11 +326,11 @@ impl<'a> Iterator for RecordIter<'a> {
     }
 }
 
-fn to_picoamps(raw_val: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
-    ((raw_val) + offset) * (range / digitisation)
+pub fn to_picoamps(raw_signal: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
+    ((raw_signal) + offset) * (range / digitisation)
 }
 
-fn to_raw(picoamps: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
+pub fn to_raw_signal(picoamps: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
     (picoamps / (range / digitisation)) - offset
 }
 
@@ -440,7 +440,6 @@ impl RecPtr for Record {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::FileReader;
     use crate::{aux::FieldType, FileWriter};
 
     #[ignore = "Brainstorming api"]

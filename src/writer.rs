@@ -142,7 +142,7 @@ impl FileWriter {
     /// # let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
     /// # let mut writer = FileWriter::create(&file_path)?;
-    /// let rec = RecordBuilder::builder().read_id(b"test").build()?;
+    /// let rec = RecordBuilder::builder().read_id("test").build()?;
     /// writer.add_record(&rec)?;
     /// # writer.close();
     /// # assert!(file_path.exists());
@@ -187,8 +187,8 @@ impl FileWriter {
     /// # let file_path = tmp_dir.child(file_path);
     /// # let tmp_path = file_path.to_path_buf();
     /// # let mut writer = FileWriter::create(&file_path)?;
-    /// # let rec = RecordBuilder::builder().read_id(b"test").build()?;
-    /// let read_id = b"test";
+    /// # let rec = RecordBuilder::builder().read_id("test").build()?;
+    /// let read_id = "test";
     /// writer.write_record(|mut builder| builder.read_id(read_id).build())?;
     /// # writer.close();
     /// # assert!(tmp_path.exists());
@@ -257,7 +257,7 @@ mod test {
         let read_id: &[u8] = b"test";
         let file_path = tmp_dir.child(file_path);
         let mut writer = FileWriter::create(&file_path)?;
-        writer.write_record(|mut builder| builder.read_id(b"r1").raw_signal(&[1, 2, 3]).build())?;
+        writer.write_record(|mut builder| builder.read_id("r1").raw_signal(&[1, 2, 3]).build())?;
         let rec = RecordBuilder::builder()
             .read_id(read_id)
             .raw_signal(&[1, 2, 3])
