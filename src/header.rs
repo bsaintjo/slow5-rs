@@ -1,7 +1,4 @@
-use std::{
-    ffi::{CStr, CString},
-    marker::PhantomData,
-};
+use std::{ffi::CStr, marker::PhantomData};
 
 use libc::c_char;
 use slow5lib_sys::{
@@ -13,42 +10,6 @@ use crate::{
     error::Slow5Error,
     to_cstr, to_cstring,
 };
-
-/// Get an immutable access to the headers of a SLOW5 file.
-pub struct HeaderView<'a> {
-    header: *mut slow5_hdr_t,
-    _lifetime: PhantomData<&'a ()>,
-}
-
-impl<'a> HeaderView<'a> {
-    pub(crate) fn new(header: *mut slow5_hdr_t, _lifetime: PhantomData<&'a ()>) -> Self {
-        Self { header, _lifetime }
-    }
-
-    /// Get the value of an attribute in a read group
-    /// ```
-    /// use slow5::FileReader;
-    ///
-    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
-    /// let header = slow5.header();
-    /// let attr = header.get_attribute("run_id", 0).unwrap();
-    /// assert_eq!(attr, b"d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
-    /// ```
-    pub fn get_attribute<S: Into<Vec<u8>>>(
-        &self,
-        attr: S,
-        read_group: u32,
-    ) -> Result<&[u8], Slow5Error> {
-        let attr = CString::new(attr).unwrap();
-        let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
-        if !rg_value.is_null() {
-            let cstr = unsafe { CStr::from_ptr(rg_value) };
-            Ok(cstr.to_bytes())
-        } else {
-            Err(Slow5Error::Unknown)
-        }
-    }
-}
 
 pub struct Header<'a> {
     pub(crate) header: *mut slow5_hdr_t,

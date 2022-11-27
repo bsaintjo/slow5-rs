@@ -12,9 +12,8 @@ use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_r
 
 use crate::{
     error::Slow5Error,
-    header::HeaderView,
     record::{Record, RecordIter},
-    to_cstring,
+    to_cstring, Header,
 };
 
 /// Read from a SLOW5 file
@@ -64,9 +63,9 @@ impl FileReader {
     }
 
     /// Access header of a SLOW5 file
-    pub fn header(&self) -> HeaderView<'_> {
+    pub fn header(&self) -> Header<'_> {
         let header: *mut slow5_hdr_t = unsafe { (*self.slow5_file).header };
-        HeaderView::new(header, PhantomData)
+        Header::new(header)
     }
 
     /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
