@@ -208,7 +208,9 @@ impl FileWriter {
                 header.set_attribute(&name, &value, rg)?;
             }
 
-            for (name, fty) in opts.auxiliary_fields.into_iter() {}
+            for (name, fty) in opts.auxiliary_fields.into_iter() {
+                header.add_aux_field(name, fty)?;
+            }
 
             // Header
             let hdr_ret = slow5_hdr_write(slow5_file);
