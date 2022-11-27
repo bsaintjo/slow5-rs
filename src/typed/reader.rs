@@ -12,10 +12,11 @@ use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_r
 
 use crate::{
     error::Slow5Error,
-    header::HeaderView,
     record::{Record, RecordIter},
     to_cstring,
 };
+
+use super::{header::Header, FieldExt};
 
 /// Read from a SLOW5 file
 pub struct FileReader<A = ()> {
@@ -23,7 +24,7 @@ pub struct FileReader<A = ()> {
     aux: PhantomData<A>,
 }
 
-impl<A> FileReader<A> {
+impl<A: FieldExt> FileReader<A> {
     pub(crate) fn new(slow5_file: *mut slow5_file_t) -> Self {
         Self {
             slow5_file,
@@ -36,10 +37,10 @@ impl<A> FileReader<A> {
     /// # Example
     /// ```
     /// # use std::error::Error;
-    /// use slow5::FileReader;
+    /// use slow5::typed::FileReader;
     ///
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// let reader = FileReader::open("examples/example.slow5")?;
+    /// let reader: FileReader<()> = FileReader::open("examples/example.slow5")?;
     /// # Ok(())
     /// # }
     /// ```
@@ -59,14 +60,15 @@ impl<A> FileReader<A> {
         if ret == -1 {
             Err(Slow5Error::NoIndex)
         } else {
-            Ok(FileReader::new(slow5_file))
+            let reader = FileReader::new(slow5_file);
+            Ok(reader)
         }
     }
 
     /// Access header of a SLOW5 file
-    pub fn header(&self) -> HeaderView<'_> {
+    pub fn header(&self) -> Header<'_, A> {
         let header: *mut slow5_hdr_t = unsafe { (*self.slow5_file).header };
-        HeaderView::new(header, PhantomData)
+        Header::new(header)
     }
 
     /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
@@ -74,11 +76,11 @@ impl<A> FileReader<A> {
     /// # Example
     /// ```
     /// # use std::error::Error;
-    /// # use slow5::FileReader;
+    /// # use slow5::typed::FileReader;
     /// use slow5::RecordExt;
     ///
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// # let mut reader = FileReader::open("examples/example.slow5")?;
+    /// # let mut reader: FileReader<()> = FileReader::open("examples/example.slow5")?;
     /// for record in reader.records() {
     ///     println!("{:?}", record?.read_id());
     /// }
@@ -96,12 +98,12 @@ impl<A> FileReader<A> {
     ///
     /// # Example
     /// ```
-    /// # use slow5::FileReader;
+    /// # use slow5::typed::FileReader;
     /// # use std::error::Error;
     /// use slow5::RecordExt;
     ///
     /// # fn main() -> Result<(), Box<dyn Error>> {
-    /// # let reader = FileReader::open("examples/example.slow5")?;
+    /// # let reader: FileReader<()> = FileReader::open("examples/example.slow5")?;
     /// let read_id = "r3";
     /// let record = reader.get_record(read_id)?;
     /// assert_eq!(record.read_id(), read_id.as_bytes());
@@ -110,7 +112,7 @@ impl<A> FileReader<A> {
     /// ```
     ///
     /// Mutating the Record will not cause changes in the SLOW5 file.
-    pub fn get_record(&self, read_id: &[u8]) -> Result<Record, Slow5Error> {
+    pub fn get_record<B: Into<Vec<u8>>>(&self, read_id: B) -> Result<Record, Slow5Error> {
         let mut slow5_rec =
             unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
         let read_id = to_cstring(read_id)?;
@@ -127,10 +129,10 @@ impl<A> FileReader<A> {
 
     /// Returns iterator over all the read ids in a SLOW5 file
     /// ```
-    /// # use slow5::FileReader;
+    /// # use slow5::typed::FileReader;
     /// use std::str;
     ///
-    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
+    /// let slow5: FileReader<()> = FileReader::open("examples/example.slow5").unwrap();
     /// # let mut read_ids = Vec::new();
     /// let read_id_iter = slow5.iter_read_ids().unwrap();
     /// for rid in read_id_iter {
@@ -207,9 +209,9 @@ mod test {
         let filename = "examples/example.slow5";
         let mut reader: FileReader<()> = FileReader::open(filename).unwrap();
 
-        let read_id = b"r3";
+        let read_id = "r3";
         let rec = reader.get_record(read_id).unwrap();
-        assert_eq!(rec.read_id(), read_id);
+        assert_eq!(rec.read_id(), read_id.as_bytes());
 
         let mut acc = Vec::new();
         for rec in reader.records() {
