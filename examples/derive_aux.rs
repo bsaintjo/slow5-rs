@@ -2,6 +2,7 @@ use std::error::Error;
 
 use slow5::typed::{FieldExt, reader::FileReader};
 
+#[allow(dead_code)]
 #[derive(FieldExt)]
 struct MyAuxFields {
     // Primitive types only supported for now
@@ -14,6 +15,6 @@ struct MyAuxFields {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let slow5: FileReader<MyAuxFields> = FileReader::open("examples/example2.slow5")?;
+    let _slow5: FileReader<MyAuxFields> = FileReader::open("examples/example2.slow5")?;
     Ok(())
 }
