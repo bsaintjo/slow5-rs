@@ -1,14 +1,18 @@
 use std::{
-    ffi::{CStr, CString, },
+    ffi::{CStr, CString},
     marker::PhantomData,
 };
 
 use libc::c_char;
 use slow5lib_sys::{
-    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_set, slow5_hdr_t, slow5_hdr_get,
+    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t,
 };
 
-use crate::{aux::{FieldType, AuxField}, error::Slow5Error, to_cstring};
+use crate::{
+    aux::{AuxField, FieldType},
+    error::Slow5Error,
+    to_cstring,
+};
 
 pub struct Header<'a, A> {
     pub(crate) header: *mut slow5_hdr_t,
@@ -122,7 +126,6 @@ impl<'a, A> Header<'a, A> {
             Ok(())
         }
     }
-
 }
 
 /// Iterator over auxiliary field names of a [`Header`], usually using

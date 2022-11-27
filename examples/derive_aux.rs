@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use slow5::typed::{FieldExt, reader::FileReader};
+use slow5::typed::{reader::FileReader, FieldExt};
 
 #[allow(dead_code)]
 #[derive(FieldExt)]

@@ -11,7 +11,7 @@ use slow5lib_sys::{
 use crate::{
     aux::{AuxField, FieldType},
     error::Slow5Error,
-    to_cstring, to_cstr,
+    to_cstr, to_cstring,
 };
 
 /// Get an immutable access to the headers of a SLOW5 file.

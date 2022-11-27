@@ -1,4 +1,7 @@
-use std::{ffi::{NulError, FromBytesWithNulError}, path::PathBuf};
+use std::{
+    ffi::{FromBytesWithNulError, NulError},
+    path::PathBuf,
+};
 
 use thiserror::Error;
 
