@@ -1,13 +1,14 @@
 use anyhow::Result;
 use assert_fs::TempDir;
-use slow5::{FieldType, FileWriter, Header, Record, RecordBuilder};
+use slow5::{FieldType, FileWriter, Header, WriteOptions, Record, RecordBuilder};
 
 fn main() -> Result<()> {
     let tmp_dir = TempDir::new()?;
     let file_path = tmp_dir.join("test.blow5");
-    let mut slow5 = FileWriter::create(file_path)?;
-
-    set_header_attributes(&mut slow5.header())?;
+    let mut opts = WriteOptions::default();
+    opts.attr("run_id", "run_0", 0)
+        .attr("asic_id", "asic_id_0", 0);
+    let mut slow5 = FileWriter::with_options(file_path, opts)?;
 
     let mut hdr = slow5.header();
     set_header_aux_fields(&mut hdr)?;
@@ -29,14 +30,6 @@ fn set_record_fields(hdr: &Header) -> Result<Record> {
         .build()?;
     rec.set_aux_field(hdr, "median", 1.2f32)?;
     Ok(rec)
-}
-
-fn set_header_attributes(hdr: &mut Header) -> Result<()> {
-    hdr.add_attribute("run_id")?;
-    hdr.set_attribute("run_id", "run_0", 0)?;
-    hdr.add_attribute("asic_id")?;
-    hdr.set_attribute("asic_id", "asic_id_0", 0)?;
-    Ok(())
 }
 
 fn set_header_aux_fields(hdr: &mut Header) -> Result<()> {

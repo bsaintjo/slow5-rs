@@ -11,7 +11,7 @@ use slow5lib_sys::{
 use crate::{
     aux::{AuxField, FieldType},
     error::Slow5Error,
-    to_cstring,
+    to_cstring, to_cstr,
 };
 
 /// Get an immutable access to the headers of a SLOW5 file.
@@ -77,11 +77,11 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
+    pub(crate) fn add_attribute<B>(&mut self, attr: &B) -> Result<(), Slow5Error>
     where
-        B: Into<Vec<u8>>,
+        B: AsRef<[u8]>,
     {
-        let attr = to_cstring(attr.into())?;
+        let attr = to_cstr(attr)?;
         let ret = unsafe { slow5_hdr_add(attr.as_ptr(), self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
@@ -90,18 +90,18 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub fn set_attribute<B, C>(
+    pub(crate) fn set_attribute<B, C>(
         &mut self,
-        attr: B,
-        value: C,
+        attr: &B,
+        value: &C,
         read_group: u32,
     ) -> Result<(), Slow5Error>
     where
-        B: Into<Vec<u8>>,
-        C: Into<Vec<u8>>,
+        B: AsRef<[u8]>,
+        C: AsRef<[u8]>,
     {
-        let attr = to_cstring(attr.into())?;
-        let value = to_cstring(value.into())?;
+        let attr = to_cstr(attr)?;
+        let value = to_cstr(value)?;
         let ret = unsafe { slow5_hdr_set(attr.as_ptr(), value.as_ptr(), read_group, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)

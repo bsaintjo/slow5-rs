@@ -1,4 +1,4 @@
-use std::{ffi::NulError, path::PathBuf};
+use std::{ffi::{NulError, FromBytesWithNulError}, path::PathBuf};
 
 use thiserror::Error;
 
@@ -43,4 +43,6 @@ pub enum Slow5Error {
     IncorrectPath(PathBuf),
     #[error("Error getting attribute, attribute doesn't exist or read_group is out of range")]
     AttributeError,
+    #[error("NUL not in correct place ")]
+    NulError(FromBytesWithNulError),
 }

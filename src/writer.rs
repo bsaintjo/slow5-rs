@@ -1,14 +1,101 @@
-use std::{os::unix::prelude::OsStrExt, path::Path};
+use std::{collections::HashMap, os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
 use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
 
 use crate::{
-    compression::Options,
     header::Header,
     record::{Record, RecordBuilder},
-    to_cstring, Slow5Error,
+    to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
 };
+
+type Field = (Vec<u8>, FieldType);
+
+/// Set attributes, auxiliary fields, and record and signal compression.
+pub struct WriteOptions {
+    pub(crate) rec_comp: RecordCompression,
+    pub(crate) sig_comp: SignalCompression,
+    attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
+    auxiliary_fields: Vec<Field>,
+}
+
+impl WriteOptions {
+    pub fn new(
+        rec_comp: RecordCompression,
+        sig_comp: SignalCompression,
+        attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
+        auxiliary_fields: Vec<Field>,
+    ) -> Self {
+        Self {
+            rec_comp,
+            sig_comp,
+            attributes,
+            auxiliary_fields,
+        }
+    }
+
+    pub fn attr<K, V>(&mut self, key: K, value: V, read_group: u32) -> &mut Self
+    where
+        K: Into<Vec<u8>>,
+        V: Into<Vec<u8>>,
+    {
+        let key = key.into();
+        let value = value.into();
+        self.attributes.insert(key, (value, read_group));
+        self
+    }
+
+    pub fn attrs_iter<K, V, I>(&mut self, iter: I) -> &mut Self
+    where
+        I: Iterator<Item = (K, (V, u32))>,
+        K: Into<Vec<u8>>,
+        V: Into<Vec<u8>>,
+    {
+        iter.for_each(|(k, (v, rg))| {
+            self.attr(k, v, rg);
+        });
+        self
+    }
+
+    pub fn aux<B>(&mut self, name: B, field_ty: FieldType) -> &mut Self
+    where
+        B: Into<Vec<u8>>,
+    {
+        let name = name.into();
+        self.auxiliary_fields.push((name, field_ty));
+        self
+    }
+
+    pub fn auxs_iter<B, I>(&mut self, iter: I) -> &mut Self
+    where
+        I: Iterator<Item = (B, FieldType)>,
+        B: Into<Vec<u8>>,
+    {
+        iter.for_each(|(b, f)| self.auxiliary_fields.push((b.into(), f)));
+        self
+    }
+
+    pub fn record_compression(&mut self, rcomp: RecordCompression) -> &mut Self {
+        self.rec_comp = rcomp;
+        self
+    }
+
+    pub fn signal_compression(&mut self, scomp: SignalCompression) -> &mut Self {
+        self.sig_comp = scomp;
+        self
+    }
+}
+
+impl Default for WriteOptions {
+    fn default() -> Self {
+        WriteOptions::new(
+            RecordCompression::None,
+            SignalCompression::None,
+            Default::default(),
+            Default::default(),
+        )
+    }
+}
 
 /// Write a SLOW5 file
 pub struct FileWriter {
@@ -58,20 +145,22 @@ impl FileWriter {
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # use slow5::FileWriter;
-    /// # use slow5::SignalCompression;
-    /// # use slow5::RecordCompression;
-    /// # use slow5::Options;
+    /// use slow5::SignalCompression::SvbZd;
+    /// use slow5::RecordCompression::ZStd;
+    /// # use slow5::WriteOptions;
     ///
     /// # let tmpdir = TempDir::new().unwrap();
     /// let file_path = "test.blow5";
     /// # let file_path = tmpdir.child(file_path);
-    /// let opts = Options::new(RecordCompression::ZStd, SignalCompression::SvbZd);
+    /// let mut opts = WriteOptions::default();
+    /// opts.record_compression(ZStd)
+    ///     .signal_compression(SvbZd);
     /// let writer = FileWriter::with_options(file_path, opts).unwrap();
     /// # writer.close();
     /// ```
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
-    pub fn with_options<P>(file_path: P, opts: Options) -> Result<Self, Slow5Error>
+    pub fn with_options<P>(file_path: P, opts: WriteOptions) -> Result<Self, Slow5Error>
     where
         P: AsRef<Path>,
     {
@@ -114,8 +203,16 @@ impl FileWriter {
                 log::info!("Not a BLOW5 file, skipping compression");
             }
 
+            // Initialize all attributes and auxiliary fields
+            let mut header = Header::new((*slow5_file).header);
+            for (name, (value, rg)) in opts.attributes.into_iter() {
+                header.add_attribute(&name)?;
+                header.set_attribute(&name, &value, rg)?;
+            }
+
+            for (name, fty) in opts.auxiliary_fields.into_iter() {}
+
             // Header
-            // TODO Do this at the end?
             let hdr_ret = slow5_hdr_write(slow5_file);
             if hdr_ret == -1 {
                 return Err(Slow5Error::HeaderWriteFailed);

@@ -39,21 +39,3 @@ impl SignalCompression {
         }
     }
 }
-
-/// Set record and signal compression
-pub struct Options {
-    pub(crate) rec_comp: RecordCompression,
-    pub(crate) sig_comp: SignalCompression,
-}
-
-impl Options {
-    pub fn new(rec_comp: RecordCompression, sig_comp: SignalCompression) -> Self {
-        Options { rec_comp, sig_comp }
-    }
-}
-
-impl Default for Options {
-    fn default() -> Self {
-        Options::new(RecordCompression::None, SignalCompression::None)
-    }
-}
