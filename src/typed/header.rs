@@ -1,75 +1,52 @@
 use std::{
-    ffi::{CStr, CString},
+    ffi::{CStr, CString, },
     marker::PhantomData,
 };
 
 use libc::c_char;
 use slow5lib_sys::{
-    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t,
+    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_set, slow5_hdr_t, slow5_hdr_get,
 };
 
-use crate::{
-    aux::{Field, FieldType},
-    error::Slow5Error,
-    experimental::field_t::{self, AuxFieldTExt},
-    to_cstring,
-};
+use crate::{aux::{FieldType, AuxField}, error::Slow5Error, to_cstring};
 
-/// Get an immutable access to the headers of a SLOW5 file.
-pub struct HeaderView<'a> {
-    header: *mut slow5_hdr_t,
-    _lifetime: PhantomData<&'a ()>,
-}
-
-impl<'a> HeaderView<'a> {
-    pub(crate) fn new(header: *mut slow5_hdr_t, _lifetime: PhantomData<&'a ()>) -> Self {
-        Self { header, _lifetime }
-    }
-
-    /// Get the value of an attribute in a read group
-    /// ```
-    /// use slow5::FileReader;
-    ///
-    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
-    /// let header = slow5.header();
-    /// let attr = header.attribute("run_id", 0).unwrap();
-    /// assert_eq!(attr, "d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
-    /// ```
-    // TODO how to handle allocated string from slow5_hdr_get
-    pub fn attribute<S: Into<Vec<u8>>>(
-        &self,
-        attr: S,
-        read_group: u32,
-    ) -> Result<&str, Slow5Error> {
-        let attr = CString::new(attr).unwrap();
-        let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
-        if !rg_value.is_null() {
-            let cstr = unsafe { CStr::from_ptr(rg_value) };
-            Ok(cstr.to_str().unwrap())
-        } else {
-            Err(Slow5Error::Unknown)
-        }
-    }
-}
-
-pub struct Header<'a> {
+pub struct Header<'a, A> {
     pub(crate) header: *mut slow5_hdr_t,
     _lifetime: PhantomData<&'a ()>,
+    _aux: PhantomData<A>,
 }
 
-impl<'a> Header<'a> {
+impl<'a, A> Header<'a, A> {
     pub(crate) fn new(header: *mut slow5_hdr_t) -> Self {
         Self {
             header,
             _lifetime: PhantomData,
+            _aux: PhantomData,
         }
     }
 
-    fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
-    where
-        B: Into<Vec<u8>>,
-    {
-        todo!()
+    /// Get the value of an attribute in a read group
+    /// ```
+    /// use slow5::typed::FileReader;
+    ///
+    /// let slow5: FileReader<()> = FileReader::open("examples/example.slow5").unwrap();
+    /// let header = slow5.header();
+    /// let attr = header.get_attribute("run_id", 0).unwrap();
+    /// assert_eq!(attr, b"d6e473a6d513ec6bfc150c60fd4556d72f0e6d18");
+    /// ```
+    pub fn get_attribute<S: Into<Vec<u8>>>(
+        &self,
+        attr: S,
+        read_group: u32,
+    ) -> Result<&[u8], Slow5Error> {
+        let attr = CString::new(attr).unwrap();
+        let rg_value = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header) };
+        if !rg_value.is_null() {
+            let cstr = unsafe { CStr::from_ptr(rg_value) };
+            Ok(cstr.to_bytes())
+        } else {
+            Err(Slow5Error::Unknown)
+        }
     }
 
     pub fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
@@ -118,40 +95,34 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub fn add_aux_field<B>(
-        &'a self,
-        name: B,
-        field_type: FieldType,
-    ) -> Result<Field<'a>, Slow5Error>
+    pub fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
-        let name = CString::new(name.into()).map_err(Slow5Error::InteriorNul)?;
+        let name = to_cstring(name)?;
         let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
         } else {
-            Ok(Field::new(name, self, field_type))
+            Ok(())
         }
     }
 
-    pub fn add_aux_field_t<B, T>(
-        &'a self,
-        name: B,
-    ) -> Result<field_t::Field<'a, T>, Slow5Error>
+    pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,
-        T: AuxFieldTExt,
+        T: AuxField,
     {
-        let cname = to_cstring(name.clone())?;
+        let cname = to_cstring(name)?;
         let field_type = T::to_slow5_t();
         let ret = unsafe { slow5_aux_add(cname.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
         } else {
-            Ok(field_t::Field::new(name.into(), self.header))
+            Ok(())
         }
     }
+
 }
 
 /// Iterator over auxiliary field names of a [`Header`], usually using
