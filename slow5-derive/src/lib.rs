@@ -59,7 +59,7 @@ fn derive_header_init(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenStream
 
     quote! {
         impl slow5::typed::FieldExt for #name {
-            fn set_header_aux_fields(header: &slow5::Header) {
+            fn set_header_aux_fields(header: &slow5::typed::Header<Self>) {
                 #(#fs)*
             }
         }
