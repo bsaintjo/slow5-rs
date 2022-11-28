@@ -49,10 +49,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file("slow5lib/src/slow5_misc.c")
         .file("slow5lib/src/slow5_press.c");
 
-    cfg.shared_flag(true)
+    cfg.shared_flag(false)
         .flag("-std=c99")
-        .flag("-mssse3")
-        .define("STREAMVBYTE_SSSE3", "1")
+        // TODO Check if I need a target dependent cfg to support these
+        // .flag("-mssse3")
+        // .define("STREAMVBYTE_SSSE3", "1")
+        // .define("__ARM_NEON__", "1")
         .opt_level(3)
         .compile("slow5");
 
@@ -74,6 +76,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .allowlist_type("slow5_.*")
         .allowlist_type("__slow5_press")
         .allowlist_type("__va_list_tag")
+        .allowlist_type("va_list")
+        .allowlist_type("__darwin_va_list")
+        .allowlist_type("__builtin_va_list")
+        .allowlist_type("key_t")
+        .allowlist_type("__int32_t")
         // khash.h
         .allowlist_type("kh.*")
         .allowlist_function("kh.*")
