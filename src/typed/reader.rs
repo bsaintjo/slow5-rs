@@ -73,7 +73,7 @@ impl<A: FieldExt> FileReader<A> {
     /// Return iterator over each read in a SLOW5 file as a [`RecordIter`].
     ///
     /// # Example
-    /// ```
+    /// ```ignore
     /// # use std::error::Error;
     /// # use slow5::typed::FileReader;
     /// use slow5::RecordExt;
@@ -89,14 +89,14 @@ impl<A: FieldExt> FileReader<A> {
     // TODO I could avoid the reader being consumed by using rewinding the file ptr
     // and making it &mut self. RecordIter would need to do the rewinding once its
     // finished.
-    pub fn records(&mut self) -> RecordIter {
-        RecordIter::new(self.slow5_file)
-    }
+    // pub fn records(&mut self) -> RecordIter {
+    //     RecordIter::new(self.slow5_file)
+    // }
 
     /// Random-access a single [`Record`] by read_id.
     ///
     /// # Example
-    /// ```
+    /// ```ignore
     /// # use slow5::typed::FileReader;
     /// # use std::error::Error;
     /// use slow5::RecordExt;
@@ -111,23 +111,23 @@ impl<A: FieldExt> FileReader<A> {
     /// ```
     ///
     /// Mutating the Record will not cause changes in the SLOW5 file.
-    pub fn get_record<B: Into<Vec<u8>>>(&self, read_id: B) -> Result<Record, Slow5Error> {
-        let mut slow5_rec =
-            unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
-        let read_id = to_cstring(read_id)?;
-        let rid_ptr = read_id.into_raw();
-        let ret = unsafe { slow5_get(rid_ptr, &mut slow5_rec, self.slow5_file) };
-        let _ = unsafe { CString::from_raw(rid_ptr) };
-        if ret >= 0 {
-            Ok(Record::new(slow5_rec))
-        } else {
-            // TODO Handle error code properly
-            Err(Slow5Error::Unknown)
-        }
-    }
+    // pub fn get_record<B: Into<Vec<u8>>>(&self, read_id: B) -> Result<Record, Slow5Error> {
+    //     let mut slow5_rec =
+    //         unsafe { libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t };
+    //     let read_id = to_cstring(read_id)?;
+    //     let rid_ptr = read_id.into_raw();
+    //     let ret = unsafe { slow5_get(rid_ptr, &mut slow5_rec, self.slow5_file) };
+    //     let _ = unsafe { CString::from_raw(rid_ptr) };
+    //     if ret >= 0 {
+    //         Ok(Record::new(slow5_rec))
+    //     } else {
+    //         // TODO Handle error code properly
+    //         Err(Slow5Error::Unknown)
+    //     }
+    // }
 
     /// Returns iterator over all the read ids in a SLOW5 file
-    /// ```
+    /// ```ignore
     /// # use slow5::typed::FileReader;
     /// use std::str;
     ///
@@ -146,9 +146,10 @@ impl<A: FieldExt> FileReader<A> {
     // Records has to take ownership because the file pointer is changed during
     // iteration Maybe ideal to fseek + other with the fp after dropping the
     // RecordIter
-    pub fn iter_read_ids(&self) -> Result<ReadIdIter<'_>, Slow5Error> {
-        ReadIdIter::new(self)
-    }
+    // pub fn iter_read_ids(&self) -> Result<ReadIdIter<'_>, Slow5Error> {
+    //     ReadIdIter::new(self)
+    // }
+    fn _placeholder() {}
 }
 
 impl<A> Drop for FileReader<A> {
@@ -198,24 +199,24 @@ impl<'a> Iterator for ReadIdIter<'a> {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::RecordExt;
+// #[cfg(test)]
+// mod test {
+//     use super::*;
+//     use crate::RecordExt;
 
-    #[test]
-    fn test_reader() {
-        let filename = "examples/example.slow5";
-        let mut reader: FileReader<()> = FileReader::open(filename).unwrap();
+//     #[test]
+//     fn test_reader() {
+//         let filename = "examples/example.slow5";
+//         let mut reader: FileReader<()> = FileReader::open(filename).unwrap();
 
-        let read_id = "r3";
-        let rec = reader.get_record(read_id).unwrap();
-        assert_eq!(rec.read_id(), read_id.as_bytes());
+//         let read_id = "r3";
+//         let rec = reader.get_record(read_id).unwrap();
+//         assert_eq!(rec.read_id(), read_id.as_bytes());
 
-        let mut acc = Vec::new();
-        for rec in reader.records() {
-            acc.push(rec);
-        }
-        assert!(!acc.is_empty());
-    }
-}
+//         let mut acc = Vec::new();
+//         for rec in reader.records() {
+//             acc.push(rec);
+//         }
+//         assert!(!acc.is_empty());
+//     }
+// }

@@ -169,14 +169,14 @@ impl FileWriter {
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # use slow5::FileWriter;
-    /// use slow5::{RecordCompression::ZStd, SignalCompression::SvbZd};
+    /// use slow5::{RecordCompression::ZStd, SignalCompression::StreamVByte};
     /// # use slow5::WriteOptions;
     ///
     /// # let tmpdir = TempDir::new().unwrap();
     /// let file_path = "test.blow5";
     /// # let file_path = tmpdir.child(file_path);
     /// let mut opts = WriteOptions::default();
-    /// opts.record_compression(ZStd).signal_compression(SvbZd);
+    /// opts.record_compression(ZStd).signal_compression(StreamVByte);
     /// let writer = FileWriter::with_options(file_path, opts).unwrap();
     /// # writer.close();
     /// ```

@@ -163,15 +163,17 @@ impl Record {
     /// # use slow5::FileWriter;
     /// # use slow5::FieldType;
     /// # use slow5::RecordBuilder;
+    /// # use slow5::WriteOptions;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # fn main() -> Result<()> {
     /// # let tmp_dir = TempDir::new().unwrap();
     /// let path = "new.slow5";
     /// # let path = tmp_dir.child(path);
-    /// let mut slow5 = FileWriter::create(path)?;
-    /// let mut header = slow5.header();
-    /// header.add_aux_field("median", FieldType::Float)?;
+    /// let mut opts = WriteOptions::default();
+    /// opts.aux("median", FieldType::Float);
+    /// let mut slow5 = FileWriter::with_options(path, opts)?;
+    /// let header = slow5.header();
     /// let mut rec = RecordBuilder::default().build()?;
     /// rec.set_aux_field(&header, "median", 10.0f32)?;
     /// # Ok(())
@@ -442,14 +444,14 @@ mod test {
     use super::*;
     use crate::{aux::FieldType, FileWriter};
 
-    #[ignore = "Brainstorming api"]
+    // #[ignore = "Brainstorming api"]
     #[test]
     fn test_aux() -> anyhow::Result<()> {
         use assert_fs::{fixture::PathChild, TempDir};
         let tmp_dir = TempDir::new()?;
         let path = "new.slow5";
         let path = tmp_dir.child(path);
-        let mut slow5 = FileWriter::create(path)?;
+        let slow5 = FileWriter::create(path)?;
         let mut header = slow5.header();
         header.add_aux_field("median", FieldType::Float)?;
         let mut rec = RecordBuilder::default().build()?;
