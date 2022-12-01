@@ -177,8 +177,6 @@ mod test {
 
     use crate::FileReader;
 
-    use super::*;
-
     #[test]
     fn test_aux_names_iter() {
         let slow5 = FileReader::open("examples/example2.slow5").unwrap();
