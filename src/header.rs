@@ -84,7 +84,7 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
+    pub(crate) fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
@@ -97,7 +97,7 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
+    pub(crate) fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,
         T: AuxField,
