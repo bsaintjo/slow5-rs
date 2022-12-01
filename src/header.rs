@@ -31,8 +31,9 @@ impl<'a> Header<'a> {
     ///
     /// ```
     // TODO maybe return Option instead and ignore possible errors
+    // TODO rename as attr to make it more in line with Options::attr?
     pub fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
-    where
+    where  
         B: Into<Vec<u8>>,
     {
         let attr = to_cstring(attr.into())?;
