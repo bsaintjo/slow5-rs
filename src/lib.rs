@@ -46,7 +46,7 @@ mod test {
             .aux("read_number", FieldType::Uint32)
             .attr("attr", "val", 0)
             .attr("attr", "other", 1);
-        let writer = FileWriter::with_options(filepath, opts)?;
+        let writer = FileWriter::with_options(&filepath, opts)?;
         let header = writer.header();
         assert_eq!(header.get_attribute("attr", 0)?, b"val");
         assert_eq!(header.get_attribute("attr", 1)?, b"other");

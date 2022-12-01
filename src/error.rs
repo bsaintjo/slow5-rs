@@ -48,4 +48,6 @@ pub enum Slow5Error {
     AttributeError,
     #[error("NUL not in correct place ")]
     NulError(FromBytesWithNulError),
+    #[error("Failed to add new read group {0}")]
+    FailedAddReadGroup(u32),
 }
