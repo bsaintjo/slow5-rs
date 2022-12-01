@@ -27,15 +27,15 @@ impl RecordCompression {
 pub enum SignalCompression {
     /// No signal compression
     None,
-    /// Compress using SVB-ZD algorithm
-    SvbZd,
+    /// Compress using streamvbyte library
+    StreamVByte,
 }
 
 impl SignalCompression {
     pub(crate) fn to_slow5_rep(&self) -> u32 {
         match self {
             SignalCompression::None => slow5_press_method_SLOW5_COMPRESS_NONE,
-            SignalCompression::SvbZd => slow5_press_method_SLOW5_COMPRESS_SVB_ZD,
+            SignalCompression::StreamVByte => slow5_press_method_SLOW5_COMPRESS_SVB_ZD,
         }
     }
 }
