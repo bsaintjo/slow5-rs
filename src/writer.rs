@@ -9,22 +9,20 @@ use crate::{
     to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
 };
 
-type Field = (Vec<u8>, FieldType);
-
 /// Set attributes, auxiliary fields, and record and signal compression.
 pub struct WriteOptions {
     pub(crate) rec_comp: RecordCompression,
     pub(crate) sig_comp: SignalCompression,
     attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
-    auxiliary_fields: Vec<Field>,
+    auxiliary_fields: HashMap<Vec<u8>, FieldType>,
 }
 
 impl WriteOptions {
-    pub fn new(
+    fn new(
         rec_comp: RecordCompression,
         sig_comp: SignalCompression,
         attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
-        auxiliary_fields: Vec<Field>,
+        auxiliary_fields: HashMap<Vec<u8>, FieldType>,
     ) -> Self {
         Self {
             rec_comp,
@@ -34,6 +32,22 @@ impl WriteOptions {
         }
     }
 
+    /// Set attribute for header.
+    ///
+    /// # Note
+    /// If the key and read_group are the same, the value for it will be overwritten.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// let mut opts = WriteOptions::default();
+    /// opts.attr("asic_id", "123456", 0);
+    /// opts.attr("asic_id", "7891011", 1);
+    ///
+    /// opts.attr("device_type", "cool", 0);
+    /// // Above line is ignored but this is the same read group
+    /// opts.attr("device_type", "wow", 0);
+    /// ```
     pub fn attr<K, V>(&mut self, key: K, value: V, read_group: u32) -> &mut Self
     where
         K: Into<Vec<u8>>,
@@ -45,41 +59,51 @@ impl WriteOptions {
         self
     }
 
-    pub fn attrs_iter<K, V, I>(&mut self, iter: I) -> &mut Self
-    where
-        I: Iterator<Item = (K, (V, u32))>,
-        K: Into<Vec<u8>>,
-        V: Into<Vec<u8>>,
-    {
-        iter.for_each(|(k, (v, rg))| {
-            self.attr(k, v, rg);
-        });
-        self
-    }
-
+    /// Set auxiliary field for header. See [`FieldType`] for info on
+    /// types allowed as fields.
+    ///
+    /// # Note
+    /// If the same name is used multiple times, the last FieldType will be used in the header.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// use slow5::FieldType;
+    /// let mut opts = WriteOptions::default();
+    /// opts.aux("median", FieldType::Double);
+    /// opts.aux("read_number", FieldType::Uint8);
+    /// ```
     pub fn aux<B>(&mut self, name: B, field_ty: FieldType) -> &mut Self
     where
         B: Into<Vec<u8>>,
     {
         let name = name.into();
-        self.auxiliary_fields.push((name, field_ty));
+        self.auxiliary_fields.insert(name, field_ty);
         self
     }
 
-    pub fn auxs_iter<B, I>(&mut self, iter: I) -> &mut Self
-    where
-        I: Iterator<Item = (B, FieldType)>,
-        B: Into<Vec<u8>>,
-    {
-        iter.for_each(|(b, f)| self.auxiliary_fields.push((b.into(), f)));
-        self
-    }
-
+    /// Set compression of the SLOW5 records. By default no compression is used.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// use slow5::RecordCompression;
+    /// let mut opts = WriteOptions::default();
+    /// opts.record_compression(RecordCompression::Zlib);
+    /// ```
     pub fn record_compression(&mut self, rcomp: RecordCompression) -> &mut Self {
         self.rec_comp = rcomp;
         self
     }
 
+    /// Set compression of the SLOW5 signal data. By default no compression is used.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// use slow5::SignalCompression;
+    /// let mut opts = WriteOptions::default();
+    /// opts.signal_compression(SignalCompression::StreamVByte);
     pub fn signal_compression(&mut self, scomp: SignalCompression) -> &mut Self {
         self.sig_comp = scomp;
         self
@@ -204,8 +228,8 @@ impl FileWriter {
             // Initialize all attributes and auxiliary fields
             let mut header = Header::new((*slow5_file).header);
             for (name, (value, rg)) in opts.attributes.into_iter() {
-                header.add_attribute(&name)?;
-                header.set_attribute(&name, &value, rg)?;
+                header.add_attribute(name.clone())?;
+                header.set_attribute(name, value, rg)?;
             }
 
             for (name, fty) in opts.auxiliary_fields.into_iter() {
@@ -261,46 +285,24 @@ impl FileWriter {
     }
 
     /// Access header of FileWriter
-    pub fn header(&mut self) -> Header {
-        let h = unsafe { (*self.slow5_file).header };
-        Header::new(h)
-    }
-
-    /// Write record to SLOW5 file, with a closure that makes a one-shot
-    /// [`RecordBuilder`], an alternative to add_record. Not thread safe.
-    ///
     /// # Example
     /// ```
-    /// # use anyhow::Result;
     /// # use slow5::FileWriter;
-    /// # use slow5::FileReader;
-    /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # use slow5::RecordBuilder;
-    /// # fn main() -> Result<()> {
-    /// # let tmp_dir = TempDir::new()?;
-    /// # let file_path = "test.slow5";
+    /// # use slow5::WriteOptions;
+    /// # let tmp_dir = TempDir::new().unwrap();
+    /// let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
-    /// # let tmp_path = file_path.to_path_buf();
-    /// # let mut writer = FileWriter::create(&file_path)?;
-    /// # let rec = RecordBuilder::builder().read_id("test").build()?;
-    /// let read_id = "test";
-    /// writer.write_record(|mut builder| builder.read_id(read_id).build())?;
-    /// # writer.close();
-    /// # assert!(tmp_path.exists());
-    /// # let reader = FileReader::open(&file_path)?;
-    /// # let rec = reader.get_record("test")?;
-    /// # Ok(())
-    /// # }
+    /// let mut opts = WriteOptions::default();
+    /// opts.attr("asic_id", "test", 0);
+    /// let writer = FileWriter::with_options(&file_path, opts).unwrap();
+    /// let header = writer.header();
+    /// assert_eq!(header.get_attribute("asic_id", 0).unwrap(), b"test");
     /// ```
-    pub fn write_record<F>(&mut self, build_fn: F) -> Result<(), Slow5Error>
-    where
-        F: FnOnce(RecordBuilder) -> Result<Record, Slow5Error>,
-    {
-        let builder = RecordBuilder::default();
-        let record = build_fn(builder)?;
-        self.add_record(&record)
+    pub fn header(&self) -> Header {
+        let h = unsafe { (*self.slow5_file).header };
+        Header::new(h)
     }
 
     /// Close the SLOW5 file.
@@ -346,46 +348,4 @@ mod test {
         assert_eq!(rec.read_id(), read_id);
         Ok(())
     }
-
-    #[test]
-    fn test_writer_two() -> Result<()> {
-        let tmp_dir = TempDir::new()?;
-        let file_path = "test.slow5";
-        let read_id: &[u8] = b"test";
-        let file_path = tmp_dir.child(file_path);
-        let mut writer = FileWriter::create(&file_path)?;
-        writer.write_record(|mut builder| builder.read_id("r1").raw_signal(&[1, 2, 3]).build())?;
-        let rec = RecordBuilder::builder()
-            .read_id(read_id)
-            .raw_signal(&[1, 2, 3])
-            .build()?;
-        writer.add_record(&rec)?;
-        writer.close();
-        assert!(file_path.exists());
-
-        let reader = FileReader::open(&file_path)?;
-        let rec = reader.get_record("r1")?;
-        assert_eq!(rec.read_id(), b"r1");
-
-        let rec = reader.get_record(read_id)?;
-        assert_eq!(rec.read_id(), read_id);
-        Ok(())
-    }
-
-    // #[test]
-    // fn test_same_rec() -> Result<()> {
-    //     let tmp_dir = TempDir::new()?;
-    //     let file_path = "test.slow5";
-    //     let read_id = b"test";
-    //     let file_path = tmp_dir.child(file_path);
-    //     let mut writer = FileWriter::create(&file_path)?;
-    //     let rec = RecordBuilder::builder()
-    //         .read_id(read_id)
-    //         .raw_signal(&[1, 2, 3])
-    //         .build()?;
-    //     writer.add_record(&rec)?;
-    //     let same = writer.add_record(&rec);
-    //     assert!(same.is_err());
-    //     Ok(())
-    // }
 }
