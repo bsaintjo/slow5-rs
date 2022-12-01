@@ -3,7 +3,7 @@
 [![License][license-badge]][license-url]
 [![Crates.io][crates-badge]][crates-url]
 [![docs.rs][docs-badge]][docs-url]
-[![Rust](https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml)
+[![Rust][ci-badge]][ci-url]
 ![Stability][stability-badge]
 
 [license-badge]: https://img.shields.io/crates/l/slow5?style=flat-square
@@ -12,6 +12,8 @@
 [crates-url]: https://crates.io/crates/slow5
 [docs-badge]: https://img.shields.io/docsrs/slow5?style=flat-square
 [docs-url]: https://docs.rs/slow5
+[ci-badge]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml/badge.svg
+[ci-url]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml
 [stability-badge]: https://img.shields.io/badge/stability-experimental-orange.svg
 
 A library for interacting with SLOW5 files in rust. Not official.
@@ -39,10 +41,10 @@ git clone --recursive https://github.com/bsaintjo/slow5-rs.git
 
 ## TODO
 
+- [ ] Allow optional dependency on zlib and zstd
+- [ ] Handle string, array and enum auxiliary fields
 - [ ] Allow for configuring slow5lib log level
 - [ ] Set exit condition to SLOW5_EXIT_ON_ERR during testing?
-- [ ] Handle string, array and enum auxiliary fields
-- [ ] Use thread-safe C API to allow use Rust parallelism
 
 ## License
 
