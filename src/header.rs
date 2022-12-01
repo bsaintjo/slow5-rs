@@ -38,11 +38,11 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub(crate) fn add_attribute<B>(&mut self, attr: &B) -> Result<(), Slow5Error>
+    pub(crate) fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
     where
-        B: AsRef<[u8]>,
+        B: Into<Vec<u8>>,
     {
-        let attr = to_cstr(attr)?;
+        let attr = to_cstring(attr)?;
         let ret = unsafe { slow5_hdr_add(attr.as_ptr(), self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
@@ -53,16 +53,16 @@ impl<'a> Header<'a> {
 
     pub(crate) fn set_attribute<B, C>(
         &mut self,
-        attr: &B,
-        value: &C,
+        attr: B,
+        value: C,
         read_group: u32,
     ) -> Result<(), Slow5Error>
     where
-        B: AsRef<[u8]>,
-        C: AsRef<[u8]>,
+        B: Into<Vec<u8>>,
+        C: Into<Vec<u8>>,
     {
-        let attr = to_cstr(attr)?;
-        let value = to_cstr(value)?;
+        let attr = to_cstring(attr)?;
+        let value = to_cstring(value)?;
         let ret = unsafe { slow5_hdr_set(attr.as_ptr(), value.as_ptr(), read_group, self.header) };
         if ret < 0 {
             Err(Slow5Error::Unknown)
