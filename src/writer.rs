@@ -1,7 +1,7 @@
-use std::{collections::HashMap, os::unix::prelude::OsStrExt, path::Path};
+use std::{collections::{HashMap, HashSet}, os::unix::prelude::OsStrExt, path::Path};
 
 use cstr::cstr;
-use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write};
+use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write, slow5_hdr_add_rg};
 
 use crate::{
     header::Header,
@@ -13,7 +13,8 @@ use crate::{
 pub struct WriteOptions {
     pub(crate) rec_comp: RecordCompression,
     pub(crate) sig_comp: SignalCompression,
-    attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
+    pub(crate) num_read_groups: u32,
+    attributes: HashMap<(Vec<u8>, u32), Vec<u8>>,
     auxiliary_fields: HashMap<Vec<u8>, FieldType>,
 }
 
@@ -21,12 +22,14 @@ impl WriteOptions {
     fn new(
         rec_comp: RecordCompression,
         sig_comp: SignalCompression,
-        attributes: HashMap<Vec<u8>, (Vec<u8>, u32)>,
+        num_read_groups: u32,
+        attributes: HashMap<(Vec<u8>, u32), Vec<u8>>,
         auxiliary_fields: HashMap<Vec<u8>, FieldType>,
     ) -> Self {
         Self {
             rec_comp,
             sig_comp,
+            num_read_groups,
             attributes,
             auxiliary_fields,
         }
@@ -53,9 +56,12 @@ impl WriteOptions {
         K: Into<Vec<u8>>,
         V: Into<Vec<u8>>,
     {
-        let key = key.into();
+        let key = (key.into(), read_group);
         let value = value.into();
-        self.attributes.insert(key, (value, read_group));
+        self.attributes.insert(key, value);
+        if read_group > self.num_read_groups {
+            self.num_read_groups = read_group;
+        }
         self
     }
 
@@ -115,6 +121,7 @@ impl Default for WriteOptions {
         WriteOptions::new(
             RecordCompression::None,
             SignalCompression::None,
+            0,
             Default::default(),
             Default::default(),
         )
@@ -225,10 +232,24 @@ impl FileWriter {
                 log::info!("Not a BLOW5 file, skipping compression");
             }
 
+            // Add read groups
+            let header_ptr = (*slow5_file).header;
+            for rg in 0 .. opts.num_read_groups {
+                let ret = slow5_hdr_add_rg(header_ptr);
+                if ret < 0 {
+                    return Err(Slow5Error::FailedAddReadGroup(rg));
+                }
+            }
+            // (*header_ptr).num_read_groups = opts.num_read_groups + 1;
+
             // Initialize all attributes and auxiliary fields
-            let mut header = Header::new((*slow5_file).header);
-            for (name, (value, rg)) in opts.attributes.into_iter() {
-                header.add_attribute(name.clone())?;
+            let mut header = Header::new(header_ptr);
+            let mut added_attr: HashSet<Vec<u8>> = HashSet::new();
+            for ((name, rg), value) in opts.attributes.into_iter() {
+                if !added_attr.contains(&name) {
+                    added_attr.insert(name.clone());
+                    header.add_attribute(name.clone())?;
+                }
                 header.set_attribute(name, value, rg)?;
             }
 
