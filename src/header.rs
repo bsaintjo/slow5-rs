@@ -8,9 +8,10 @@ use slow5lib_sys::{
 use crate::{
     aux::{AuxField, FieldType},
     error::Slow5Error,
-    to_cstr, to_cstring,
+    to_cstring,
 };
 
+/// Represents a SLOW5 header
 pub struct Header<'a> {
     pub(crate) header: *mut slow5_hdr_t,
     _lifetime: PhantomData<&'a ()>,
@@ -24,6 +25,12 @@ impl<'a> Header<'a> {
         }
     }
 
+    /// Get attribute value for a particular key and read group.
+    /// # Example
+    /// ```
+    ///
+    /// ```
+    // TODO maybe return Option instead and ignore possible errors
     pub fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -38,6 +45,7 @@ impl<'a> Header<'a> {
         }
     }
 
+    /// Add attribute to SLOW5 file
     pub(crate) fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -51,6 +59,7 @@ impl<'a> Header<'a> {
         }
     }
 
+    /// Set the attribute for a particular read group
     pub(crate) fn set_attribute<B, C>(
         &mut self,
         attr: B,
@@ -72,6 +81,14 @@ impl<'a> Header<'a> {
     }
 
     /// Return iterator over auxiliary field names
+    /// # Example
+    /// ```
+    /// # use slow5::FileReader;
+    /// let slow5 = FileReader::open("examples/example2.slow5").unwrap();
+    /// let header = slow5.header();
+    /// let n_aux_names = header.aux_names_iter().unwrap().count();
+    /// assert_eq!(n_aux_names, 5);
+    /// ```
     pub fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
         let mut num_aux = 0;
         let auxs = unsafe { slow5_get_aux_names(self.header, &mut num_aux) };
@@ -84,7 +101,11 @@ impl<'a> Header<'a> {
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
     /// used for setting the auxiliary field of [`crate::Record`].
-    pub(crate) fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
+    pub(crate) fn add_aux_field<B>(
+        &mut self,
+        name: B,
+        field_type: FieldType,
+    ) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
@@ -99,7 +120,7 @@ impl<'a> Header<'a> {
 
     pub(crate) fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
-        B: Into<Vec<u8>> + Clone,
+        B: Into<Vec<u8>>,
         T: AuxField,
     {
         let cname = to_cstring(name)?;
@@ -142,9 +163,37 @@ impl<'a> Iterator for AuxNamesIter<'a> {
         if self.idx < self.num_aux {
             let aux_name = unsafe { self.auxs.offset(self.idx as isize) };
             let aux_name = unsafe { CStr::from_ptr(*aux_name) };
+            self.idx += 1;
             Some(aux_name.to_bytes())
         } else {
             None
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::collections::HashSet;
+
+    use crate::FileReader;
+
+    use super::*;
+
+    #[test]
+    fn test_aux_names_iter() {
+        let slow5 = FileReader::open("examples/example2.slow5").unwrap();
+        let header = slow5.header();
+        let aux_names: HashSet<&[u8]> = header.aux_names_iter().unwrap().collect();
+        assert_eq!(aux_names.len(), 5);
+        let names: [&[u8]; 5] = [
+            b"channel_number",
+            b"median_before",
+            b"read_number",
+            b"start_mux",
+            b"start_time",
+        ];
+        for name in names {
+            assert!(aux_names.contains(name));
         }
     }
 }
