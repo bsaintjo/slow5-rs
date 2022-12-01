@@ -51,12 +51,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     cfg.shared_flag(false)
         .flag("-std=c99")
-        // TODO Check if I need a target dependent cfg to support these
-        // .flag("-mssse3")
-        // .define("STREAMVBYTE_SSSE3", "1")
-        // .define("__ARM_NEON__", "1")
-        .opt_level(3)
-        .compile("slow5");
+        .opt_level(3);
+
+    #[cfg(target_arch="x86_64")]
+    cfg.flag("-mssse3")
+        .define("STREAMVBYTE_SSSE3", "1");
+    
+    #[cfg(target_arch="arm")]
+    cfg.flag("-mfpu=neon");
+
+    #[cfg(target_arch="aarch64")]
+    cfg.define("__ARM_NEON__", "1");
+
+    cfg.compile("slow5");
 
     let bindings = bindgen::Builder::default()
         .header("slow5lib/include/slow5/slow5.h")
