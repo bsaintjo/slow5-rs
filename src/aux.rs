@@ -12,18 +12,30 @@ use slow5lib_sys::{
 
 use crate::{RecordExt, Slow5Error};
 
+/// Maps between Rust types and SLOW5 C types
 #[derive(Debug, Clone, Copy)]
 pub enum FieldType {
+    /// i8
     Int8,
+    /// i16
     Int16,
+    /// i32
     Int32,
+    /// i64
     Int64,
+    /// u8
     Uint8,
+    /// u16
     Uint16,
+    /// u32
     Uint32,
+    /// u64
     Uint64,
+    /// f32
     Float,
+    /// f64
     Double,
+    /// char
     Char,
 }
 
@@ -47,6 +59,7 @@ impl FieldType {
     }
 }
 
+/// Helper trait to get auxiliary field values from [`Record`]
 pub trait AuxField {
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where

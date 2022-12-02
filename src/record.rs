@@ -148,7 +148,7 @@ unsafe fn allocate(size: usize) -> Result<*mut c_void, Slow5Error> {
     }
 }
 
-/// Owned-type representing a SLOW5 record.
+/// Represents a SLOW5 record.
 pub struct Record {
     pub(crate) slow5_rec: *mut slow5_rec_t,
 }
@@ -328,10 +328,12 @@ impl<'a> Iterator for RecordIter<'a> {
     }
 }
 
+/// Convert raw signal into a picoamps measurement
 pub fn to_picoamps(raw_signal: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
     ((raw_signal) + offset) * (range / digitisation)
 }
 
+/// Convert picoamps signal into the raw signal
 pub fn to_raw_signal(picoamps: f64, digitisation: f64, offset: f64, range: f64) -> f64 {
     (picoamps / (range / digitisation)) - offset
 }
@@ -451,9 +453,8 @@ mod test {
         let tmp_dir = TempDir::new()?;
         let path = "new.slow5";
         let path = tmp_dir.child(path);
-        let slow5 = FileWriter::create(path)?;
-        let mut header = slow5.header();
-        header.add_aux_field("median", FieldType::Float)?;
+        let slow5 = FileWriter::options().aux("median", FieldType::Float).create(path)?;
+        let header = slow5.header();
         let mut rec = RecordBuilder::default().build()?;
         rec.set_aux_field(&header, "median", 10.0f32)?;
         Ok(())

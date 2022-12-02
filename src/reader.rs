@@ -160,6 +160,7 @@ impl Drop for FileReader {
     }
 }
 
+/// Iterator over all the read IDs in a SLOW5 file
 pub struct ReadIdIter<'a> {
     idx: u64,
     num_reads: u64,

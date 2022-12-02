@@ -1,5 +1,5 @@
 #![doc = include_str!("../README.md")]
-// #![warn(missing_docs)]
+#![warn(missing_docs)]
 
 mod aux;
 mod compression;
@@ -12,7 +12,7 @@ mod writer;
 
 pub mod typed;
 
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 
 pub use aux::FieldType;
 pub use compression::{RecordCompression, SignalCompression};
@@ -24,10 +24,6 @@ pub use writer::{FileWriter, WriteOptions};
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
     CString::new(x).map_err(Slow5Error::InteriorNul)
-}
-
-pub(crate) fn to_cstr<T: AsRef<[u8]>>(x: &T) -> Result<&CStr, Slow5Error> {
-    CStr::from_bytes_with_nul(x.as_ref()).map_err(Slow5Error::NulError)
 }
 
 #[cfg(test)]

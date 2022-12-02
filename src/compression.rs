@@ -3,7 +3,7 @@ use slow5lib_sys::{
     slow5_press_method_SLOW5_COMPRESS_ZLIB, slow5_press_method_SLOW5_COMPRESS_ZSTD,
 };
 
-/// How to compress the SLOW5 records
+/// SLOW5 record compression
 pub enum RecordCompression {
     /// No compression
     None,
@@ -23,7 +23,7 @@ impl RecordCompression {
     }
 }
 
-/// How to compress the signal data
+/// SLOW5 signal compression
 pub enum SignalCompression {
     /// No signal compression
     None,
