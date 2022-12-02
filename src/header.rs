@@ -28,7 +28,10 @@ impl<'a> Header<'a> {
     /// Get attribute value for a particular key and read group.
     /// # Example
     /// ```
-    ///
+    /// # use slow5::FileReader;
+    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
+    /// let header = slow5.header();
+    /// assert_eq!(header.get_attribute("bream_is_standard", 0).unwrap(), b"1");
     /// ```
     // TODO maybe return Option instead and ignore possible errors
     // TODO rename as attr to make it more in line with Options::attr?
