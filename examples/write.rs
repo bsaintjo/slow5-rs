@@ -1,6 +1,6 @@
 use anyhow::Result;
 use assert_fs::TempDir;
-use slow5::{FieldType, FileWriter, Header, Record, RecordBuilder, WriteOptions};
+use slow5::{FieldType, FileWriter, Header, Record, RecordBuilder};
 
 fn main() -> Result<()> {
     let tmp_dir = TempDir::new()?;
