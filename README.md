@@ -44,7 +44,7 @@ git clone --recursive https://github.com/bsaintjo/slow5-rs.git
 - [ ] Allow optional dependency on zlib and zstd
 - [ ] Handle string, array and enum auxiliary fields
 - [ ] Allow for configuring slow5lib log level
-- [ ] Set exit condition to SLOW5_EXIT_ON_ERR during testing?
+- [ ] Check for thread safety
 
 ## License
 
