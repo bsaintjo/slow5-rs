@@ -5,5 +5,5 @@ exclude-files = [
 ]
 workspace = true
 verbose = true
-timeout = "240s"
+timeout = "480s"
 all-features = true
