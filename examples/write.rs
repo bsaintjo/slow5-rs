@@ -5,11 +5,11 @@ use slow5::{FieldType, FileWriter, Header, Record, RecordBuilder, WriteOptions};
 fn main() -> Result<()> {
     let tmp_dir = TempDir::new()?;
     let file_path = tmp_dir.join("test.blow5");
-    let mut opts = WriteOptions::default();
-    opts.attr("run_id", "run_0", 0)
+    let mut slow5 = FileWriter::options()
+        .attr("run_id", "run_0", 0)
         .attr("asic_id", "asic_id_0", 0)
-        .aux("median", FieldType::Float);
-    let mut slow5 = FileWriter::with_options(file_path, opts)?;
+        .aux("median", FieldType::Float)
+        .create(file_path)?;
 
     let hdr = slow5.header();
     let rec = set_record_fields(&hdr)?;

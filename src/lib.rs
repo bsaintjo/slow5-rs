@@ -41,12 +41,14 @@ mod test {
         let tmp_dir = TempDir::new()?;
         let filepath = tmp_dir.child("new.slow5");
 
-        let mut opts = WriteOptions::default();
-        opts.aux("median", FieldType::Float)
-            .aux("read_number", FieldType::Uint32)
+        let writer = FileWriter::options()
             .attr("attr", "val", 0)
-            .attr("attr", "other", 1);
-        let writer = FileWriter::with_options(&filepath, opts)?;
+            .attr("attr", "other", 1)
+            .num_read_groups(3)?
+            .aux("median", FieldType::Float)
+            .aux("read_number", FieldType::Uint32)
+            .create(&filepath)?;
+
         let header = writer.header();
         assert_eq!(header.get_attribute("attr", 0)?, b"val");
         assert_eq!(header.get_attribute("attr", 1)?, b"other");

@@ -50,4 +50,6 @@ pub enum Slow5Error {
     NulError(FromBytesWithNulError),
     #[error("Failed to add new read group {0}")]
     FailedAddReadGroup(u32),
+    #[error("Inferred number of read groups {1} lower than n, {0}")]
+    NumReadGroups(u32, u32),
 }

@@ -1,12 +1,17 @@
-use std::{collections::{HashMap, HashSet}, os::unix::prelude::OsStrExt, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    os::unix::prelude::OsStrExt,
+    path::Path,
+};
 
 use cstr::cstr;
-use slow5lib_sys::{slow5_file, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write, slow5_hdr_add_rg};
+use slow5lib_sys::{
+    slow5_file, slow5_hdr_add_rg, slow5_hdr_write, slow5_open, slow5_set_press, slow5_write,
+};
 
 use crate::{
-    header::Header,
-    record::{Record, RecordBuilder},
-    to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
+    header::Header, record::Record, to_cstring, FieldType, RecordCompression, SignalCompression,
+    Slow5Error,
 };
 
 /// Set attributes, auxiliary fields, and record and signal compression.
@@ -114,6 +119,44 @@ impl WriteOptions {
         self.sig_comp = scomp;
         self
     }
+
+    /// Explicitly set the number of read groups. See [`attr`] for more information.
+    ///
+    /// # Notes
+    /// Returns Err if n is lower than inferred number of read groups
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// let mut opts = WriteOptions::default();
+    /// opts.attr("test", "val", 0)
+    ///     .attr("test", "bigger", 10);
+    /// assert!(opts.num_read_groups(2).is_err());
+    /// ```
+    pub fn num_read_groups(&mut self, n: u32) -> Result<&mut Self, Slow5Error> {
+        if n < self.num_read_groups {
+            Err(Slow5Error::NumReadGroups(n, self.num_read_groups))
+        } else {
+            self.num_read_groups = n;
+            Ok(self)
+        }
+    }
+
+    /// Create new SLOW5 at file path with Options
+    /// # Example
+    /// ```
+    /// # use slow5::WriteOptions;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # let tmp_dir = TempDir::new()?;
+    /// let file_path = "new.slow5";
+    /// # let file_path = tmp_dir.child(file_path);
+    /// let slow5 = WriteOptions::default().create(file_path)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn create<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
+        FileWriter::with_options(file_path, self)
+    }
 }
 
 impl Default for WriteOptions {
@@ -136,6 +179,11 @@ pub struct FileWriter {
 impl FileWriter {
     fn new(slow5_file: *mut slow5_file) -> Self {
         Self { slow5_file }
+    }
+
+    /// Create a file with set of options
+    pub fn options() -> WriteOptions {
+        WriteOptions::default()
     }
 
     /// Create a new SLOW5 file, if one already exists, file will be written
@@ -162,34 +210,18 @@ impl FileWriter {
     where
         P: AsRef<Path>,
     {
-        Self::with_options(file_path, Default::default())
+        Self::with_options(file_path, &Default::default())
     }
 
-    /// Create a file with record and signal compression.
+    /// Create a file with given options
     ///
     /// # Details
     /// If the extension of `file_path` is not blow5 (ie "test.blow5"), the
     /// compression options are ignored.
     ///
-    /// # Example
-    /// ```
-    /// # use assert_fs::TempDir;
-    /// # use assert_fs::fixture::PathChild;
-    /// # use slow5::FileWriter;
-    /// use slow5::{RecordCompression::ZStd, SignalCompression::StreamVByte};
-    /// # use slow5::WriteOptions;
-    ///
-    /// # let tmpdir = TempDir::new().unwrap();
-    /// let file_path = "test.blow5";
-    /// # let file_path = tmpdir.child(file_path);
-    /// let mut opts = WriteOptions::default();
-    /// opts.record_compression(ZStd).signal_compression(StreamVByte);
-    /// let writer = FileWriter::with_options(file_path, opts).unwrap();
-    /// # writer.close();
-    /// ```
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
-    pub fn with_options<P>(file_path: P, opts: WriteOptions) -> Result<Self, Slow5Error>
+    pub(crate) fn with_options<P>(file_path: P, opts: &WriteOptions) -> Result<Self, Slow5Error>
     where
         P: AsRef<Path>,
     {
@@ -234,7 +266,7 @@ impl FileWriter {
 
             // Add read groups
             let header_ptr = (*slow5_file).header;
-            for rg in 0 .. opts.num_read_groups {
+            for rg in 0..opts.num_read_groups {
                 let ret = slow5_hdr_add_rg(header_ptr);
                 if ret < 0 {
                     return Err(Slow5Error::FailedAddReadGroup(rg));
@@ -245,16 +277,16 @@ impl FileWriter {
             // Initialize all attributes and auxiliary fields
             let mut header = Header::new(header_ptr);
             let mut added_attr: HashSet<Vec<u8>> = HashSet::new();
-            for ((name, rg), value) in opts.attributes.into_iter() {
-                if !added_attr.contains(&name) {
+            for ((name, rg), value) in opts.attributes.iter() {
+                if !added_attr.contains(name) {
                     added_attr.insert(name.clone());
                     header.add_attribute(name.clone())?;
                 }
-                header.set_attribute(name, value, rg)?;
+                header.set_attribute(name.clone(), value.clone(), *rg)?;
             }
 
-            for (name, fty) in opts.auxiliary_fields.into_iter() {
-                header.add_aux_field(name, fty)?;
+            for (name, fty) in opts.auxiliary_fields.iter() {
+                header.add_aux_field(name.clone(), *fty)?;
             }
 
             // Header
@@ -317,7 +349,7 @@ impl FileWriter {
     /// # let file_path = tmp_dir.child(file_path);
     /// let mut opts = WriteOptions::default();
     /// opts.attr("asic_id", "test", 0);
-    /// let writer = FileWriter::with_options(&file_path, opts).unwrap();
+    /// let writer = opts.create(&file_path).unwrap();
     /// let header = writer.header();
     /// assert_eq!(header.get_attribute("asic_id", 0).unwrap(), b"test");
     /// ```
@@ -347,7 +379,7 @@ mod test {
     use assert_fs::{fixture::PathChild, TempDir};
 
     use super::*;
-    use crate::{FileReader, RecordExt};
+    use crate::{FileReader, RecordExt, RecordBuilder};
 
     #[test]
     fn test_writer() -> Result<()> {

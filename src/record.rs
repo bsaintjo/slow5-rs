@@ -172,7 +172,7 @@ impl Record {
     /// # let path = tmp_dir.child(path);
     /// let mut opts = WriteOptions::default();
     /// opts.aux("median", FieldType::Float);
-    /// let mut slow5 = FileWriter::with_options(path, opts)?;
+    /// let mut slow5 = opts.create(path)?;
     /// let header = slow5.header();
     /// let mut rec = RecordBuilder::default().build()?;
     /// rec.set_aux_field(&header, "median", 10.0f32)?;
