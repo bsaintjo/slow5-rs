@@ -1,5 +1,5 @@
 //! Represents Records generic of auxiliary field types.
-//! 
+//!
 //! Currently experimental and not recommended to use yet.
 use std::marker::PhantomData;
 

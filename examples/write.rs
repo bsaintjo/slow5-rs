@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     let rec = set_record_fields(&hdr)?;
     slow5.add_record(&rec)?;
     slow5.close();
-    
+
     println!("Success!");
     Ok(())
 }

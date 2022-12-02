@@ -43,7 +43,8 @@ impl WriteOptions {
     /// Set attribute for header.
     ///
     /// # Note
-    /// If the key and read_group are the same, the value for it will be overwritten.
+    /// If the key and read_group are the same, the value for it will be
+    /// overwritten.
     ///
     /// # Example
     /// ```
@@ -74,7 +75,8 @@ impl WriteOptions {
     /// types allowed as fields.
     ///
     /// # Note
-    /// If the same name is used multiple times, the last FieldType will be used in the header.
+    /// If the same name is used multiple times, the last FieldType will be used
+    /// in the header.
     ///
     /// # Example
     /// ```
@@ -107,7 +109,8 @@ impl WriteOptions {
         self
     }
 
-    /// Set compression of the SLOW5 signal data. By default no compression is used.
+    /// Set compression of the SLOW5 signal data. By default no compression is
+    /// used.
     ///
     /// # Example
     /// ```
@@ -120,15 +123,15 @@ impl WriteOptions {
         self
     }
 
-    /// Explicitly set the number of read groups. See [`attr`] for more information.
+    /// Explicitly set the number of read groups. See [`attr`] for more
+    /// information.
     ///
     /// # Notes
     /// Returns Err if n is lower than inferred number of read groups
     /// ```
     /// # use slow5::WriteOptions;
     /// let mut opts = WriteOptions::default();
-    /// opts.attr("test", "val", 0)
-    ///     .attr("test", "bigger", 10);
+    /// opts.attr("test", "val", 0).attr("test", "bigger", 10);
     /// assert!(opts.num_read_groups(2).is_err());
     /// ```
     pub fn num_read_groups(&mut self, n: u32) -> Result<&mut Self, Slow5Error> {
@@ -218,7 +221,6 @@ impl FileWriter {
     /// # Details
     /// If the extension of `file_path` is not blow5 (ie "test.blow5"), the
     /// compression options are ignored.
-    ///
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
     pub(crate) fn with_options<P>(file_path: P, opts: &WriteOptions) -> Result<Self, Slow5Error>
@@ -379,7 +381,7 @@ mod test {
     use assert_fs::{fixture::PathChild, TempDir};
 
     use super::*;
-    use crate::{FileReader, RecordExt, RecordBuilder};
+    use crate::{FileReader, RecordBuilder, RecordExt};
 
     #[test]
     fn test_writer() -> Result<()> {

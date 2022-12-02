@@ -453,7 +453,9 @@ mod test {
         let tmp_dir = TempDir::new()?;
         let path = "new.slow5";
         let path = tmp_dir.child(path);
-        let slow5 = FileWriter::options().aux("median", FieldType::Float).create(path)?;
+        let slow5 = FileWriter::options()
+            .aux("median", FieldType::Float)
+            .create(path)?;
         let header = slow5.header();
         let mut rec = RecordBuilder::default().build()?;
         rec.set_aux_field(&header, "median", 10.0f32)?;

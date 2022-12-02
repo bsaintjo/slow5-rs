@@ -49,18 +49,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .file("slow5lib/src/slow5_misc.c")
         .file("slow5lib/src/slow5_press.c");
 
-    cfg.shared_flag(false)
-        .flag("-std=c99")
-        .opt_level(3);
+    cfg.shared_flag(false).flag("-std=c99").opt_level(3);
 
-    #[cfg(target_arch="x86_64")]
-    cfg.flag("-mssse3")
-        .define("STREAMVBYTE_SSSE3", "1");
-    
-    #[cfg(target_arch="arm")]
+    #[cfg(target_arch = "x86_64")]
+    cfg.flag("-mssse3").define("STREAMVBYTE_SSSE3", "1");
+
+    #[cfg(target_arch = "arm")]
     cfg.flag("-mfpu=neon");
 
-    #[cfg(target_arch="aarch64")]
+    #[cfg(target_arch = "aarch64")]
     cfg.define("__ARM_NEON__", "1");
 
     cfg.compile("slow5");
