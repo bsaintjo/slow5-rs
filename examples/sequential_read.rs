@@ -18,3 +18,13 @@ fn main() -> Result<()> {
     println!("length {}", acc.len());
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() {
+        main().unwrap()
+    }
+}

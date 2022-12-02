@@ -11,3 +11,13 @@ fn main() -> Result<()> {
     println!("start_time = {start_time}");
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() {
+        main().unwrap()
+    }
+}

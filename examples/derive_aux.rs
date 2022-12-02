@@ -18,3 +18,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _slow5: FileReader<MyAuxFields> = FileReader::open("examples/example2.slow5")?;
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() {
+        main().unwrap()
+    }
+}

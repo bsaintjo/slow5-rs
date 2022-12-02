@@ -32,3 +32,13 @@ fn set_record_fields(hdr: &Header) -> Result<Record> {
     rec.set_aux_field(hdr, "median", 1.2f32)?;
     Ok(rec)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test() {
+        main().unwrap()
+    }
+}
