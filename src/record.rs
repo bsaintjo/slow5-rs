@@ -266,6 +266,7 @@ impl Drop for Record {
 /// Trait for accessing Record values.
 /// 
 /// For more info: <https://hasindu2008.github.io/slow5specs/fast5_demystified.pdf>
+/// 
 /// Method documentation derived from above link.
 pub trait RecordExt: RecPtr {
     /// A unique identifier for the read. This is a Universally unique identifier (UUID) version
