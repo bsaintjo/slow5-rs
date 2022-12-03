@@ -21,6 +21,52 @@ A library for interacting with SLOW5 files in rust. Not official.
 
 *Note*: Library design is in flux and care should be taken in upgrading this crate.
 
+## Getting started
+
+### Reading signal from SLOW5 file
+
+```rust
+use slow5::{FileReader, RecordExt};
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut slow5 = FileReader::open("examples/example.slow5").unwrap();
+    for record in slow5.records() {
+        for signal in record?.picoamps_signal_iter() {
+            // Do stuff
+        }
+    }
+    Ok(())
+}
+```
+
+### Writing a compressed BLOW5 file with attributes
+
+```rust
+use std::error::Error;
+use slow5::{FileWriter, SignalCompression, Record};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let tmp_dir = std::env::temp_dir();
+    let output = tmp_dir.join("test.blow5");
+    let mut writer = FileWriter::options()
+        .signal_compression(SignalCompression::StreamVByte)
+        .attr("attribute", "value", 0)
+        .create(output)?;
+    let rec = Record::builder()
+        .read_id("test_id")
+        .read_group(0)
+        .digitisation(4096.0)
+        .offset(4.0)
+        .range(12.0)
+        .sampling_rate(4000.0)
+        .raw_signal(&[0, 1, 2, 3])
+        .build()?;
+    writer.add_record(&rec)?;
+    writer.close();
+    Ok(())
+}
+```
+
 ## Installation
 
 Add the following to your `Cargo.toml`:

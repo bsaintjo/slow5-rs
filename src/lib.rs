@@ -26,6 +26,9 @@ pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> 
     CString::new(x).map_err(Slow5Error::InteriorNul)
 }
 
+#[cfg(doctest)]
+doc_comment::doctest!("../README.md", readme);
+
 #[cfg(test)]
 mod test {
     use assert_fs::{prelude::PathChild, TempDir};
