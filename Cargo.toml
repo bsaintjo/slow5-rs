@@ -33,7 +33,7 @@ cstr.workspace = true
 libc.workspace = true
 log = "0.4.17"
 paste = "1.0.9"
-slow5lib-sys = { version = "0.7.0", path = "./slow5lib-sys" }
+slow5lib-sys = { version = "0.7.1", path = "./slow5lib-sys" }
 slow5-derive = { version = "=0.1.0", path = "./slow5-derive" }
 thiserror = "1.0.30"
 
