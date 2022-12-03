@@ -4,7 +4,6 @@
 mod aux;
 mod compression;
 mod error;
-mod experimental;
 mod header;
 mod reader;
 mod record;
