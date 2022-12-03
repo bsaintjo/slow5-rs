@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - headers: Added AuxNamesIter and Header::aux_names_iter for going over auxiliary name keys
 - docs: Fill out documentation for more items
 - api: RecordPointer wraps the raw pointer and try to avoid leaking API
-- api: experimental module added to try different APIs
 - examples: New example slow5 and blow5 files for testing and examples
 - examples: auxiliary_field.rs to model slow5lib example
 
