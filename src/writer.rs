@@ -49,13 +49,21 @@ impl WriteOptions {
     /// # Example
     /// ```
     /// # use slow5::WriteOptions;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # let tmp_dir = TempDir::new().unwrap();
     /// let mut opts = WriteOptions::default();
+    /// let file_path = "test.slow5";
+    /// # let file_path = tmp_dir.child(file_path);
     /// opts.attr("asic_id", "123456", 0);
     /// opts.attr("asic_id", "7891011", 1);
     ///
     /// opts.attr("device_type", "cool", 0);
-    /// // Above line is ignored but this is the same read group
+    /// // Above line is ignored because it has the same read group and attributre
     /// opts.attr("device_type", "wow", 0);
+    /// let slow5 = opts.create(file_path).unwrap();
+    /// let header = slow5.header();
+    /// assert_eq!(header.get_attribute("device_type", 0).unwrap(), b"wow");
     /// ```
     pub fn attr<K, V>(&mut self, key: K, value: V, read_group: u32) -> &mut Self
     where
