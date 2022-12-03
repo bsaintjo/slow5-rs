@@ -1,6 +1,6 @@
 use std::{
     ffi::{FromBytesWithNulError, NulError},
-    path::PathBuf,
+    path::PathBuf, str::Utf8Error,
 };
 
 use thiserror::Error;
@@ -99,4 +99,8 @@ pub enum Slow5Error {
     /// Failed to get Record from reader
     #[error("Failed to get record, read id not in FileReader")]
     GetRecordFailed,
+    
+    /// Failed to convert to UTF8
+    #[error("Failed to convert to UTF8 {0}")]
+    Utf8Error(Utf8Error),
 }
