@@ -116,8 +116,8 @@ impl<'a, A> Header<'a, A> {
     }
 
     /// Add auxiliary field to header used for setting the auxiliary field
-    /// of [`crate::typed::record::RecordT`]. Infer the type T from type arguments instead of
-    /// directly passing a [`FieldType`].
+    /// of [`crate::typed::record::RecordT`]. Infer the type T from type
+    /// arguments instead of directly passing a [`FieldType`].
     pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,

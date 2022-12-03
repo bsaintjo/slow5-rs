@@ -8,10 +8,9 @@ use std::{
 
 use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
+use thiserror::Error;
 
 use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
-
-use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum BuilderError {
@@ -119,7 +118,6 @@ impl RecordBuilder {
         let Some(sampling_rate) = self.sampling_rate else { return Err(BuilderError::RequiredValueUnset("sampling_rate"))};
         let Some(ref raw_signal) = self.raw_signal else { return Err(BuilderError::RequiredValueUnset("raw_signal"))};
 
-
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
             if record.is_null() {
@@ -130,7 +128,9 @@ impl RecordBuilder {
             let read_id_ptr = read_id_cs.into_raw();
             let read_id_len = read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
-            (*record).read_id_len = read_id_len.try_into().map_err(|_| BuilderError::ConversionError)?;
+            (*record).read_id_len = read_id_len
+                .try_into()
+                .map_err(|_| BuilderError::ConversionError)?;
             let _ = CString::from_raw(read_id_ptr);
 
             (*record).read_group = read_group;
@@ -264,13 +264,14 @@ impl Drop for Record {
 }
 
 /// Trait for accessing Record values.
-/// 
+///
 /// For more info: <https://hasindu2008.github.io/slow5specs/fast5_demystified.pdf>
-/// 
+///
 /// Method documentation derived from above link.
 pub trait RecordExt: RecPtr {
-    /// A unique identifier for the read. This is a Universally unique identifier (UUID) version
-    /// 4 and should be unique for any read from any device.
+    /// A unique identifier for the read. This is a Universally unique
+    /// identifier (UUID) version 4 and should be unique for any read from
+    /// any device.
     fn read_id(&self) -> &[u8] {
         let str_ptr: *mut c_char = unsafe { (*self.ptr().ptr).read_id };
         let read_id = unsafe { CStr::from_ptr(str_ptr) };
@@ -278,13 +279,14 @@ pub trait RecordExt: RecPtr {
         read_id.to_bytes()
     }
 
-    /// The numnber of quantisation levels in the Analog to Digital Converter. If ADC is 12 bits,
-    /// digitisation is ( 2^12 ) = 4096.0.
+    /// The numnber of quantisation levels in the Analog to Digital Converter.
+    /// If ADC is 12 bits, digitisation is ( 2^12 ) = 4096.0.
     fn digitisation(&self) -> f64 {
         unsafe { (*self.ptr().ptr).digitisation }
     }
 
-    /// The ADC offset error. This value is added when converting the signal to pico ampere
+    /// The ADC offset error. This value is added when converting the signal to
+    /// pico ampere
     fn offset(&self) -> f64 {
         unsafe { (*self.ptr().ptr).offset }
     }
@@ -304,8 +306,8 @@ pub trait RecordExt: RecPtr {
         unsafe { (*self.ptr().ptr).len_raw_signal }
     }
 
-    /// Sampling frequency of the ADC, i.e., the number of data points collected per second
-    /// (in Hertz).
+    /// Sampling frequency of the ADC, i.e., the number of data points collected
+    /// per second (in Hertz).
     fn sampling_rate(&self) -> f64 {
         unsafe { (*self.ptr().ptr).sampling_rate }
     }
