@@ -263,9 +263,15 @@ impl Drop for Record {
     }
 }
 
-/// Trait for common record methods.
+/// Trait for accessing Record values.
+/// 
+/// For more info: [`link`]
+/// Method documentation derived from above link.
+/// 
+/// [`link`]: https://hasindu2008.github.io/slow5specs/fast5_demystified.pdf
 pub trait RecordExt: RecPtr {
-    /// Get record's read id.
+    /// A unique identifier for the read. This is a Universally unique identifier (UUID) version
+    /// 4 and should be unique for any read from any device.
     fn read_id(&self) -> &[u8] {
         let str_ptr: *mut c_char = unsafe { (*self.ptr().ptr).read_id };
         let read_id = unsafe { CStr::from_ptr(str_ptr) };
@@ -273,26 +279,34 @@ pub trait RecordExt: RecPtr {
         read_id.to_bytes()
     }
 
+    /// The numnber of quantisation levels in the Analog to Digital Converter. If ADC is 12 bits,
+    /// digitisation is (2^12) = 4096.0.
     fn digitisation(&self) -> f64 {
         unsafe { (*self.ptr().ptr).digitisation }
     }
 
+    /// The ADC offset error. This value is added when converting the signal to pico ampere
     fn offset(&self) -> f64 {
         unsafe { (*self.ptr().ptr).offset }
     }
 
+    /// The full scale measurement range in pico amperes
     fn range(&self) -> f64 {
         unsafe { (*self.ptr().ptr).range }
     }
 
+    /// Group of the read.
     fn read_group(&self) -> u32 {
         unsafe { (*self.ptr().ptr).read_group }
     }
 
+    /// Number of signal measurements
     fn len_signal(&self) -> u64 {
         unsafe { (*self.ptr().ptr).len_raw_signal }
     }
 
+    /// Sampling frequency of the ADC, i.e., the number of data points collected per second
+    /// (in Hertz).
     fn sampling_rate(&self) -> f64 {
         unsafe { (*self.ptr().ptr).sampling_rate }
     }

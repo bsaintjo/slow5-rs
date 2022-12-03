@@ -46,6 +46,7 @@ impl FileReader {
         }
         let file_path = file_path.as_ref();
         if !file_path.exists() {
+            log::error!("File path doesn't exist: {file_path:?}");
             return Err(Slow5Error::IncorrectPath(file_path.to_owned()));
         }
 
@@ -56,6 +57,7 @@ impl FileReader {
             unsafe { slow5lib_sys::slow5_open(file_path.as_ptr(), mode.as_ptr()) };
         let ret = unsafe { slow5lib_sys::slow5_idx_load(slow5_file) };
         if ret == -1 {
+            log::error!("No index was loaded");
             Err(Slow5Error::NoIndex)
         } else {
             Ok(FileReader::new(slow5_file))
@@ -123,7 +125,7 @@ impl FileReader {
             Ok(Record::new(slow5_rec))
         } else {
             // TODO Handle error code properly
-            Err(Slow5Error::Unknown)
+            Err(Slow5Error::GetRecordFailed)
         }
     }
 
