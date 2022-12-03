@@ -21,6 +21,25 @@ A library for interacting with SLOW5 files in rust. Not official.
 
 *Note*: Library design is in flux and care should be taken in upgrading this crate.
 
+## Installation
+
+Add the following to your `Cargo.toml`:
+
+```toml
+[dependencies]
+slow5 = "0.8.0"
+```
+
+Note: version does not directly translate to version of slow5lib.
+
+### Git
+
+If you'd like to download the git version, use the following command to download the repo
+
+```bash
+git clone --recursive https://github.com/bsaintjo/slow5-rs.git
+```
+
 ## Getting started
 
 ### Reading signal from SLOW5 file
@@ -65,25 +84,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     writer.close();
     Ok(())
 }
-```
-
-## Installation
-
-Add the following to your `Cargo.toml`:
-
-```toml
-[dependencies]
-slow5 = "0.8.0"
-```
-
-Note: version does not directly translate to version of slow5lib.
-
-### Git
-
-If you'd like to download the git version, use the following command to download the repo
-
-```bash
-git clone --recursive https://github.com/bsaintjo/slow5-rs.git
 ```
 
 ## TODO
