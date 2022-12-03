@@ -4,7 +4,7 @@ version = "0.7.1+slow5lib.0.8.0"
 readme = "README.md"
 homepage = "https://github.com/hasindu2008/slow5lib"
 description = "Low-level bindings to the slow5lib C library"
-documentation = "https://doc.rs/slow5lib-sys"
+documentation = "https://docs.rs/slow5lib-sys"
 
 edition.workspace = true
 authors.workspace = true
