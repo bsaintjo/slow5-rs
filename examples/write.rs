@@ -1,6 +1,6 @@
 use anyhow::Result;
 use assert_fs::TempDir;
-use slow5::{FieldType, FileWriter, Header, Record, RecordBuilder};
+use slow5::{FieldType, FileWriter, Header, Record};
 
 fn main() -> Result<()> {
     let tmp_dir = TempDir::new()?;
@@ -22,8 +22,10 @@ fn main() -> Result<()> {
 
 fn set_record_fields(hdr: &Header) -> Result<Record> {
     let raw_signal = (0..10).collect::<Vec<_>>();
-    let mut rec = RecordBuilder::builder()
+    let mut rec = Record::builder()
         .read_id("read_0")
+        .read_group(0)
+        .range(12.0)
         .digitisation(4096.)
         .offset(3.0)
         .sampling_rate(4000.)

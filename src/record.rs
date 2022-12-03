@@ -11,6 +11,20 @@ use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 
 use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
 
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum BuilderError {
+    #[error("Field not set {0}")]
+    RequiredValueUnset(&'static str),
+    #[error("Conversion error")]
+    ConversionError,
+    #[error("Failed to allocate memory")]
+    AllocationError,
+    #[error("Read ID Error, interior nul?")]
+    ReadIDError,
+}
+
 /// Builder to create a Record, call methods to set parameters and build to
 /// convert into a [`Record`].
 ///
@@ -19,7 +33,7 @@ use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
 /// # use anyhow::Result;
 /// # use slow5::RecordBuilder;
 /// # fn main() -> Result<()> {
-/// let record = RecordBuilder::builder()
+/// let record = RecordBuilder::default()
 ///     .read_id("test_id")
 ///     .read_group(0)
 ///     .digitisation(4096.0)
@@ -33,61 +47,57 @@ use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
 /// ```
 #[derive(Default)]
 pub struct RecordBuilder {
-    read_id: Vec<u8>,
-    read_group: u32,
-    digitisation: f64,
-    offset: f64,
-    range: f64,
-    sampling_rate: f64,
-    raw_signal: Vec<i16>,
+    read_id: Option<Vec<u8>>,
+    read_group: Option<u32>,
+    digitisation: Option<f64>,
+    offset: Option<f64>,
+    range: Option<f64>,
+    sampling_rate: Option<f64>,
+    raw_signal: Option<Vec<i16>>,
 }
 
 impl RecordBuilder {
-    pub fn builder() -> Self {
-        Default::default()
-    }
-
     /// Set the read id of the Record
     pub fn read_id<B: Into<Vec<u8>>>(&mut self, read_id: B) -> &mut Self {
         let read_id = read_id.into();
-        self.read_id = read_id;
+        self.read_id = Some(read_id);
         self
     }
 
     /// Set the read group of the Record
     pub fn read_group(&mut self, read_group: u32) -> &mut Self {
-        self.read_group = read_group;
+        self.read_group = Some(read_group);
         self
     }
 
     /// Set the digitisation of the Record
     pub fn digitisation(&mut self, digitisation: f64) -> &mut Self {
-        self.digitisation = digitisation;
+        self.digitisation = Some(digitisation);
         self
     }
 
     /// Set the offset of the Record
     pub fn offset(&mut self, offset: f64) -> &mut Self {
-        self.offset = offset;
+        self.offset = Some(offset);
         self
     }
 
     /// Set the range of the Record
     pub fn range(&mut self, range: f64) -> &mut Self {
-        self.range = range;
+        self.range = Some(range);
         self
     }
 
     /// Set the sampling rate of the Record
     pub fn sampling_rate(&mut self, sampling_rate: f64) -> &mut Self {
-        self.sampling_rate = sampling_rate;
+        self.sampling_rate = Some(sampling_rate);
         self
     }
 
     /// Set the signal of the Record using raw values
     pub fn raw_signal(&mut self, raw_signal: &[i16]) -> &mut Self {
         let raw_signal = raw_signal.to_vec();
-        self.raw_signal = raw_signal;
+        self.raw_signal = Some(raw_signal);
         self
     }
 
@@ -100,36 +110,44 @@ impl RecordBuilder {
     /// B) Read ID contains an interior NUL character
     /// C) Length of Read ID is greater than u16
     /// D) Length of signal is greater than u64
-    pub fn build(&self) -> Result<Record, Slow5Error> {
+    pub fn build(&self) -> Result<Record, BuilderError> {
+        let Some(ref read_id) = self.read_id else { return Err(BuilderError::RequiredValueUnset("read_id"))};
+        let Some(read_group) = self.read_group else { return Err(BuilderError::RequiredValueUnset("read_group"))};
+        let Some(digitisation) = self.digitisation else { return Err(BuilderError::RequiredValueUnset("digitisation"))};
+        let Some(offset) = self.offset else { return Err(BuilderError::RequiredValueUnset("offset"))};
+        let Some(range) = self.range else { return Err(BuilderError::RequiredValueUnset("range"))};
+        let Some(sampling_rate) = self.sampling_rate else { return Err(BuilderError::RequiredValueUnset("sampling_rate"))};
+        let Some(ref raw_signal) = self.raw_signal else { return Err(BuilderError::RequiredValueUnset("raw_signal"))};
+
+
         unsafe {
             let record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
             if record.is_null() {
-                return Err(Slow5Error::Allocation);
+                return Err(BuilderError::AllocationError);
             }
 
-            let read_id = to_cstring(self.read_id.clone())?;
-            let read_id_ptr = read_id.into_raw();
-            let read_id_len = self.read_id.len();
+            let read_id_cs = to_cstring(read_id.clone()).map_err(|_| BuilderError::ReadIDError)?;
+            let read_id_ptr = read_id_cs.into_raw();
+            let read_id_len = read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
-            (*record).read_id_len = read_id_len.try_into().map_err(|_| Slow5Error::Conversion)?;
+            (*record).read_id_len = read_id_len.try_into().map_err(|_| BuilderError::ConversionError)?;
             let _ = CString::from_raw(read_id_ptr);
 
-            (*record).read_group = self.read_group;
-            (*record).digitisation = self.digitisation;
-            (*record).offset = self.offset;
-            (*record).range = self.range;
-            (*record).sampling_rate = self.sampling_rate;
+            (*record).read_group = read_group;
+            (*record).digitisation = digitisation;
+            (*record).offset = offset;
+            (*record).range = range;
+            (*record).sampling_rate = sampling_rate;
 
-            let len_raw_signal = self
-                .raw_signal
+            let len_raw_signal = raw_signal
                 .len()
                 .try_into()
-                .map_err(|_| Slow5Error::Conversion)?;
+                .map_err(|_| BuilderError::ConversionError)?;
             (*record).len_raw_signal = len_raw_signal;
-            let raw_signal_ptr = allocate(size_of::<i16>() * self.raw_signal.len())? as *mut i16;
+            let raw_signal_ptr = allocate(size_of::<i16>() * raw_signal.len())? as *mut i16;
 
-            for idx in 0..self.raw_signal.len() {
-                *raw_signal_ptr.add(idx) = self.raw_signal[idx];
+            for (idx, &signal) in raw_signal.iter().enumerate() {
+                *raw_signal_ptr.add(idx) = signal;
             }
             (*record).raw_signal = raw_signal_ptr;
 
@@ -139,10 +157,10 @@ impl RecordBuilder {
 }
 
 // malloc with moving the error checking into a Result enum
-unsafe fn allocate(size: usize) -> Result<*mut c_void, Slow5Error> {
+unsafe fn allocate(size: usize) -> Result<*mut c_void, BuilderError> {
     let ptr = libc::malloc(size);
     if ptr.is_null() {
-        Err(Slow5Error::Allocation)
+        Err(BuilderError::AllocationError)
     } else {
         Ok(ptr)
     }
@@ -157,6 +175,12 @@ impl Record {
     pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
         Self { slow5_rec }
     }
+
+    /// Initialize builder to make new Record
+    pub fn builder() -> RecordBuilder {
+        Default::default()
+    }
+
     /// ## Example
     /// ```
     /// # use anyhow::Result;
@@ -174,7 +198,15 @@ impl Record {
     /// opts.aux("median", FieldType::Float);
     /// let mut slow5 = opts.create(path)?;
     /// let header = slow5.header();
-    /// let mut rec = RecordBuilder::default().build()?;
+    /// let mut rec = RecordBuilder::default()
+    ///     .read_id("test_id")
+    ///     .read_group(0)
+    ///     .digitisation(4096.0)
+    ///     .offset(4.0)
+    ///     .range(12.0)
+    ///     .sampling_rate(4000.0)
+    ///     .raw_signal(&[0, 1, 2, 3])
+    ///     .build()?;
     /// rec.set_aux_field(&header, "median", 10.0f32)?;
     /// # Ok(())
     /// # }
@@ -446,7 +478,6 @@ mod test {
     use super::*;
     use crate::{aux::FieldType, FileWriter};
 
-    // #[ignore = "Brainstorming api"]
     #[test]
     fn test_aux() -> anyhow::Result<()> {
         use assert_fs::{fixture::PathChild, TempDir};
@@ -457,7 +488,15 @@ mod test {
             .aux("median", FieldType::Float)
             .create(path)?;
         let header = slow5.header();
-        let mut rec = RecordBuilder::default().build()?;
+        let mut rec = RecordBuilder::default()
+            .read_id("test_id")
+            .read_group(0)
+            .digitisation(4096.0)
+            .offset(4.0)
+            .range(12.0)
+            .sampling_rate(4000.0)
+            .raw_signal(&[0, 1, 2, 3])
+            .build()?;
         rec.set_aux_field(&header, "median", 10.0f32)?;
         Ok(())
     }

@@ -320,13 +320,21 @@ impl FileWriter {
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # use slow5::RecordBuilder;
+    /// # use slow5::Record;
     /// # fn main() -> Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// # let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
     /// # let mut writer = FileWriter::create(&file_path)?;
-    /// let rec = RecordBuilder::builder().read_id("test").build()?;
+    /// let rec = Record::builder()
+    ///     .read_id("test")
+    ///     .read_group(0)
+    ///     .digitisation(4096.0)
+    ///     .offset(4.0)
+    ///     .range(12.0)
+    ///     .sampling_rate(4000.0)
+    ///     .raw_signal(&[0, 1, 2, 3])
+    ///     .build()?;
     /// writer.add_record(&rec)?;
     /// # writer.close();
     /// # assert!(file_path.exists());
@@ -389,7 +397,7 @@ mod test {
     use assert_fs::{fixture::PathChild, TempDir};
 
     use super::*;
-    use crate::{FileReader, RecordBuilder, RecordExt};
+    use crate::{FileReader, RecordExt};
 
     #[test]
     fn test_writer() -> Result<()> {
@@ -398,9 +406,14 @@ mod test {
         let read_id: &[u8] = b"test";
         let file_path = tmp_dir.child(file_path);
         let mut writer = FileWriter::create(&file_path)?;
-        let rec = RecordBuilder::builder()
+        let rec = Record::builder()
             .read_id(read_id)
-            .raw_signal(&[1, 2, 3])
+            .read_group(0)
+            .digitisation(4096.0)
+            .offset(4.0)
+            .range(12.0)
+            .sampling_rate(4000.0)
+            .raw_signal(&[0, 1, 2, 3])
             .build()?;
         writer.add_record(&rec)?;
         writer.close();
