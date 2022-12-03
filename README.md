@@ -5,6 +5,7 @@
 [![docs.rs][docs-badge]][docs-url]
 [![Rust][ci-badge]][ci-url]
 ![Stability][stability-badge]
+[![codecov](https://codecov.io/gh/bsaintjo/slow5-rs/branch/main/graph/badge.svg?token=MODXRVRNQ0)](https://codecov.io/gh/bsaintjo/slow5-rs)
 
 [license-badge]: https://img.shields.io/crates/l/slow5?style=flat-square
 [license-url]: https://github.com/bsaintjo/slow5-rs#license
