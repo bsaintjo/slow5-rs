@@ -1,6 +1,6 @@
 [test_config]
 exclude-files = [
-    "src/experimental/*",
+    "slow5-typed/*",
     "slow5-derive/*"
 ]
 workspace = true
