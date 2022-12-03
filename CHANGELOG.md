@@ -9,13 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- aux: Field represents an auxiliary field from a header and add/set a Records auxiliary field
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+## [0.8.0] - 2022-12-03
+
+### Added
+
 - aux: AuxField trait map Rust types and C types that can represent auxiliary fields, currently only supports primitive data types
-- writer: FileWriter can now be opened with compression options using Options and FileWriter::with_options
+- writer: WriteOptions is a builder for FileWriter with auxiliary fields, attributes, and compression
 - writer: Added FileWriter::header to get access to SLOW5 header
 - record: Added Record::get_aux_field and Record::set_aux_field for accessing Record auxiliary fields
 - record: Added PicoAmpsSignalIter and RawSignalIter for signal data iteration
-- reader: Added ReadIdIter and FileReader::read_id_iter to efficiently iterate over all read ids in a SLOW5 file
+- reader: Added ReadIdIter and FileReader::read_id_iter to iterate over all read ids in a SLOW5 file
 - headers: Added AuxNamesIter and Header::aux_names_iter for going over auxiliary name keys
 - docs: Fill out documentation for more items
 - api: RecordPointer wraps the raw pointer and try to avoid leaking API
@@ -25,14 +36,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- RecordIter returns a Record
+- record: RecordIter returns a Record
+- sys: slowlib-sys now compiles with SIMD based on architecture, or disables it entirely. So it should now compile on more archtectures.
 
 ### Deprecated
 
 ### Removed
 
-- picoamps argument to some of the Record/RecordView
-- remove SignalIterExt and combine with RecordExt
+- writer: FileWriter::write_record remove, didn't add much and overlaps with add_record
+- record: picoamps argument to some of the Record/RecordView
+- record: remove SignalIterExt and combine with RecordExt
+- record: remove SignalIter and replace with Raw and PicoAmp version
+- header: remove HeaderView since all header attributes will be initialized at the beginning and no reason to mutate it afterwards.
+- record: RecordBuilder::builder(), now     moved to Record::builder to follow builder pattern
+- record: RecordView removed because it was only used for iteration but ended creating a use-after-free bug so allocation is required anyways
 
 ### Fixed
 
