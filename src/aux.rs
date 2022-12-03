@@ -60,10 +60,9 @@ impl FieldType {
 }
 
 /// Helper trait to get auxiliary field values from [`Record`]
-/// 
+///
 /// [`Record`]: crate::Record
 pub trait AuxField {
-
     /// Get the auxiliary field with name from the Record
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where

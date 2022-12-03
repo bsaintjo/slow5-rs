@@ -9,11 +9,9 @@ mod reader;
 mod record;
 mod writer;
 
-
 use std::ffi::CString;
 
-pub use aux::FieldType;
-pub use aux::AuxField;
+pub use aux::{AuxField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::Header;

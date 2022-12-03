@@ -5,11 +5,7 @@ use slow5lib_sys::{
     slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t,
 };
 
-use crate::{
-    aux::{AuxField, FieldType},
-    error::Slow5Error,
-    to_cstring,
-};
+use crate::{aux::FieldType, error::Slow5Error, to_cstring};
 
 /// Represents a SLOW5 header
 pub struct Header<'a> {
@@ -121,7 +117,6 @@ impl<'a> Header<'a> {
             Ok(())
         }
     }
-
 }
 
 /// Iterator over auxiliary field names of a [`Header`], usually using
