@@ -8,11 +8,12 @@ use slow5lib_sys::{
     slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t,
 };
 
-use crate::{
-    aux::{AuxField, FieldType},
-    error::Slow5Error,
-    to_cstring,
+use slow5::{
+    {AuxField, FieldType},
+    Slow5Error,
 };
+
+use crate::to_cstring;
 
 /// Represents a SLOW5 header generic over the auxiliary fields
 pub struct Header<'a, A> {

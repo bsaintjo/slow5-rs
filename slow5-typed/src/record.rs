@@ -5,10 +5,8 @@ use std::marker::PhantomData;
 
 use slow5lib_sys::slow5_rec_t;
 
-use crate::{
-    aux::AuxField,
-    record::{RecPtr, RecordPointer},
-    RecordExt, Slow5Error,
+use slow5::{
+    RecordExt, Slow5Error, AuxField,
 };
 
 /// SLOW5 record generic over the auxiliary type
@@ -17,15 +15,15 @@ pub struct RecordT<A = ()> {
     _aux: PhantomData<A>,
 }
 
-impl<A> RecPtr for RecordT<A> {
-    fn ptr(&self) -> RecordPointer {
-        RecordPointer {
-            ptr: self.slow5_rec,
-        }
-    }
-}
+// impl<A> RecPtr for RecordT<A> {
+//     fn ptr(&self) -> RecordPointer {
+//         RecordPointer {
+//             ptr: self.slow5_rec,
+//         }
+//     }
+// }
 
-impl<A> RecordExt for RecordT<A> {}
+// impl<A> RecordExt for RecordT<A> {}
 
 impl<A> RecordT<A> {
     /// Get the value of an auxiliary field from the RecordT

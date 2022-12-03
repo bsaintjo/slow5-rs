@@ -4,8 +4,11 @@ mod header;
 pub mod reader;
 pub mod record;
 
+use std::ffi::CString;
+
 pub use header::Header;
 pub use reader::FileReader;
+use slow5::Slow5Error;
 pub use slow5_derive::FieldExt;
 
 /// Represents a trait for auxiliary types that set the header field.
@@ -21,4 +24,8 @@ pub trait FieldExt {
 
 impl FieldExt for () {
     fn set_header_aux_fields(_header: &Header<Self>) {}
+}
+
+pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
+    CString::new(x).map_err(Slow5Error::InteriorNul)
 }

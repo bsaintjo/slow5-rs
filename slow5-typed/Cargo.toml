@@ -1,0 +1,18 @@
+[package]
+name = "slow5-typed"
+version = "0.1.0"
+
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[dependencies]
+slow5 = { path = ".."}
+slow5-derive = { path = "../slow5-derive"}
+slow5lib-sys = { path = "../slow5lib-sys"}
+libc.workspace = true
+cstr.workspace = true

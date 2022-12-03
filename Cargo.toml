@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    # "slow5-typed",
     "slow5-derive",
     "slow5lib-sys",
 ]

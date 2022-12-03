@@ -122,20 +122,6 @@ impl<'a> Header<'a> {
         }
     }
 
-    pub(crate) fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
-    where
-        B: Into<Vec<u8>>,
-        T: AuxField,
-    {
-        let cname = to_cstring(name)?;
-        let field_type = T::to_slow5_t();
-        let ret = unsafe { slow5_aux_add(cname.as_ptr(), field_type.to_slow5_t().0, self.header) };
-        if ret < 0 {
-            Err(Slow5Error::Unknown)
-        } else {
-            Ok(())
-        }
-    }
 }
 
 /// Iterator over auxiliary field names of a [`Header`], usually using
