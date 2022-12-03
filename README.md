@@ -5,7 +5,7 @@
 [![docs.rs][docs-badge]][docs-url]
 [![Rust][ci-badge]][ci-url]
 ![Stability][stability-badge]
-[![codecov](https://codecov.io/gh/bsaintjo/slow5-rs/branch/main/graph/badge.svg?token=MODXRVRNQ0)](https://codecov.io/gh/bsaintjo/slow5-rs)
+[![codecov][codecov-badge]][codecov-url]
 
 [license-badge]: https://img.shields.io/crates/l/slow5?style=flat-square
 [license-url]: https://github.com/bsaintjo/slow5-rs#license
@@ -15,6 +15,8 @@
 [docs-url]: https://docs.rs/slow5
 [ci-badge]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml/badge.svg
 [ci-url]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml
+[codecov-badge]: https://codecov.io/gh/bsaintjo/slow5-rs/branch/main/graph/badge.svg?token=MODXRVRNQ0
+[codecov-url]: https://codecov.io/gh/bsaintjo/slow5-rs
 [stability-badge]: https://img.shields.io/badge/stability-experimental-orange.svg
 
 A library for interacting with SLOW5 files in rust. Not official.
@@ -27,7 +29,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5 = "0.8.0"
+slow5 = "0.8"
 ```
 
 Note: version does not directly translate to version of slow5lib.

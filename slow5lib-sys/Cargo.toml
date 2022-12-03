@@ -1,6 +1,6 @@
 [package]
 name = "slow5lib-sys"
-version = "0.7.1+slow5lib.0.8.0"
+version = "0.7.2+slow5lib.0.8.0"
 readme = "README.md"
 homepage = "https://github.com/hasindu2008/slow5lib"
 description = "Low-level bindings to the slow5lib C library"
