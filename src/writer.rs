@@ -142,6 +142,8 @@ impl WriteOptions {
     /// opts.attr("test", "val", 0).attr("test", "bigger", 10);
     /// assert!(opts.num_read_groups(2).is_err());
     /// ```
+    /// 
+    /// [`attr`]: crate::WriteOptions::attr
     pub fn num_read_groups(&mut self, n: u32) -> Result<&mut Self, Slow5Error> {
         if n < self.num_read_groups {
             Err(Slow5Error::NumReadGroups(n, self.num_read_groups))

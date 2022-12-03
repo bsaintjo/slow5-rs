@@ -1,3 +1,4 @@
+//! Provides a FileReader generic over the auxiliary fields.
 use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
@@ -160,6 +161,7 @@ impl<A> Drop for FileReader<A> {
     }
 }
 
+/// Iterator over Read IDs for a typed [`FileReader`]
 pub struct ReadIdIter<'a> {
     idx: u64,
     num_reads: u64,

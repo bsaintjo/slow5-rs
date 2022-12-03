@@ -14,6 +14,7 @@ use crate::{
     to_cstring,
 };
 
+/// Represents a SLOW5 header generic over the auxiliary fields
 pub struct Header<'a, A> {
     pub(crate) header: *mut slow5_hdr_t,
     _lifetime: PhantomData<&'a ()>,
@@ -53,6 +54,7 @@ impl<'a, A> Header<'a, A> {
         }
     }
 
+    /// Add attribute to header.
     pub fn add_attribute<B>(&mut self, attr: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -66,6 +68,7 @@ impl<'a, A> Header<'a, A> {
         }
     }
 
+    /// Set value for given attribute and read group
     pub fn set_attribute<B, C>(
         &mut self,
         attr: B,
@@ -97,8 +100,8 @@ impl<'a, A> Header<'a, A> {
         }
     }
 
-    /// Add auxiliary field to header, and return a [`Field`] that can be
-    /// used for setting the auxiliary field of [`crate::Record`].
+    /// Add auxiliary field to header used for setting the auxiliary field
+    /// of [`crate::typed::record::RecordT`].
     pub fn add_aux_field<B>(&mut self, name: B, field_type: FieldType) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -112,6 +115,9 @@ impl<'a, A> Header<'a, A> {
         }
     }
 
+    /// Add auxiliary field to header used for setting the auxiliary field
+    /// of [`crate::typed::record::RecordT`]. Infer the type T from type arguments instead of
+    /// directly passing a [`FieldType`].
     pub fn add_aux_field_t<B, T>(&'a self, name: B) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>> + Clone,

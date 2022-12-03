@@ -1,6 +1,6 @@
 //! Module implement a FileReader, FileWriter, Record, etc. that are generic
 //! over a type representing auxiliary fields.
-pub mod header;
+mod header;
 pub mod reader;
 pub mod record;
 
