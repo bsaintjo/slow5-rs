@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
 
-mod aux;
+mod auxiliary;
 mod compression;
 mod error;
 mod header;
@@ -11,7 +11,7 @@ mod writer;
 
 use std::ffi::CString;
 
-pub use aux::{AuxField, FieldType};
+pub use auxiliary::{AuxField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::Header;

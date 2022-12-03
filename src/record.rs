@@ -10,7 +10,7 @@ use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
-use crate::{aux::AuxField, error::Slow5Error, to_cstring, Header};
+use crate::{auxiliary::AuxField, error::Slow5Error, to_cstring, Header};
 
 #[derive(Error, Debug)]
 pub enum BuilderError {
@@ -492,7 +492,7 @@ impl RecPtr for Record {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{aux::FieldType, FileWriter};
+    use crate::{auxiliary::FieldType, FileWriter};
 
     #[test]
     fn test_aux() -> anyhow::Result<()> {
