@@ -13,6 +13,12 @@ pub struct Header<'a> {
     _lifetime: PhantomData<&'a ()>,
 }
 
+impl<'a> std::fmt::Debug for Header<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Header").finish()
+    }
+}
+
 impl<'a> Header<'a> {
     pub(crate) fn new(header: *mut slow5_hdr_t) -> Self {
         Self {
@@ -128,6 +134,15 @@ pub struct AuxNamesIter<'a> {
     num_aux: u64,
     auxs: *mut *mut c_char,
     _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> std::fmt::Debug for AuxNamesIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AuxNamesIter")
+            .field("idx", &self.idx)
+            .field("num_aux", &self.num_aux)
+            .finish()
+    }
 }
 
 impl<'a> AuxNamesIter<'a> {

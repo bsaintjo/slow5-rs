@@ -21,6 +21,12 @@ pub struct FileReader {
     pub(crate) slow5_file: *mut slow5_file_t,
 }
 
+impl std::fmt::Debug for FileReader {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FileReader").finish()
+    }
+}
+
 impl FileReader {
     fn new(slow5_file: *mut slow5_file_t) -> Self {
         Self { slow5_file }
@@ -168,6 +174,15 @@ pub struct ReadIdIter<'a> {
     num_reads: u64,
     read_id_ptr: *mut *mut c_char,
     _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> std::fmt::Debug for ReadIdIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ReadIdIter")
+            .field("idx", &self.idx)
+            .field("num_reads", &self.num_reads)
+            .finish()
+    }
 }
 
 impl<'a> ReadIdIter<'a> {

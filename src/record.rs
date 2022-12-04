@@ -44,7 +44,7 @@ pub enum BuilderError {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct RecordBuilder {
     read_id: Option<Vec<u8>>,
     read_group: Option<u32>,
@@ -263,6 +263,15 @@ impl Drop for Record {
     }
 }
 
+impl std::fmt::Debug for Record {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Record")
+            .field("digitisation", &self.digitisation())
+            .field("len_signal", &self.len_signal())
+            .finish()
+    }
+}
+
 /// Trait for accessing Record values.
 ///
 /// For more info: <https://hasindu2008.github.io/slow5specs/fast5_demystified.pdf>
@@ -339,6 +348,12 @@ pub struct RecordIter<'a> {
     _lifetime: PhantomData<&'a ()>,
 }
 
+impl<'a> std::fmt::Debug for RecordIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RecordIter").finish()
+    }
+}
+
 impl<'a> RecordIter<'a> {
     pub(crate) fn new(slow5_file: *mut slow5_file) -> Self {
         Self {
@@ -398,6 +413,12 @@ pub struct PicoAmpsSignalIter<'a> {
     _lifetime: PhantomData<&'a ()>,
 }
 
+impl<'a> std::fmt::Debug for PicoAmpsSignalIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PicoAmpsSignalIter").field("i", &self.i).finish()
+    }
+}
+
 impl<'a> PicoAmpsSignalIter<'a> {
     fn new(read: *mut slow5_rec_t) -> Self {
         Self {
@@ -440,6 +461,12 @@ pub struct RawSignalIter<'a> {
     i: u64,
     read: *mut slow5_rec_t,
     _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> std::fmt::Debug for RawSignalIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RawSignalIter").field("i", &self.i).finish()
+    }
 }
 
 impl<'a> RawSignalIter<'a> {
