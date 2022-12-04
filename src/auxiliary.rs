@@ -148,6 +148,34 @@ macro_rules! impl_auxfield {
                 $ctype
             }
         }
+
+        impl AuxField for &[$rtype] {
+            fn to_slow5_t() -> FieldType {
+                use FieldType::*;
+                paste::paste! { [< $ctype Array>] }
+            }
+
+            fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
+            where
+                B: Into<Vec<u8>>,
+                R: RecordExt,
+            {
+                use slow5lib_sys::*;
+                let mut err = 0;
+                let mut len = 0;
+                let name: Vec<u8> = name.into();
+                let name = crate::to_cstring(name)?;
+                let data = unsafe {
+                    paste::paste!( [<slow5_aux_get_ $ctype:lower _array>] )(rec.ptr().ptr, name.as_ptr(), &mut len, &mut err)
+                };
+                if err != 0 {
+                    Err(Slow5Error::AuxLoadFailure)
+                } else {
+                    let data: &[$rtype] = unsafe { std::slice::from_raw_parts(data, len as usize) };
+                    Ok(data)
+                }
+            }
+        }
     };
 }
 
