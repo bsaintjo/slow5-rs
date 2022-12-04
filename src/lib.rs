@@ -35,7 +35,7 @@ mod test {
     #[test]
     fn test_rw() -> anyhow::Result<()> {
         let tmp_dir = TempDir::new()?;
-        let filepath = tmp_dir.child("new.slow5");
+        let filepath = tmp_dir.child("new.blow5");
 
         let mut writer = FileWriter::options()
             .attr("attr", "val", 0)
@@ -43,6 +43,8 @@ mod test {
             .num_read_groups(3)?
             .aux("median", FieldType::Float)
             .aux("read_number", FieldType::Uint32)
+            .signal_compression(SignalCompression::StreamVByte)
+            .record_compression(RecordCompression::ZStd)
             .create(&filepath)?;
         {
             let header = writer.header();
