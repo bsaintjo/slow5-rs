@@ -91,7 +91,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 ## TODO
 
 - [ ] Allow optional dependency on zlib and zstd
-- [ ] Handle string, array and enum auxiliary fields
+- [ ] Handle enum auxiliary fields
 - [ ] Allow for configuring slow5lib log level
 - [ ] Check for thread safety
 

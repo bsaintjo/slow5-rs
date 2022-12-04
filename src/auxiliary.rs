@@ -4,10 +4,15 @@ use slow5lib_sys::{
     slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16,
     slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_string,
     slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64, slow5_aux_get_uint8,
-    slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_FLOAT,
-    slow5_aux_type_SLOW5_INT16_T, slow5_aux_type_SLOW5_INT32_T, slow5_aux_type_SLOW5_INT64_T,
-    slow5_aux_type_SLOW5_INT8_T, slow5_aux_type_SLOW5_STRING, slow5_aux_type_SLOW5_UINT16_T,
-    slow5_aux_type_SLOW5_UINT32_T, slow5_aux_type_SLOW5_UINT64_T, slow5_aux_type_SLOW5_UINT8_T,
+    slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY,
+    slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
+    slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
+    slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
+    slow5_aux_type_SLOW5_INT8_T_ARRAY, slow5_aux_type_SLOW5_STRING, slow5_aux_type_SLOW5_UINT16_T,
+    slow5_aux_type_SLOW5_UINT16_T_ARRAY, slow5_aux_type_SLOW5_UINT32_T,
+    slow5_aux_type_SLOW5_UINT32_T_ARRAY, slow5_aux_type_SLOW5_UINT64_T,
+    slow5_aux_type_SLOW5_UINT8_T, slow5_aux_type_SLOW5_UINT8_T_ARRAY,
 };
 
 use crate::{to_cstring, RecordExt, Slow5Error};
@@ -39,6 +44,36 @@ pub enum FieldType {
     Char,
     /// &str,
     Str,
+
+    /// &[u8], not a string representation
+    Uint8Array,
+
+    /// &[u16]
+    Uint16Array,
+
+    /// &[u32]
+    Uint32Array,
+
+    /// &[u64]
+    Uint64Array,
+
+    /// &[i8]
+    Int8Array,
+
+    /// &[i16]
+    Int16Array,
+
+    /// &[i32]
+    Int32Array,
+
+    /// &[i64]
+    Int64Array,
+
+    /// &[f32]
+    FloatArray,
+
+    /// &[f64]
+    DoubleArray,
 }
 
 pub(crate) struct Slow5AuxType(pub(crate) u32);
@@ -58,6 +93,16 @@ impl FieldType {
             FieldType::Double => slow5_aux_type_SLOW5_DOUBLE,
             FieldType::Char => slow5_aux_type_SLOW5_CHAR,
             FieldType::Str => slow5_aux_type_SLOW5_STRING,
+            FieldType::DoubleArray => slow5_aux_type_SLOW5_DOUBLE_ARRAY,
+            FieldType::FloatArray => slow5_aux_type_SLOW5_FLOAT_ARRAY,
+            FieldType::Int8Array => slow5_aux_type_SLOW5_INT8_T_ARRAY,
+            FieldType::Int16Array => slow5_aux_type_SLOW5_INT16_T_ARRAY,
+            FieldType::Int32Array => slow5_aux_type_SLOW5_INT32_T_ARRAY,
+            FieldType::Int64Array => slow5_aux_type_SLOW5_INT64_T_ARRAY,
+            FieldType::Uint8Array => slow5_aux_type_SLOW5_UINT8_T_ARRAY,
+            FieldType::Uint16Array => slow5_aux_type_SLOW5_UINT16_T_ARRAY,
+            FieldType::Uint32Array => slow5_aux_type_SLOW5_UINT32_T_ARRAY,
+            FieldType::Uint64Array => slow5_aux_type_SLOW5_INT64_T_ARRAY,
         })
     }
 }
