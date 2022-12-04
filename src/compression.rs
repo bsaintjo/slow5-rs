@@ -4,6 +4,7 @@ use slow5lib_sys::{
 };
 
 /// SLOW5 record compression
+#[derive(Debug)]
 pub enum RecordCompression {
     /// No compression
     None,
@@ -24,6 +25,7 @@ impl RecordCompression {
 }
 
 /// SLOW5 signal compression
+#[derive(Debug)]
 pub enum SignalCompression {
     /// No signal compression
     None,

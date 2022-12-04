@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    fmt,
     os::unix::prelude::OsStrExt,
     path::Path,
 };
@@ -15,6 +16,7 @@ use crate::{
 };
 
 /// Set attributes, auxiliary fields, and record and signal compression.
+#[derive(Debug)]
 pub struct WriteOptions {
     pub(crate) rec_comp: RecordCompression,
     pub(crate) sig_comp: SignalCompression,
@@ -184,14 +186,41 @@ impl Default for WriteOptions {
     }
 }
 
+#[derive(Debug)]
+struct Version {
+    major: u8,
+    minor: u8,
+    patch: u8,
+}
+
 /// Write a SLOW5 file
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
 }
 
+impl fmt::Debug for FileWriter {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FileWriter")
+            .field("version", &self.version())
+            .finish()
+    }
+}
+
 impl FileWriter {
     fn new(slow5_file: *mut slow5_file) -> Self {
         Self { slow5_file }
+    }
+
+    fn version(&self) -> Version {
+        let version = unsafe { &(*(*self.slow5_file).header).version };
+        let major = version.major;
+        let minor = version.minor;
+        let patch = version.patch;
+        Version {
+            major,
+            minor,
+            patch,
+        }
     }
 
     /// Create a file with set of options
@@ -251,6 +280,11 @@ impl FileWriter {
                 false
             }
         };
+        // let has_rec_comp = !matches!(opts.rec_comp, RecordCompression::None);
+        // let has_sig_comp = !matches!(opts.sig_comp, SignalCompression::None);
+        // if !is_blow5 && (has_rec_comp || has_sig_comp) {
+        //     return Err(Slow5Error::Slow5CompressionError)
+        // }
         let file_path = file_path.as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
         let mode = cstr!("w");
