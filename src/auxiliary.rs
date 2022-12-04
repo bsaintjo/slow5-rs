@@ -242,7 +242,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_aux_get_str() -> anyhow::Result<()> {
+    fn test_aux_get() -> anyhow::Result<()> {
         let reader = FileReader::open("examples/example2.slow5")?;
         let rec = reader.get_record("r0")?;
         let channel_number = <&str>::aux_get(&rec, "channel_number")?;
@@ -251,6 +251,11 @@ mod test {
         let rec = reader.get_record("r1")?;
         let channel_number: &str = rec.get_aux_field("channel_number")?;
         assert_eq!(channel_number, "391");
+        
+        let reader = FileReader::open("examples/example3.blow5")?;
+        let rec = reader.get_record("0035aaf9-a746-4bbd-97c4-390ddc27c756")?;
+        assert_eq!(rec.get_aux_field::<_, u64>("start_time").unwrap(), 335760788);
+        assert_eq!(rec.get_aux_field::<_, i32>("read_number").unwrap(), 13875);
         Ok(())
     }
 }
