@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Added support for string (char *) and array auxiliary fields.
 Debug implementations
 
+### Changed
+
+FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
+
 ## [0.8.1] - 2022-12-03
 
 ### Fixed
