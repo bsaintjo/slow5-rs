@@ -16,6 +16,29 @@ use crate::{
     Slow5Error,
 };
 
+#[derive(Debug)]
+enum FileType {
+    Slow5,
+    Blow5,
+}
+
+// Check the file extension, return Err if it isn't blow5 or slow5
+fn check_file_ext<P>(file_path: P) -> Result<FileType, Slow5Error>
+where
+    P: AsRef<Path>,
+{
+    let file_path = file_path.as_ref();
+    let Some(ext) = file_path.extension() else { return Err(Slow5Error::InvalidFilePath(String::from("No file extension found")) )};
+    if ext == "blow5" {
+        Ok(FileType::Blow5)
+    } else if ext == "slow5" {
+        Ok(FileType::Slow5)
+    } else {
+        Err(Slow5Error::InvalidFilePath(String::from("found ")))
+    }
+}
+
+#[derive(Debug)]
 pub(crate) enum Mode {
     Write,
     Append,
@@ -170,7 +193,7 @@ impl WriteOptions {
         }
     }
 
-    /// Create new SLOW5 at file path with Options
+    /// Create new file with the given options. File type will be SLOW5 or BLOW5 based on the file extension.
     /// # Example
     /// ```
     /// # use slow5::WriteOptions;
@@ -184,11 +207,13 @@ impl WriteOptions {
     /// # Ok(())
     /// # }
     /// ```
+    ///
+    /// # Errors
+    /// If you attempt to create a SLOW5 file with compression options, this function will return an Err.
+    /// Since SLOW5 is ascii, no compression is allowed. If you do want compression create a BLOW5 file.
+    ///
+    /// File path must end in ".blow5" or ".slow5" otherwise, function will return an Err.
     pub fn create<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
-        FileWriter::with_options(file_path, self, Mode::Write)
-    }
-
-    pub fn append<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
         FileWriter::with_options(file_path, self, Mode::Write)
     }
 }
@@ -205,13 +230,6 @@ impl Default for WriteOptions {
     }
 }
 
-#[derive(Debug)]
-struct Version {
-    major: u8,
-    minor: u8,
-    patch: u8,
-}
-
 /// Write a SLOW5 file
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
@@ -219,8 +237,12 @@ pub struct FileWriter {
 
 impl fmt::Debug for FileWriter {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let version = unsafe { &(*(*self.slow5_file).header).version };
+        let version = (version.major, version.minor, version.patch);
         f.debug_struct("FileWriter")
-            .field("version", &self.version())
+            .field("version", &version)
+            .field("record compression", &self.record_compression())
+            .field("signal compression", &self.signal_compression())
             .finish()
     }
 }
@@ -228,18 +250,6 @@ impl fmt::Debug for FileWriter {
 impl FileWriter {
     fn new(slow5_file: *mut slow5_file) -> Self {
         Self { slow5_file }
-    }
-
-    fn version(&self) -> Version {
-        let version = unsafe { &(*(*self.slow5_file).header).version };
-        let major = version.major;
-        let minor = version.minor;
-        let patch = version.patch;
-        Version {
-            major,
-            minor,
-            patch,
-        }
     }
 
     /// Create a file with set of options
@@ -274,6 +284,24 @@ impl FileWriter {
         Self::with_options(file_path, &Default::default(), Mode::Write)
     }
 
+    /// Append to a previously created file.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::FileWriter;
+    /// # use assert_fs::TempDir;
+    /// # use assert_fs::fixture::PathChild;
+    /// # fn main() -> anyhow::Result<()> {
+    /// # let tmp_dir = TempDir::new()?;
+    /// let file_path = "examples/example3.blow5";
+    /// # let tmp_file = tmp_dir.child("example3.blow5");
+    /// # let _ = std::fs::copy(&file_path, &tmp_file)?;
+    /// # let file_path = tmp_file;
+    /// let writer = FileWriter::append(&file_path)?;
+    /// # writer.close();
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn append<P>(file_path: P) -> Result<Self, Slow5Error>
     where
         P: AsRef<Path>,
@@ -302,35 +330,31 @@ impl FileWriter {
             slow5lib_sys::slow5_set_log_level(slow5lib_sys::slow5_log_level_opt_SLOW5_LOG_OFF);
         }
 
-        let file_path = file_path.as_ref();
-        let is_blow5 = {
-            if let Some(ext) = file_path.extension() {
-                ext == "blow5"
-            } else {
-                false
-            }
-        };
+        let file_ext = check_file_ext(&file_path)?;
 
         // Check if compression is being used on a SLOW5, if so error out
         let has_rec_comp = !matches!(opts.rec_comp, RecordCompression::None);
         let has_sig_comp = !matches!(opts.sig_comp, SignalCompression::None);
-        if !is_blow5 && (has_rec_comp || has_sig_comp) {
+        if matches!(file_ext, FileType::Slow5) && (has_rec_comp || has_sig_comp) {
             return Err(Slow5Error::Slow5CompressionError);
         }
 
-        let file_path = file_path.as_os_str().as_bytes();
+        let file_path = file_path.as_ref().as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
-        let mode = mode.to_c_mode();
+        let mode_str = mode.to_c_mode();
 
-        let slow5_file = unsafe {
-            let slow5_file = slow5_open(file_path.as_ptr(), mode.as_ptr());
+        let slow5_file = unsafe { slow5_open(file_path.as_ptr(), mode_str.as_ptr()) };
+        if matches!(mode, Mode::Append) {
+            return Ok(Self::new(slow5_file));
+        }
 
-            if slow5_file.is_null() {
-                return Err(Slow5Error::Allocation);
-            }
+        if slow5_file.is_null() {
+            return Err(Slow5Error::Allocation);
+        }
 
-            // Compression
-            if is_blow5 {
+        unsafe {
+            if matches!(file_ext, FileType::Blow5) {
+                // Compression
                 let comp_ret = slow5_set_press(
                     slow5_file,
                     opts.rec_comp.to_slow5_rep(),
@@ -373,10 +397,29 @@ impl FileWriter {
             if hdr_ret == -1 {
                 return Err(Slow5Error::HeaderWriteFailed);
             }
-            slow5_file
-        };
+        }
 
         Ok(Self::new(slow5_file))
+    }
+
+    /// Get file's record compression
+    pub fn record_compression(&self) -> RecordCompression {
+        let compress = unsafe { (*self.slow5_file).compress };
+        if compress.is_null() {
+            return RecordCompression::None;
+        }
+        let record_press = unsafe { (*(*compress).record_press).method };
+        RecordCompression::from(record_press)
+    }
+
+    /// Get file's signal compression
+    pub fn signal_compression(&self) -> SignalCompression {
+        let compress = unsafe { (*self.slow5_file).compress };
+        if compress.is_null() {
+            return SignalCompression::None;
+        }
+        let signal_press = unsafe { (*(*compress).signal_press).method };
+        SignalCompression::from(signal_press)
     }
 
     /// Add [`Record`] to SLOW5 file, not thread safe.
@@ -514,6 +557,41 @@ mod test {
             .record_compression(RecordCompression::Zlib)
             .create(&file_path);
         assert!(writer.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn test_append() {
+        let tmp_dir = TempDir::new().unwrap();
+        let file_path = tmp_dir.child("test.blow5");
+        let writer = FileWriter::options()
+            .signal_compression(SignalCompression::StreamVByte)
+            .create(&file_path)
+            .unwrap();
+        writer.close();
+        let appender = FileWriter::append(&file_path).unwrap();
+        appender.close();
+    }
+
+    #[test]
+    fn test_extension() {
+        let tmp_dir = TempDir::new().unwrap();
+        let file_path = tmp_dir.child("test.blow");
+        let writer = FileWriter::create(file_path);
+        assert!(writer.is_err());
+    }
+
+    #[test]
+    fn test_compression_getter() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::new().unwrap();
+        let file_path = tmp_dir.child("test.blow5");
+        let record_press = RecordCompression::ZStd;
+        let signal_press = SignalCompression::StreamVByte;
+        let writer = FileWriter::options()
+            .record_compression(record_press)
+            .signal_compression(signal_press)
+            .create(file_path)?;
+        assert_eq!(record_press, writer.record_compression());
         Ok(())
     }
 }
