@@ -1,9 +1,8 @@
 [test_config]
 exclude-files = [
     "slow5-typed/*",
-    "slow5-derive/*"
+    "slow5-derive/*",
+    "slow5lib-sys/*",
 ]
-workspace = true
-verbose = true
 timeout = "480s"
 all-features = true
