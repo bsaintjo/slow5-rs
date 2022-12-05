@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Added support for string (char *) and array auxiliary fields.
 Error for invalid file path based on the file extension.
-FileWriter::record_compression + FileWriter::signal_compression to check what compression was used.
+File*::record_compression + File*::signal_compression to check what compression was used.
 Debug implementations
 
 ### Changed

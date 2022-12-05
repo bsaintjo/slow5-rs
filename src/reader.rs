@@ -13,7 +13,7 @@ use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_r
 use crate::{
     error::Slow5Error,
     record::{Record, RecordIter},
-    to_cstring, Header,
+    to_cstring, Header, RecordCompression, SignalCompression,
 };
 
 /// Read from a SLOW5 file
@@ -68,6 +68,26 @@ impl FileReader {
         } else {
             Ok(FileReader::new(slow5_file))
         }
+    }
+
+    /// Get file's record compression
+    pub fn record_compression(&self) -> RecordCompression {
+        let compress = unsafe { (*self.slow5_file).compress };
+        if compress.is_null() {
+            return RecordCompression::None;
+        }
+        let record_press = unsafe { (*(*compress).record_press).method };
+        RecordCompression::from(record_press)
+    }
+
+    /// Get file's signal compression
+    pub fn signal_compression(&self) -> SignalCompression {
+        let compress = unsafe { (*self.slow5_file).compress };
+        if compress.is_null() {
+            return SignalCompression::None;
+        }
+        let signal_press = unsafe { (*(*compress).signal_press).method };
+        SignalCompression::from(signal_press)
     }
 
     /// Access header of a SLOW5 file
