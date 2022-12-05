@@ -92,7 +92,8 @@ impl WriteOptions {
     /// # use slow5::WriteOptions;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # fn main() -> anyhow::Result<()> {
+    /// # let tmp_dir = TempDir::new()?;
     /// let mut opts = WriteOptions::default();
     /// let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
@@ -102,9 +103,11 @@ impl WriteOptions {
     /// opts.attr("device_type", "cool", 0);
     /// // Above line is ignored because it has the same read group and attributre
     /// opts.attr("device_type", "wow", 0);
-    /// let slow5 = opts.create(file_path).unwrap();
+    /// let slow5 = opts.create(file_path)?;
     /// let header = slow5.header();
-    /// assert_eq!(header.get_attribute("device_type", 0).unwrap(), b"wow");
+    /// assert_eq!(header.get_attribute("device_type", 0)?, b"wow");
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn attr<K, V>(&mut self, key: K, value: V, read_group: u32) -> &mut Self
     where
@@ -200,7 +203,7 @@ impl WriteOptions {
     /// # use slow5::WriteOptions;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// let file_path = "new.slow5";
     /// # let file_path = tmp_dir.child(file_path);
@@ -265,12 +268,11 @@ impl FileWriter {
     ///
     /// # Example
     /// ```
-    /// # use anyhow::Result;
     /// use slow5::FileWriter;
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # fn main() -> Result<()> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
@@ -429,14 +431,13 @@ impl FileWriter {
     ///
     /// # Example
     /// ```
-    /// # use anyhow::Result;
     /// # use slow5::FileWriter;
     /// # use slow5::FileReader;
     /// # use slow5::Slow5Error;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # use slow5::Record;
-    /// # fn main() -> Result<()> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # let tmp_dir = TempDir::new()?;
     /// # let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
@@ -477,14 +478,17 @@ impl FileWriter {
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
     /// # use slow5::WriteOptions;
-    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # fn main() -> anyhow::Result<()> {
+    /// # let tmp_dir = TempDir::new()?;
     /// let file_path = "test.slow5";
     /// # let file_path = tmp_dir.child(file_path);
     /// let mut opts = WriteOptions::default();
     /// opts.attr("asic_id", "test", 0);
-    /// let writer = opts.create(&file_path).unwrap();
+    /// let writer = opts.create(&file_path)?;
     /// let header = writer.header();
-    /// assert_eq!(header.get_attribute("asic_id", 0).unwrap(), b"test");
+    /// assert_eq!(header.get_attribute("asic_id", 0)?, b"test");
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn header(&self) -> Header {
         let h = unsafe { (*self.slow5_file).header };

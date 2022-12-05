@@ -37,10 +37,9 @@ impl FileReader {
     ///
     /// # Example
     /// ```
-    /// # use std::error::Error;
     /// use slow5::FileReader;
     ///
-    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// let reader = FileReader::open("examples/example.slow5")?;
     /// # Ok(())
     /// # }
@@ -101,11 +100,10 @@ impl FileReader {
     ///
     /// # Example
     /// ```
-    /// # use std::error::Error;
     /// # use slow5::FileReader;
     /// use slow5::RecordExt;
     ///
-    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # let mut reader = FileReader::open("examples/example.slow5")?;
     /// for record in reader.records() {
     ///     println!("{:?}", record?.read_id());
@@ -125,10 +123,9 @@ impl FileReader {
     /// # Example
     /// ```
     /// # use slow5::FileReader;
-    /// # use std::error::Error;
     /// use slow5::RecordExt;
     ///
-    /// # fn main() -> Result<(), Box<dyn Error>> {
+    /// # fn main() -> anyhow::Result<()> {
     /// # let reader = FileReader::open("examples/example.slow5")?;
     /// let read_id: &[u8] = b"r3";
     /// let record = reader.get_record(read_id)?;

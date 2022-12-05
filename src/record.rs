@@ -29,9 +29,8 @@ pub enum BuilderError {
 ///
 /// # Example
 /// ```
-/// # use anyhow::Result;
 /// # use slow5::RecordBuilder;
-/// # fn main() -> Result<()> {
+/// # fn main() -> anyhow::Result<()> {
 /// let record = RecordBuilder::default()
 ///     .read_id("test_id")
 ///     .read_group(0)
@@ -183,15 +182,14 @@ impl Record {
 
     /// ## Example
     /// ```
-    /// # use anyhow::Result;
     /// # use slow5::FileWriter;
     /// # use slow5::FieldType;
     /// # use slow5::RecordBuilder;
     /// # use slow5::WriteOptions;
     /// # use assert_fs::TempDir;
     /// # use assert_fs::fixture::PathChild;
-    /// # fn main() -> Result<()> {
-    /// # let tmp_dir = TempDir::new().unwrap();
+    /// # fn main() -> anyhow::Result<()> {
+    /// # let tmp_dir = TempDir::new()?;
     /// let path = "new.slow5";
     /// # let path = tmp_dir.child(path);
     /// let mut opts = WriteOptions::default();

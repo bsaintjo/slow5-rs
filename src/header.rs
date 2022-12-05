@@ -70,9 +70,12 @@ impl<'a> Header<'a> {
     /// # Example
     /// ```
     /// # use slow5::FileReader;
-    /// let slow5 = FileReader::open("examples/example.slow5").unwrap();
+    /// # fn main() -> anyhow::Result<()> {
+    /// let slow5 = FileReader::open("examples/example.slow5")?;
     /// let header = slow5.header();
-    /// assert_eq!(header.get_attribute("bream_is_standard", 0).unwrap(), b"1");
+    /// assert_eq!(header.get_attribute("bream_is_standard", 0)?, b"1");
+    /// # Ok(())
+    /// # }
     /// ```
     // TODO maybe return Option instead and ignore possible errors
     // TODO rename as attr to make it more in line with Options::attr?
@@ -129,10 +132,13 @@ impl<'a> Header<'a> {
     /// # Example
     /// ```
     /// # use slow5::FileReader;
-    /// let slow5 = FileReader::open("examples/example2.slow5").unwrap();
+    /// # fn main() -> anyhow::Result<()> {
+    /// let slow5 = FileReader::open("examples/example2.slow5")?;
     /// let header = slow5.header();
-    /// let n_aux_names = header.aux_names_iter().unwrap().count();
+    /// let n_aux_names = header.aux_names_iter()?.count();
     /// assert_eq!(n_aux_names, 5);
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
         let mut num_aux = 0;
