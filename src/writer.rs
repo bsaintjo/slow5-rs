@@ -193,8 +193,8 @@ impl WriteOptions {
         }
     }
 
-    /// Create new file with the given options. File type will be SLOW5 or BLOW5 based on the file extension.
-    /// # Example
+    /// Create new file with the given options. File type will be SLOW5 or BLOW5
+    /// based on the file extension. # Example
     /// ```
     /// # use slow5::WriteOptions;
     /// # use assert_fs::TempDir;
@@ -209,10 +209,12 @@ impl WriteOptions {
     /// ```
     ///
     /// # Errors
-    /// If you attempt to create a SLOW5 file with compression options, this function will return an Err.
-    /// Since SLOW5 is ascii, no compression is allowed. If you do want compression create a BLOW5 file.
+    /// If you attempt to create a SLOW5 file with compression options, this
+    /// function will return an Err. Since SLOW5 is ascii, no compression is
+    /// allowed. If you do want compression create a BLOW5 file.
     ///
-    /// File path must end in ".blow5" or ".slow5" otherwise, function will return an Err.
+    /// File path must end in ".blow5" or ".slow5" otherwise, function will
+    /// return an Err.
     pub fn create<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
         FileWriter::with_options(file_path, self, Mode::Write)
     }

@@ -1,5 +1,5 @@
-use assert_fs::{TempDir, prelude::PathChild};
-use slow5::{FileWriter, FieldType, SignalCompression, RecordCompression, RecordBuilder};
+use assert_fs::{prelude::PathChild, TempDir};
+use slow5::{FieldType, FileWriter, RecordBuilder, RecordCompression, SignalCompression};
 
 #[test]
 fn main() -> anyhow::Result<()> {

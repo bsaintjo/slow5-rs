@@ -415,7 +415,9 @@ pub struct PicoAmpsSignalIter<'a> {
 
 impl<'a> std::fmt::Debug for PicoAmpsSignalIter<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("PicoAmpsSignalIter").field("i", &self.i).finish()
+        f.debug_struct("PicoAmpsSignalIter")
+            .field("i", &self.i)
+            .finish()
     }
 }
 

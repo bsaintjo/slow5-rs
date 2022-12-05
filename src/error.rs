@@ -1,6 +1,7 @@
 use std::{
     ffi::{FromBytesWithNulError, NulError},
-    path::PathBuf, str::Utf8Error,
+    path::PathBuf,
+    str::Utf8Error,
 };
 
 use thiserror::Error;
@@ -99,12 +100,13 @@ pub enum Slow5Error {
     /// Failed to get Record from reader
     #[error("Failed to get record, read id not in FileReader")]
     GetRecordFailed,
-    
+
     /// Failed to convert to UTF8
     #[error("Failed to convert to UTF8 {0}")]
     Utf8Error(Utf8Error),
 
-    /// Compression was set but output was SLOW5. Only BLOW5 files are allowed to set compression options
+    /// Compression was set but output was SLOW5. Only BLOW5 files are allowed
+    /// to set compression options
     #[error("Compression was set but output is SLOW5.")]
     Slow5CompressionError,
 

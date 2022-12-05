@@ -21,20 +21,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-Added support for string (char *) and array auxiliary fields.
-Error for invalid file path based on the file extension.
-File*::record_compression + File*::signal_compression to check what compression was used.
-Debug implementations
+- Added support for string (char *) and array auxiliary fields.
+- Error for invalid file path based on the file extension.
+- File*::record_compression + File*::signal_compression to check what compression was used.
+- Debug implementations for public types
 
 ### Changed
 
-FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
+- FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
 
 ## [0.8.1] - 2022-12-03
 
 ### Fixed
 
-Fixed link to documentation on crates.io
+- Fixed link to documentation on crates.io
 
 ## [0.8.0] - 2022-12-03
 
