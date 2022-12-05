@@ -1,5 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
+    ffi::CStr,
     fmt,
     os::unix::prelude::OsStrExt,
     path::Path,
@@ -14,6 +15,20 @@ use crate::{
     header::Header, record::Record, to_cstring, FieldType, RecordCompression, SignalCompression,
     Slow5Error,
 };
+
+pub(crate) enum Mode {
+    Write,
+    Append,
+}
+
+impl Mode {
+    fn to_c_mode(&self) -> &CStr {
+        match self {
+            Mode::Write => cstr!("w"),
+            Mode::Append => cstr!("a"),
+        }
+    }
+}
 
 /// Set attributes, auxiliary fields, and record and signal compression.
 #[derive(Debug)]
@@ -170,7 +185,11 @@ impl WriteOptions {
     /// # }
     /// ```
     pub fn create<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
-        FileWriter::with_options(file_path, self)
+        FileWriter::with_options(file_path, self, Mode::Write)
+    }
+
+    pub fn append<P: AsRef<Path>>(&self, file_path: P) -> Result<FileWriter, Slow5Error> {
+        FileWriter::with_options(file_path, self, Mode::Write)
     }
 }
 
@@ -252,7 +271,14 @@ impl FileWriter {
     where
         P: AsRef<Path>,
     {
-        Self::with_options(file_path, &Default::default())
+        Self::with_options(file_path, &Default::default(), Mode::Write)
+    }
+
+    pub fn append<P>(file_path: P) -> Result<Self, Slow5Error>
+    where
+        P: AsRef<Path>,
+    {
+        Self::with_options(file_path, &Default::default(), Mode::Append)
     }
 
     /// Create a file with given options
@@ -262,7 +288,11 @@ impl FileWriter {
     /// compression options are ignored.
     // TODO avoid having to check extension, either by adding it manually
     // or use a lower level API.
-    pub(crate) fn with_options<P>(file_path: P, opts: &WriteOptions) -> Result<Self, Slow5Error>
+    pub(crate) fn with_options<P>(
+        file_path: P,
+        opts: &WriteOptions,
+        mode: Mode,
+    ) -> Result<Self, Slow5Error>
     where
         P: AsRef<Path>,
     {
@@ -290,7 +320,7 @@ impl FileWriter {
 
         let file_path = file_path.as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
-        let mode = cstr!("w");
+        let mode = mode.to_c_mode();
 
         let slow5_file = unsafe {
             let slow5_file = slow5_open(file_path.as_ptr(), mode.as_ptr());
