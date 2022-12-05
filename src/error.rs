@@ -107,4 +107,8 @@ pub enum Slow5Error {
     /// Compression was set but output was SLOW5. Only BLOW5 files are allowed to set compression options
     #[error("Compression was set but output is SLOW5.")]
     Slow5CompressionError,
+
+    /// Invalid file path, the extension must be "slow5" or "blow5"
+    #[error("Invalid file path: {0}")]
+    InvalidFilePath(String),
 }
