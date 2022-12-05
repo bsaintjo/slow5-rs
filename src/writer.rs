@@ -280,11 +280,14 @@ impl FileWriter {
                 false
             }
         };
-        // let has_rec_comp = !matches!(opts.rec_comp, RecordCompression::None);
-        // let has_sig_comp = !matches!(opts.sig_comp, SignalCompression::None);
-        // if !is_blow5 && (has_rec_comp || has_sig_comp) {
-        //     return Err(Slow5Error::Slow5CompressionError)
-        // }
+
+        // Check if compression is being used on a SLOW5, if so error out
+        let has_rec_comp = !matches!(opts.rec_comp, RecordCompression::None);
+        let has_sig_comp = !matches!(opts.sig_comp, SignalCompression::None);
+        if !is_blow5 && (has_rec_comp || has_sig_comp) {
+            return Err(Slow5Error::Slow5CompressionError);
+        }
+
         let file_path = file_path.as_os_str().as_bytes();
         let file_path = to_cstring(file_path)?;
         let mode = cstr!("w");
@@ -458,6 +461,29 @@ mod test {
         let reader = FileReader::open(&file_path)?;
         let rec = reader.get_record(read_id)?;
         assert_eq!(rec.read_id(), read_id);
+        Ok(())
+    }
+
+    #[test]
+    fn test_err_slow5_compression() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::new()?;
+        let file_path = "test.slow5";
+        let file_path = tmp_dir.child(file_path);
+        let writer = FileWriter::options()
+            .signal_compression(SignalCompression::StreamVByte)
+            .create(&file_path);
+        assert!(writer.is_err());
+
+        let writer = FileWriter::options()
+            .record_compression(RecordCompression::ZStd)
+            .create(&file_path);
+        assert!(writer.is_err());
+
+        let writer = FileWriter::options()
+            .signal_compression(SignalCompression::StreamVByte)
+            .record_compression(RecordCompression::Zlib)
+            .create(&file_path);
+        assert!(writer.is_err());
         Ok(())
     }
 }
