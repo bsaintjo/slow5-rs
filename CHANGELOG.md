@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error for invalid file path based on the file extension.
 - File*::record_compression + File*::signal_compression to check what compression was used.
 - Debug implementations for public types
+- HeaderExt for using File* as a Header
 
 ### Changed
 

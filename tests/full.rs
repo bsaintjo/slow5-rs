@@ -1,10 +1,12 @@
 use assert_fs::{prelude::PathChild, TempDir};
-use slow5::{FieldType, FileWriter, RecordBuilder, RecordCompression, SignalCompression};
+use slow5::{
+    FieldType, FileWriter, HeaderExt, RecordBuilder, RecordCompression, SignalCompression,
+};
 
 #[test]
 fn main() -> anyhow::Result<()> {
     let tmp_dir = TempDir::new()?;
-    let filepath = tmp_dir.child("new.blow5");
+    let file_path = tmp_dir.child("new.blow5");
 
     let mut writer = FileWriter::options()
         .attr("attr", "val", 0)
@@ -14,13 +16,10 @@ fn main() -> anyhow::Result<()> {
         .aux("read_number", FieldType::Uint32)
         .signal_compression(SignalCompression::StreamVByte)
         .record_compression(RecordCompression::ZStd)
-        .create(&filepath)?;
-    {
-        let header = writer.header();
-        assert_eq!(header.get_attribute("attr", 0)?, b"val");
-        assert_eq!(header.get_attribute("attr", 1)?, b"other");
-        assert_eq!(header.aux_names_iter()?.count(), 2);
-    }
+        .create(&file_path)?;
+    assert_eq!(writer.get_attribute("attr", 0)?, b"val");
+    assert_eq!(writer.get_attribute("attr", 1)?, b"other");
+    assert_eq!(writer.aux_names_iter()?.count(), 2);
 
     let mut builder = RecordBuilder::default();
     builder
@@ -36,8 +35,8 @@ fn main() -> anyhow::Result<()> {
             .read_group(i)
             .raw_signal(&signals[i as usize])
             .build()?;
-        rec.set_aux_field(&writer.header(), "median", 10.0f32)?;
-        rec.set_aux_field(&writer.header(), "read_number", 7)?;
+        rec.set_aux_field(&writer, "median", 10.0f32)?;
+        rec.set_aux_field(&writer, "read_number", 7)?;
         writer.add_record(&rec)?;
     }
     writer.close();

@@ -12,6 +12,7 @@ use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_r
 
 use crate::{
     error::Slow5Error,
+    header::HeaderExt,
     record::{Record, RecordIter},
     to_cstring, Header, RecordCompression, SignalCompression,
 };
@@ -177,6 +178,12 @@ impl FileReader {
     // RecordIter
     pub fn iter_read_ids(&self) -> Result<ReadIdIter<'_>, Slow5Error> {
         ReadIdIter::new(self)
+    }
+}
+
+impl HeaderExt for FileReader {
+    fn header(&self) -> Header<'_> {
+        self.header()
     }
 }
 

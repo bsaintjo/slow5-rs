@@ -14,7 +14,7 @@ use std::ffi::CString;
 pub use auxiliary::{AuxField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
-pub use header::Header;
+pub use header::{Header, HeaderExt};
 pub use reader::FileReader;
 pub use record::{to_picoamps, to_raw_signal, Record, RecordBuilder, RecordExt, RecordIter};
 pub use writer::{FileWriter, WriteOptions};

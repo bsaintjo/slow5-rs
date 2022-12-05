@@ -12,8 +12,9 @@ use slow5lib_sys::{
 };
 
 use crate::{
-    header::Header, record::Record, to_cstring, FieldType, RecordCompression, SignalCompression,
-    Slow5Error,
+    header::{Header, HeaderExt},
+    record::Record,
+    to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
 };
 
 #[derive(Debug)]
@@ -493,6 +494,12 @@ impl FileWriter {
     /// Close the SLOW5 file.
     pub fn close(self) {
         drop(self)
+    }
+}
+
+impl HeaderExt for FileWriter {
+    fn header(&self) -> Header<'_> {
+        self.header()
     }
 }
 

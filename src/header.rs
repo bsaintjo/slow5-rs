@@ -1,3 +1,4 @@
+//! Module for dealing with SLOW5 headers
 use std::{ffi::CStr, marker::PhantomData};
 
 use libc::c_char;
@@ -7,10 +8,48 @@ use slow5lib_sys::{
 
 use crate::{auxiliary::FieldType, error::Slow5Error, to_cstring};
 
+/// Trait for common Header methods
+pub trait HeaderExt {
+    /// Returns Header
+    fn header(&self) -> Header<'_>;
+
+    /// Get value for a given attribute and read group
+    fn get_attribute<B>(&self, attr: B, read_group: u32) -> Result<&[u8], Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let attr = to_cstring(attr.into())?;
+        let data = unsafe { slow5_hdr_get(attr.as_ptr(), read_group, self.header().header) };
+        if data.is_null() {
+            Err(Slow5Error::AttributeError)
+        } else {
+            let data = unsafe { CStr::from_ptr(data) };
+            Ok(data.to_bytes())
+        }
+    }
+
+    /// Iterator to auxiliary names
+    fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
+        let mut num_aux = 0;
+        let auxs = unsafe { slow5_get_aux_names(self.header().header, &mut num_aux) };
+        if auxs.is_null() || num_aux == 0 {
+            Err(Slow5Error::AuxNameIterError)
+        } else {
+            Ok(AuxNamesIter::new(0, num_aux, auxs))
+        }
+    }
+}
+
 /// Represents a SLOW5 header
 pub struct Header<'a> {
     pub(crate) header: *mut slow5_hdr_t,
     _lifetime: PhantomData<&'a ()>,
+}
+
+impl<'a> HeaderExt for Header<'a> {
+    fn header(&self) -> Header<'_> {
+        Header::new(self.header)
+    }
 }
 
 impl<'a> std::fmt::Debug for Header<'a> {

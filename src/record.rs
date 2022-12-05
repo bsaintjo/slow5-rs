@@ -10,7 +10,7 @@ use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
-use crate::{auxiliary::AuxField, error::Slow5Error, to_cstring, Header};
+use crate::{auxiliary::AuxField, error::Slow5Error, header::HeaderExt, to_cstring};
 
 #[derive(Error, Debug)]
 pub enum BuilderError {
@@ -211,19 +211,21 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<B, T>(
+    pub fn set_aux_field<H, B, T>(
         &mut self,
-        hdr: &Header,
+        hdr: &H,
         field_name: B,
         value: impl Borrow<T>,
     ) -> Result<(), Slow5Error>
     where
+        H: HeaderExt,
         B: Into<Vec<u8>>,
         T: AuxField,
     {
         let name = to_cstring(field_name)?;
         let value = value.borrow() as *const T as *const c_void;
-        let ret = unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value, hdr.header) };
+        let ret =
+            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value, hdr.header().header) };
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
