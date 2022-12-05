@@ -77,7 +77,7 @@ impl FileReader {
             return RecordCompression::None;
         }
         let record_press = unsafe { (*(*compress).record_press).method };
-        RecordCompression::from(record_press)
+        RecordCompression::from_u32(record_press)
     }
 
     /// Get file's signal compression
@@ -87,7 +87,7 @@ impl FileReader {
             return SignalCompression::None;
         }
         let signal_press = unsafe { (*(*compress).signal_press).method };
-        SignalCompression::from(signal_press)
+        SignalCompression::from_u32(signal_press)
     }
 
     /// Access header of a SLOW5 file
