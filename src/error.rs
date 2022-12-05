@@ -113,4 +113,16 @@ pub enum Slow5Error {
     /// Invalid file path, the extension must be "slow5" or "blow5"
     #[error("Invalid file path: {0}")]
     InvalidFilePath(String),
+
+    /// Failed to add attribute to header
+    #[error("Failed to add attribute, error code {0}")]
+    AddAttributeError(i32),
+
+    /// Failed to set attribute to header
+    #[error("Failed to set attribute, error code {0}")]
+    SetAttributeError(i32),
+
+    /// Failed to set auxiliary field
+    #[error("Failed to set auxiliary field, error code {0}")]
+    AddAuxFieldError(i32),
 }

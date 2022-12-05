@@ -98,7 +98,7 @@ impl<'a> Header<'a> {
         let attr = to_cstring(attr)?;
         let ret = unsafe { slow5_hdr_add(attr.as_ptr(), self.header) };
         if ret < 0 {
-            Err(Slow5Error::Unknown)
+            Err(Slow5Error::AddAttributeError(ret))
         } else {
             Ok(())
         }
@@ -119,7 +119,7 @@ impl<'a> Header<'a> {
         let value = to_cstring(value)?;
         let ret = unsafe { slow5_hdr_set(attr.as_ptr(), value.as_ptr(), read_group, self.header) };
         if ret < 0 {
-            Err(Slow5Error::Unknown)
+            Err(Slow5Error::SetAttributeError(ret))
         } else {
             Ok(())
         }
@@ -157,7 +157,7 @@ impl<'a> Header<'a> {
         let name = to_cstring(name)?;
         let ret = unsafe { slow5_aux_add(name.as_ptr(), field_type.to_slow5_t().0, self.header) };
         if ret < 0 {
-            Err(Slow5Error::Unknown)
+            Err(Slow5Error::AddAuxFieldError(ret))
         } else {
             Ok(())
         }
