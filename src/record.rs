@@ -213,12 +213,12 @@ impl Record {
         &mut self,
         hdr: &H,
         field_name: B,
-        value: impl Borrow<T>,
+        value: T,
     ) -> Result<(), Slow5Error>
     where
         H: HeaderExt,
         B: Into<Vec<u8>>,
-        T: AuxField,
+        T: AuxField + Copy,
     {
         let name = to_cstring(field_name)?;
         let value = value.borrow() as *const T as *const c_void;
