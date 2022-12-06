@@ -1,6 +1,7 @@
 use assert_fs::{prelude::PathChild, TempDir};
 use slow5::{
-    FieldType, FileWriter, HeaderExt, RecordBuilder, RecordCompression, SignalCompression,
+    FieldType, FileReader, FileWriter, HeaderExt, Record, RecordBuilder, RecordCompression,
+    RecordExt, SignalCompression,
 };
 
 #[test]
@@ -20,6 +21,8 @@ fn main() -> anyhow::Result<()> {
     assert_eq!(writer.get_attribute("attr", 0)?, b"val");
     assert_eq!(writer.get_attribute("attr", 1)?, b"other");
     assert_eq!(writer.aux_names_iter()?.count(), 2);
+    let aux_names: [&[u8]; 2] = [b"read_number", b"median"];
+    assert!(aux_names.contains(&writer.aux_names_iter()?.next().unwrap()));
 
     let mut builder = RecordBuilder::default();
     builder
@@ -36,9 +39,33 @@ fn main() -> anyhow::Result<()> {
             .raw_signal(&signals[i as usize])
             .build()?;
         rec.set_aux_field(&writer, "median", 10.0f32)?;
-        rec.set_aux_field(&writer, "read_number", 7)?;
+        rec.set_aux_field(&writer, "read_number", 7u32)?;
         writer.add_record(&rec)?;
     }
     writer.close();
+
+    let mut writer = FileWriter::append(&file_path)?;
+    let mut rec = Record::builder()
+        .read_id("read_3")
+        .read_group(0)
+        .digitisation(4096.0)
+        .offset(4.0)
+        .range(12.0)
+        .sampling_rate(4000.0)
+        .raw_signal(&[7, 7, 7])
+        .build()?;
+    rec.set_aux_field(&writer.header(), "median", 10.0f32)?;
+    rec.set_aux_field(&writer.header(), "read_number", 7u32)?;
+    writer.add_record(&rec)?;
+    writer.close();
+
+    let reader = FileReader::open(&file_path)?;
+    let rec = reader.get_record("read_2")?;
+    assert_eq!(rec.read_group(), 2);
+    assert_eq!(
+        rec.raw_signal_iter().collect::<Vec<_>>(),
+        signals[2].to_vec()
+    );
+    assert_eq!(rec.get_aux_field::<_, f32>("median")?, 10.0f32);
     Ok(())
 }
