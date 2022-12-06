@@ -221,9 +221,10 @@ impl Record {
         T: AuxField + Copy,
     {
         let name = to_cstring(field_name)?;
-        let value = value.borrow() as *const T as *const c_void;
+        let value = value;
+        let value_ptr = &value as *const T as *const c_void;
         let ret =
-            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value, hdr.header().header) };
+            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value_ptr, hdr.header().header) };
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
