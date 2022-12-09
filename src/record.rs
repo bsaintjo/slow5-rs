@@ -220,8 +220,14 @@ impl Record {
         let name = to_cstring(field_name)?;
         let value = value;
         let value_ptr = &value as *const T as *const c_void;
-        let ret =
-            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value_ptr, writer.header().header) };
+        let ret = unsafe {
+            slow5_aux_set(
+                self.slow5_rec,
+                name.as_ptr(),
+                value_ptr,
+                writer.header().header,
+            )
+        };
         writer.auxiliary_fields.push(name);
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)

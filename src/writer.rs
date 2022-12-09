@@ -240,8 +240,10 @@ impl Default for WriteOptions {
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
 
-    // This stores CStrings used in slow5_aux_set and extends the lifetime of the CString until it gets dropped. slow5_aux_get doesn't allocate so we must manually extend the lifetime.
-    // TODO Replace using this with getting a pointer to the auxiliary field already allocated in the header
+    // This stores CStrings used in slow5_aux_set and extends the lifetime of the CString until it
+    // gets dropped. slow5_aux_get doesn't allocate so we must manually extend the lifetime.
+    // TODO Replace using this with getting a pointer to the auxiliary field already allocated in
+    // the header
     pub(crate) auxiliary_fields: Vec<CString>,
 }
 

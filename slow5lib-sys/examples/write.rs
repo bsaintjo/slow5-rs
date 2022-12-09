@@ -1,7 +1,10 @@
 use std::{error::Error, mem::size_of};
 
 use libc::{c_void, malloc, strdup, strlen};
-use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_hdr_write, slow5_rec_t, slow5_write, slow5_rec_free, slow5_close};
+use slow5lib_sys::{
+    slow5_aux_set, slow5_close, slow5_file, slow5_hdr_write, slow5_rec_free, slow5_rec_t,
+    slow5_write,
+};
 
 fn main() -> Result<(), Box<dyn Error>> {
     unsafe {
