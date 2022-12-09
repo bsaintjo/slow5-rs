@@ -1,6 +1,6 @@
 use anyhow::Result;
 use assert_fs::TempDir;
-use slow5::{FieldType, FileWriter, Header, Record};
+use slow5::{FieldType, FileWriter, Record};
 
 fn main() -> Result<()> {
     let tmp_dir = TempDir::new()?;
@@ -11,8 +11,7 @@ fn main() -> Result<()> {
         .aux("median", FieldType::Float)
         .create(file_path)?;
 
-    let hdr = slow5.header();
-    let rec = set_record_fields(&hdr)?;
+    let rec = set_record_fields(&mut slow5)?;
     slow5.add_record(&rec)?;
     slow5.close();
 
@@ -20,7 +19,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn set_record_fields(hdr: &Header) -> Result<Record> {
+fn set_record_fields(writer: &mut FileWriter) -> Result<Record> {
     let raw_signal = (0..10).collect::<Vec<_>>();
     let mut rec = Record::builder()
         .read_id("read_0")
@@ -31,7 +30,7 @@ fn set_record_fields(hdr: &Header) -> Result<Record> {
         .sampling_rate(4000.)
         .raw_signal(&raw_signal)
         .build()?;
-    rec.set_aux_field(hdr, "median", 1.2f32)?;
+    rec.set_aux_field(writer, "median", 1.2f32)?;
     Ok(rec)
 }
 

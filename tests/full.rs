@@ -38,8 +38,8 @@ fn main() -> anyhow::Result<()> {
             .read_group(i)
             .raw_signal(&signals[i as usize])
             .build()?;
-        rec.set_aux_field(&writer, "median", 10.0f32)?;
-        rec.set_aux_field(&writer, "read_number", 7u32)?;
+        rec.set_aux_field(&mut writer, "median", 10.0f32)?;
+        rec.set_aux_field(&mut writer, "read_number", 7u32)?;
         writer.add_record(&rec)?;
     }
     writer.close();
@@ -54,8 +54,8 @@ fn main() -> anyhow::Result<()> {
         .sampling_rate(4000.0)
         .raw_signal(&[7, 7, 7])
         .build()?;
-    rec.set_aux_field(&writer.header(), "median", 10.0f32)?;
-    rec.set_aux_field(&writer.header(), "read_number", 7u32)?;
+    rec.set_aux_field(&mut writer, "median", 10.0f32)?;
+    rec.set_aux_field(&mut writer, "read_number", 7u32)?;
     writer.add_record(&rec)?;
     writer.close();
 

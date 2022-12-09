@@ -1,5 +1,4 @@
 use std::{
-    borrow::Borrow,
     ffi::{CStr, CString},
     marker::PhantomData,
     mem::size_of,
@@ -10,7 +9,7 @@ use libc::{c_char, c_void};
 use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
-use crate::{auxiliary::AuxField, error::Slow5Error, header::HeaderExt, to_cstring};
+use crate::{auxiliary::AuxField, error::Slow5Error, to_cstring, FileWriter};
 
 #[derive(Error, Debug)]
 pub enum BuilderError {
@@ -195,7 +194,6 @@ impl Record {
     /// let mut opts = WriteOptions::default();
     /// opts.aux("median", FieldType::Float);
     /// let mut slow5 = opts.create(path)?;
-    /// let header = slow5.header();
     /// let mut rec = RecordBuilder::default()
     ///     .read_id("test_id")
     ///     .read_group(0)
@@ -205,18 +203,17 @@ impl Record {
     ///     .sampling_rate(4000.0)
     ///     .raw_signal(&[0, 1, 2, 3])
     ///     .build()?;
-    /// rec.set_aux_field(&header, "median", 10.0f32)?;
+    /// rec.set_aux_field(&mut slow5, "median", 10.0f32)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_aux_field<H, B, T>(
+    pub fn set_aux_field<B, T>(
         &mut self,
-        hdr: &H,
+        writer: &mut FileWriter,
         field_name: B,
         value: T,
     ) -> Result<(), Slow5Error>
     where
-        H: HeaderExt,
         B: Into<Vec<u8>>,
         T: AuxField + Copy,
     {
@@ -224,7 +221,8 @@ impl Record {
         let value = value;
         let value_ptr = &value as *const T as *const c_void;
         let ret =
-            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value_ptr, hdr.header().header) };
+            unsafe { slow5_aux_set(self.slow5_rec, name.as_ptr(), value_ptr, writer.header().header) };
+        writer.auxiliary_fields.push(name);
         if ret < 0 {
             Err(Slow5Error::SetAuxFieldError)
         } else {
@@ -530,10 +528,9 @@ mod test {
         let tmp_dir = TempDir::new()?;
         let path = "new.slow5";
         let path = tmp_dir.child(path);
-        let slow5 = FileWriter::options()
+        let mut slow5 = FileWriter::options()
             .aux("median", FieldType::Float)
             .create(path)?;
-        let header = slow5.header();
         let mut rec = RecordBuilder::default()
             .read_id("test_id")
             .read_group(0)
@@ -543,7 +540,7 @@ mod test {
             .sampling_rate(4000.0)
             .raw_signal(&[0, 1, 2, 3])
             .build()?;
-        rec.set_aux_field(&header, "median", 10.0f32)?;
+        rec.set_aux_field(&mut slow5, "median", 10.0f32)?;
         Ok(())
     }
 }

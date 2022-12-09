@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    ffi::CStr,
+    ffi::{CStr, CString},
     fmt,
     os::unix::prelude::OsStrExt,
     path::Path,
@@ -239,6 +239,10 @@ impl Default for WriteOptions {
 /// Write a SLOW5 file
 pub struct FileWriter {
     slow5_file: *mut slow5_file,
+
+    // This stores CStrings used in slow5_aux_set and extends the lifetime of the CString until it gets dropped. slow5_aux_get doesn't allocate so we must manually extend the lifetime.
+    // TODO Replace using this with getting a pointer to the auxiliary field already allocated in the header
+    pub(crate) auxiliary_fields: Vec<CString>,
 }
 
 impl fmt::Debug for FileWriter {
@@ -255,7 +259,10 @@ impl fmt::Debug for FileWriter {
 
 impl FileWriter {
     fn new(slow5_file: *mut slow5_file) -> Self {
-        Self { slow5_file }
+        Self {
+            slow5_file,
+            auxiliary_fields: Vec::new(),
+        }
     }
 
     /// Create a file with set of options
