@@ -31,6 +31,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
 
+### Fixed
+
+- Fixed bug in Record::set_aux_field where no error would occur but value would not get written to file. Fixed by extending lifetime of String used to set the aux_field and storing it in FileWriter.
+
 ## [0.8.1] - 2022-12-03
 
 ### Fixed
