@@ -1,11 +1,13 @@
 use std::ffi::CStr;
 
+use libc::c_void;
 use slow5lib_sys::{
     slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16,
     slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_string,
     slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64, slow5_aux_get_uint8,
-    slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY,
-    slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE,
+    slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT,
+    slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
     slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
     slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
@@ -15,7 +17,7 @@ use slow5lib_sys::{
     slow5_aux_type_SLOW5_UINT8_T, slow5_aux_type_SLOW5_UINT8_T_ARRAY,
 };
 
-use crate::{to_cstring, RecordExt, Slow5Error};
+use crate::{to_cstring, FileWriter, Record, RecordExt, Slow5Error};
 
 /// Maps between Rust types and SLOW5 C types
 #[derive(Debug, Clone, Copy)]
@@ -232,6 +234,107 @@ impl AuxField for &str {
         let data = unsafe { CStr::from_ptr(data) };
         let data = data.to_str().map_err(Slow5Error::Utf8Error)?;
         Ok(data)
+    }
+}
+
+/// Trait for values that we are allowed to set the values for in Records.
+/// Currently only primitive types and strings are allowed to be used to set
+/// auxiliary fields.
+pub trait AuxFieldSetExt {
+    fn aux_set<B>(
+        &self,
+        rec: &mut Record,
+        field: B,
+        writer: &mut FileWriter,
+    ) -> Result<(), Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let name = to_cstring(field)?;
+        let value_ptr = self as *const Self as *const c_void;
+        let ret = unsafe {
+            slow5_aux_set(
+                rec.slow5_rec,
+                name.as_ptr(),
+                value_ptr,
+                writer.header().header,
+            )
+        };
+        writer.auxiliary_fields.push(name);
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl AuxFieldSetExt for u8 {}
+impl AuxFieldSetExt for u16 {}
+impl AuxFieldSetExt for u32 {}
+impl AuxFieldSetExt for u64 {}
+impl AuxFieldSetExt for i8 {}
+impl AuxFieldSetExt for i16 {}
+impl AuxFieldSetExt for i32 {}
+impl AuxFieldSetExt for i64 {}
+impl AuxFieldSetExt for f32 {}
+impl AuxFieldSetExt for f64 {}
+
+impl AuxFieldSetExt for str {
+    fn aux_set<B>(
+        &self,
+        rec: &mut Record,
+        field: B,
+        writer: &mut FileWriter,
+    ) -> Result<(), Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let name = to_cstring(field)?;
+        let value_ptr = to_cstring(self)?;
+        let ret = unsafe {
+            slow5_aux_set_string(
+                rec.slow5_rec,
+                name.as_ptr(),
+                value_ptr.as_ptr(),
+                writer.header().header,
+            )
+        };
+        writer.auxiliary_fields.push(name);
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl AuxFieldSetExt for String {
+    fn aux_set<B>(
+        &self,
+        rec: &mut Record,
+        field: B,
+        writer: &mut FileWriter,
+    ) -> Result<(), Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let name = to_cstring(field)?;
+        let value_ptr = to_cstring(self.as_bytes())?;
+        let ret = unsafe {
+            slow5_aux_set_string(
+                rec.slow5_rec,
+                name.as_ptr(),
+                value_ptr.as_ptr(),
+                writer.header().header,
+            )
+        };
+        writer.auxiliary_fields.push(name);
+        if ret < 0 {
+            Err(Slow5Error::SetAuxFieldError)
+        } else {
+            Ok(())
+        }
     }
 }
 

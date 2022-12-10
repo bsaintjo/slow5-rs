@@ -6,10 +6,14 @@ use std::{
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_aux_set, slow5_file, slow5_rec_free, slow5_rec_t};
+use slow5lib_sys::{slow5_file, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
-use crate::{auxiliary::AuxField, error::Slow5Error, to_cstring, FileWriter};
+use crate::{
+    auxiliary::{AuxField, AuxFieldSetExt},
+    error::Slow5Error,
+    to_cstring, FileWriter,
+};
 
 #[derive(Error, Debug)]
 pub enum BuilderError {
@@ -215,25 +219,9 @@ impl Record {
     ) -> Result<(), Slow5Error>
     where
         B: Into<Vec<u8>>,
-        T: AuxField + Copy,
+        T: AuxFieldSetExt,
     {
-        let name = to_cstring(field_name)?;
-        let value = value;
-        let value_ptr = &value as *const T as *const c_void;
-        let ret = unsafe {
-            slow5_aux_set(
-                self.slow5_rec,
-                name.as_ptr(),
-                value_ptr,
-                writer.header().header,
-            )
-        };
-        writer.auxiliary_fields.push(name);
-        if ret < 0 {
-            Err(Slow5Error::SetAuxFieldError)
-        } else {
-            Ok(())
-        }
+        value.aux_set(self, field_name, writer)
     }
 
     // Expected API

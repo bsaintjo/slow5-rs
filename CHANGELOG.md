@@ -26,10 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - File*::record_compression + File*::signal_compression to check what compression was used.
 - Debug implementations for public types
 - HeaderExt for using File* as a Header
+- AuxFieldSetExt trait for specifying which types are allowed to be used to set auxiliary fields.
 
 ### Changed
 
 - FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
+- Record::set_aux_field value must implement AuxFieldSetExt instead of AuxField
 
 ### Fixed
 
