@@ -2,7 +2,7 @@ use std::{
     ffi::{CStr, CString},
     marker::PhantomData,
     mem::size_of,
-    ptr::null_mut,
+    ptr::null_mut, collections::HashMap,
 };
 
 use libc::{c_char, c_void};
@@ -46,7 +46,7 @@ pub enum BuilderError {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct RecordBuilder {
     read_id: Option<Vec<u8>>,
     read_group: Option<u32>,
@@ -55,6 +55,23 @@ pub struct RecordBuilder {
     range: Option<f64>,
     sampling_rate: Option<f64>,
     raw_signal: Option<Vec<i16>>,
+    // TODO use aux_fields attribute to allow for setting auxiliary fields from the builder
+    aux_fields: Option<HashMap<String, Box<dyn AuxFieldSetExt>>>,
+}
+
+// TODO eventually add aux_fields to debug
+impl std::fmt::Debug for RecordBuilder {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RecordBuilder")
+        .field("read_id", &self.read_id)
+        .field("read_group", &self.read_group)
+        .field("digitisation", &self.digitisation)
+        .field("offset", &self.offset)
+        .field("range", &self.range)
+        .field("sampling_rate", &self.sampling_rate)
+        .field("raw_signal", &self.raw_signal)
+        .finish()
+    }
 }
 
 impl RecordBuilder {
@@ -102,15 +119,14 @@ impl RecordBuilder {
         self
     }
 
-    /// Attempt to convert to Record
+    /// Convert into a Record.
     ///
     /// # Errors
-    /// `RecordBuilder::build` will fail if
+    /// Builder will fail if
     /// A) Unable to allocate memory for Record
-    // TODO Should be able to prevent this?
     /// B) Read ID contains an interior NUL character
-    /// C) Length of Read ID is greater than u16
-    /// D) Length of signal is greater than u64
+    /// C) Length of Read ID is greater than u16::MAX
+    /// D) Length of signal is greater than u64::MAX
     pub fn build(&self) -> Result<Record, BuilderError> {
         let Some(ref read_id) = self.read_id else { return Err(BuilderError::RequiredValueUnset("read_id"))};
         let Some(read_group) = self.read_group else { return Err(BuilderError::RequiredValueUnset("read_group"))};
@@ -183,7 +199,10 @@ impl Record {
         Default::default()
     }
 
-    /// ## Example
+    /// Set the value for an auxiliary field of a record. Not all auxiliary fields need to be
+    /// set, however, calling [`aux_get_field`] will return an Err if its called on an unset auxiliary field.
+    ///
+    /// # Example
     /// ```
     /// # use slow5::FileWriter;
     /// # use slow5::FieldType;
@@ -224,7 +243,9 @@ impl Record {
         value.aux_set(self, field_name, writer)
     }
 
-    // Expected API
+    /// Get data for an auxiliary field of a record.
+    ///
+    /// # Example
     /// ```
     /// # use anyhow::Result;
     /// # use slow5::FileReader;
@@ -239,6 +260,10 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
+    /// 
+    /// # Errors
+    /// Returns an Err if auxiliary field wasn't set for that record.
+    ///
     pub fn get_aux_field<B, T>(&self, name: B) -> Result<T, Slow5Error>
     where
         B: Into<Vec<u8>>,

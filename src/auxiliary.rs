@@ -248,6 +248,7 @@ pub trait AuxFieldSetExt {
         writer: &mut FileWriter,
     ) -> Result<(), Slow5Error>
     where
+        Self: Sized,
         B: Into<Vec<u8>>,
     {
         let name = to_cstring(field)?;
