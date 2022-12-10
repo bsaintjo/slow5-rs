@@ -124,9 +124,9 @@ impl<'a> Header<'a> {
         }
     }
 
-    /// Return iterator over auxiliary field names. If no auxiliary fields are present,
-    /// the iterator will be empty and return None on the next iteration.
-    /// # Example
+    /// Return iterator over auxiliary field names. If no auxiliary fields are
+    /// present, the iterator will be empty and return None on the next
+    /// iteration. # Example
     /// ```
     /// # use slow5::FileReader;
     /// # fn main() -> anyhow::Result<()> {
@@ -137,7 +137,7 @@ impl<'a> Header<'a> {
     /// # Ok(())
     /// # }
     /// ```
-    /// 
+    ///
     /// # Example with no auxiliary fields
     /// ```
     /// # use slow5::FileReader;
