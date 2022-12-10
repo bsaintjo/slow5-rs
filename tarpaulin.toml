@@ -4,5 +4,5 @@ exclude-files = [
     "slow5-derive/*",
     "slow5lib-sys/*",
 ]
-timeout = "480s"
 all-features = true
+run-types = ["Tests", "Doctests", "Examples", "Lib", "Bins", "AllTargets"]
