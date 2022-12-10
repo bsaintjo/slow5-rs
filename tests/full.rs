@@ -22,9 +22,9 @@ fn main() -> anyhow::Result<()> {
         .create(&file_path)?;
     assert_eq!(writer.get_attribute("attr", 0)?, b"val");
     assert_eq!(writer.get_attribute("attr", 1)?, b"other");
-    assert_eq!(writer.aux_names_iter()?.count(), 4);
+    assert_eq!(writer.aux_names_iter().count(), 4);
     let aux_names: [&[u8]; 4] = [b"read_number", b"median", b"string", b"not set"];
-    assert!(aux_names.contains(&writer.aux_names_iter()?.next().unwrap()));
+    assert!(aux_names.contains(&writer.aux_names_iter().next().unwrap()));
 
     let mut builder = RecordBuilder::default();
     builder
