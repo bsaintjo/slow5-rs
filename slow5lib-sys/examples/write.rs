@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let slow5_record = libc::calloc(1, size_of::<slow5_rec_t>()) as *mut slow5_rec_t;
 
-        set_record_primary_fields(slow5_record, sp);
+        set_record_primary_fields(slow5_record);
         set_record_aux_fields(slow5_record, sp);
 
         slow5_write(slow5_record, sp);
@@ -37,7 +37,7 @@ unsafe fn set_header_aux_fields(sp: *mut slow5lib_sys::slow5_file) {
     );
 }
 
-unsafe fn set_record_primary_fields(slow5_record: *mut slow5_rec_t, sp: *mut slow5_file) {
+unsafe fn set_record_primary_fields(slow5_record: *mut slow5_rec_t) {
     let id = cstr::cstr!("read_0");
     (*slow5_record).read_id = strdup(id.as_ptr());
     (*slow5_record).read_id_len = strlen((*slow5_record).read_id) as u16;
