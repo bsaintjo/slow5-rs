@@ -280,7 +280,7 @@ impl AuxFieldSetExt for i64 {}
 impl AuxFieldSetExt for f32 {}
 impl AuxFieldSetExt for f64 {}
 
-impl AuxFieldSetExt for str {
+impl AuxFieldSetExt for &str {
     fn aux_set<B>(
         &self,
         rec: &mut Record,
@@ -291,7 +291,7 @@ impl AuxFieldSetExt for str {
         B: Into<Vec<u8>>,
     {
         let name = to_cstring(field)?;
-        let value_ptr = to_cstring(self)?;
+        let value_ptr = to_cstring(*self)?;
         let ret = unsafe {
             slow5_aux_set_string(
                 rec.slow5_rec,
