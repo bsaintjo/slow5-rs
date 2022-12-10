@@ -1,8 +1,9 @@
 use std::{
+    collections::HashMap,
     ffi::{CStr, CString},
     marker::PhantomData,
     mem::size_of,
-    ptr::null_mut, collections::HashMap,
+    ptr::null_mut,
 };
 
 use libc::{c_char, c_void};
@@ -64,14 +65,14 @@ pub struct RecordBuilder {
 impl std::fmt::Debug for RecordBuilder {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("RecordBuilder")
-        .field("read_id", &self.read_id)
-        .field("read_group", &self.read_group)
-        .field("digitisation", &self.digitisation)
-        .field("offset", &self.offset)
-        .field("range", &self.range)
-        .field("sampling_rate", &self.sampling_rate)
-        .field("raw_signal", &self.raw_signal)
-        .finish()
+            .field("read_id", &self.read_id)
+            .field("read_group", &self.read_group)
+            .field("digitisation", &self.digitisation)
+            .field("offset", &self.offset)
+            .field("range", &self.range)
+            .field("sampling_rate", &self.sampling_rate)
+            .field("raw_signal", &self.raw_signal)
+            .finish()
     }
 }
 
@@ -200,8 +201,9 @@ impl Record {
         Default::default()
     }
 
-    /// Set the value for an auxiliary field of a record. Not all auxiliary fields need to be
-    /// set, however, calling [`aux_get_field`] will return an Err if its called on an unset auxiliary field.
+    /// Set the value for an auxiliary field of a record. Not all auxiliary
+    /// fields need to be set, however, calling [`aux_get_field`] will
+    /// return an Err if its called on an unset auxiliary field.
     ///
     /// # Example
     /// ```
@@ -261,10 +263,9 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    /// 
+    ///
     /// # Errors
     /// Returns an Err if auxiliary field wasn't set for that record.
-    ///
     pub fn get_aux_field<B, T>(&self, name: B) -> Result<T, Slow5Error>
     where
         B: Into<Vec<u8>>,
