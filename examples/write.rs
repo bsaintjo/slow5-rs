@@ -3,8 +3,12 @@ use assert_fs::TempDir;
 use slow5::{FieldType, FileWriter, Record};
 
 fn main() -> Result<()> {
-    let tmp_dir = TempDir::new()?;
-    let file_path = tmp_dir.join("test.blow5");
+    let persist = std::env::var_os("PERSIST").is_some();
+    let tmp_dir = TempDir::new()?.into_persistent_if(persist);
+    if persist {
+        println!("{}", tmp_dir.path().display());
+    }
+    let file_path = tmp_dir.join("test.slow5");
     let mut slow5 = FileWriter::options()
         .attr("run_id", "run_0", 0)
         .attr("asic_id", "asic_id_0", 0)
@@ -16,6 +20,7 @@ fn main() -> Result<()> {
     slow5.close();
 
     println!("Success!");
+    tmp_dir.close()?;
     Ok(())
 }
 
