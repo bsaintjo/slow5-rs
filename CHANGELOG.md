@@ -21,21 +21,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added support for string (char *) and array auxiliary fields.
-- Error for invalid file path based on the file extension.
-- File*::record_compression + File*::signal_compression to check what compression was used.
-- Debug implementations for public types
-- HeaderExt for using File* as a Header
-- AuxFieldSetExt trait for specifying which types are allowed to be used to set auxiliary fields.
+- auxiliary: Added support for string (char *) and array auxiliary fields.
+- reader + writer: Error for invalid file path based on the file extension.
+- compression: File*::record_compression + File*::signal_compression to check what compression was used.
+- all: Debug implementations for public types
+- header: HeaderExt for using File* as a Header
+- record: AuxFieldSetExt trait for specifying which types are allowed to be used to set auxiliary fields.
 
 ### Changed
 
-- FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
-- Record::set_aux_field value must implement AuxFieldSetExt instead of AuxField
+- writer: FileWriter returns Err(Slow5Error::Slow5CompressionError) if compression options are set for SLOW5 file output
+- record: Record::set_aux_field value must implement AuxFieldSetExt instead of AuxField
+- header: aux_names_iter will always return and for SLOW5 files with no auxiliary fields, it just returns an empty iterator
 
 ### Fixed
 
-- Fixed bug in Record::set_aux_field where no error would occur but value would not get written to file. Fixed by extending lifetime of String used to set the aux_field and storing it in FileWriter.
+- record: Fixed bug in Record::set_aux_field where no error would occur but value would not get written to file. Fixed by extending lifetime of String used to set the aux_field and storing it in FileWriter.
 
 ## [0.8.1] - 2022-12-03
 

@@ -362,6 +362,9 @@ mod test {
             335760788
         );
         assert_eq!(rec.get_aux_field::<_, i32>("read_number").unwrap(), 13875);
+
+        assert!(rec.get_aux_field::<_, u8>("not real field").is_err());
+        assert!(rec.get_aux_field::<_, i64>("read_number").is_err());
         Ok(())
     }
 }

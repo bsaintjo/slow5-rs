@@ -29,14 +29,10 @@ pub trait HeaderExt {
     }
 
     /// Iterator to auxiliary names
-    fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
+    fn aux_names_iter(&self) -> AuxNamesIter {
         let mut num_aux = 0;
         let auxs = unsafe { slow5_get_aux_names(self.header().header, &mut num_aux) };
-        if auxs.is_null() || num_aux == 0 {
-            Err(Slow5Error::AuxNameIterError)
-        } else {
-            Ok(AuxNamesIter::new(0, num_aux, auxs))
-        }
+        AuxNamesIter::new(0, num_aux, auxs)
     }
 }
 
@@ -128,26 +124,36 @@ impl<'a> Header<'a> {
         }
     }
 
-    /// Return iterator over auxiliary field names
+    /// Return iterator over auxiliary field names. If no auxiliary fields are present,
+    /// the iterator will be empty and return None on the next iteration.
     /// # Example
     /// ```
     /// # use slow5::FileReader;
     /// # fn main() -> anyhow::Result<()> {
     /// let slow5 = FileReader::open("examples/example2.slow5")?;
     /// let header = slow5.header();
-    /// let n_aux_names = header.aux_names_iter()?.count();
+    /// let n_aux_names = header.aux_names_iter().count();
     /// assert_eq!(n_aux_names, 5);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn aux_names_iter(&self) -> Result<AuxNamesIter, Slow5Error> {
+    /// 
+    /// # Example with no auxiliary fields
+    /// ```
+    /// # use slow5::FileReader;
+    /// use slow5::HeaderExt;
+    /// # fn main() -> anyhow::Result<()> {
+    /// let slow5 = FileReader::open("examples/example.slow5")?;
+    /// let n_aux_names = slow5.aux_names_iter().count();
+    /// assert_eq!(n_aux_names, 0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    /// Iterator to auxiliary names
+    pub fn aux_names_iter(&self) -> AuxNamesIter {
         let mut num_aux = 0;
-        let auxs = unsafe { slow5_get_aux_names(self.header, &mut num_aux) };
-        if auxs.is_null() || num_aux == 0 {
-            Err(Slow5Error::AuxNameIterError)
-        } else {
-            Ok(AuxNamesIter::new(0, num_aux, auxs))
-        }
+        let auxs = unsafe { slow5_get_aux_names(self.header().header, &mut num_aux) };
+        AuxNamesIter::new(0, num_aux, auxs)
     }
 
     /// Add auxiliary field to header, and return a [`Field`] that can be
@@ -220,13 +226,13 @@ impl<'a> Iterator for AuxNamesIter<'a> {
 mod test {
     use std::collections::HashSet;
 
-    use crate::FileReader;
+    use crate::{FileReader, HeaderExt};
 
     #[test]
     fn test_aux_names_iter() {
         let slow5 = FileReader::open("examples/example2.slow5").unwrap();
         let header = slow5.header();
-        let aux_names: HashSet<&[u8]> = header.aux_names_iter().unwrap().collect();
+        let aux_names: HashSet<&[u8]> = header.aux_names_iter().collect();
         assert_eq!(aux_names.len(), 5);
         let names: [&[u8]; 5] = [
             b"channel_number",
@@ -238,5 +244,12 @@ mod test {
         for name in names {
             assert!(aux_names.contains(name));
         }
+    }
+
+    #[test]
+    fn test_no_aux_names() {
+        let slow5 = FileReader::open("examples/example.slow5").unwrap();
+        let mut aux_names = slow5.aux_names_iter();
+        assert!(aux_names.next().is_none());
     }
 }
