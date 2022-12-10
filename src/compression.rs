@@ -15,7 +15,7 @@ pub enum RecordCompression {
 }
 
 impl RecordCompression {
-    pub(crate) fn to_slow5_rep(&self) -> u32 {
+    pub(crate) fn to_slow5_rep(self) -> u32 {
         match self {
             Self::None => slow5_press_method_SLOW5_COMPRESS_NONE,
             Self::ZStd => slow5_press_method_SLOW5_COMPRESS_ZSTD,
@@ -44,7 +44,7 @@ pub enum SignalCompression {
 }
 
 impl SignalCompression {
-    pub(crate) fn to_slow5_rep(&self) -> u32 {
+    pub(crate) fn to_slow5_rep(self) -> u32 {
         match self {
             SignalCompression::None => slow5_press_method_SLOW5_COMPRESS_NONE,
             SignalCompression::StreamVByte => slow5_press_method_SLOW5_COMPRESS_SVB_ZD,

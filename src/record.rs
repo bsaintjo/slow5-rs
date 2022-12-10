@@ -56,6 +56,7 @@ pub struct RecordBuilder {
     sampling_rate: Option<f64>,
     raw_signal: Option<Vec<i16>>,
     // TODO use aux_fields attribute to allow for setting auxiliary fields from the builder
+    #[allow(dead_code)]
     aux_fields: Option<HashMap<String, Box<dyn AuxFieldSetExt>>>,
 }
 
