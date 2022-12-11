@@ -65,6 +65,8 @@ fn main() -> anyhow::Result<()> {
     writer.close();
 
     let reader = FileReader::open(&file_path)?;
+    assert_eq!(reader.record_compression(), RecordCompression::ZStd);
+    assert_eq!(reader.signal_compression(), SignalCompression::StreamVByte);
     let rec = reader.get_record("read_2")?;
     assert_eq!(rec.read_group(), 2);
     assert_eq!(
