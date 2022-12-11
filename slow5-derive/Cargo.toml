@@ -14,6 +14,7 @@ repository.workspace = true
 proc-macro = true
 
 [dependencies]
+casey = "0.3.3"
 proc-macro-error = "1.0.4"
 proc-macro2 = "1.0.47"
 quote = "1.0.21"

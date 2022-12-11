@@ -65,3 +65,19 @@ fn derive_header_init(name: &Ident, ds: &DataStruct) -> proc_macro2::TokenStream
         }
     }
 }
+
+#[proc_macro_derive(AuxEnumExt)]
+#[proc_macro_error]
+pub fn derive_enums(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let name = input.ident;
+    let Data::Enum(ds) = input.data else { abort_call_site!("#[derive(AuxEnumExt)] only allowed for enums")};
+    for variant in ds.variants.iter() {
+        let Fields::Unit = variant.fields else { abort_call_site!("Only unit variants allowed, fields cannot contain data")};
+        if variant.discriminant.is_some() {
+            abort_call_site!("Variants not allowed to have discriminants");
+        }
+        let snake_ident = casey::snake!(&variant.ident);
+    }
+    todo!()
+}
