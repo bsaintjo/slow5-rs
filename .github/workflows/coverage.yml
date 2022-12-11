@@ -6,11 +6,13 @@ on:
     paths:
       - "**.rs"
       - "Cargo.toml"
+      - "tarpaulin.toml"
   pull_request:
     branches: [ main ]
     paths:
       - "**.rs"
       - "Cargo.toml"
+      - "tarpaulin.toml"
   workflow_dispatch:
     
 
@@ -26,7 +28,7 @@ jobs:
         with:
           submodules: recursive
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
       - uses: Swatinem/rust-cache@v2
 
       - name: Install tarpaulin
