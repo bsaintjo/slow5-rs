@@ -244,6 +244,7 @@ pub struct FileWriter {
     // gets dropped. slow5_aux_get doesn't allocate so we must manually extend the lifetime.
     // TODO Replace using this with getting a pointer to the auxiliary field already allocated in
     // the header
+    // TODO Replace with HashSet?
     pub(crate) auxiliary_fields: Vec<CString>,
 }
 
