@@ -183,7 +183,7 @@ impl FileReader {
     ///
     /// # Errors
     /// Return Err if field's type is not an auxiliary enum or field is not within in the header
-    fn aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
+    fn iter_aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
     where
         B: Into<Vec<u8>>,
     {

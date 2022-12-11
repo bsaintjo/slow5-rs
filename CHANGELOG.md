@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.10.0] - yyyy-mm-dd
+
+### Added
+
+- reader: AuxEnumLabelIter and FileReader::iter_aux_enum_label for iterating through the labels for an enum auxiliary field
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## [0.9.0] - 2022-12-10
 
 ### Added
