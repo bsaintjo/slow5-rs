@@ -2,12 +2,12 @@ use std::ffi::CStr;
 
 use libc::c_void;
 use slow5lib_sys::{
-    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16,
-    slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_string,
-    slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64, slow5_aux_get_uint8,
-    slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE,
-    slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT,
-    slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_enum, slow5_aux_get_float,
+    slow5_aux_get_int16, slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8,
+    slow5_aux_get_string, slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64,
+    slow5_aux_get_uint8, slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR,
+    slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_ENUM,
+    slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
     slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
     slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
@@ -76,6 +76,9 @@ pub enum FieldType {
 
     /// &[f64]
     DoubleArray,
+
+    /// enum
+    Enum,
 }
 
 pub(crate) struct Slow5AuxType(pub(crate) u32);
@@ -105,9 +108,12 @@ impl FieldType {
             FieldType::Uint16Array => slow5_aux_type_SLOW5_UINT16_T_ARRAY,
             FieldType::Uint32Array => slow5_aux_type_SLOW5_UINT32_T_ARRAY,
             FieldType::Uint64Array => slow5_aux_type_SLOW5_INT64_T_ARRAY,
+            FieldType::Enum => slow5_aux_type_SLOW5_ENUM,
         })
     }
 }
+
+struct EnumField(u8);
 
 /// Helper trait to get auxiliary field values from [`Record`]
 ///
@@ -234,6 +240,28 @@ impl AuxField for &str {
         let data = unsafe { CStr::from_ptr(data) };
         let data = data.to_str().map_err(Slow5Error::Utf8Error)?;
         Ok(data)
+    }
+}
+
+impl AuxField for EnumField {
+    fn to_slow5_t() -> FieldType {
+        FieldType::Enum
+    }
+
+    fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+        R: RecordExt,
+        Self: std::marker::Sized,
+    {
+        let mut err = 0;
+        let name = to_cstring(name)?;
+        let label = unsafe { slow5_aux_get_enum(rec.ptr().ptr, name.as_ptr(), &mut err) };
+        if err < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(EnumField(label))
+        }
     }
 }
 
