@@ -8,6 +8,7 @@ use thiserror::Error;
 
 /// Errors from slow5 library
 #[derive(Error, Debug)]
+#[non_exhaustive]
 pub enum Slow5Error {
     /// No index was loaded for SLOW5 file
     #[error("Unable to load index")]
