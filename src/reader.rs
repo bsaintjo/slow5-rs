@@ -8,7 +8,9 @@ use std::{
 
 use cstr::cstr;
 use libc::c_char;
-use slow5lib_sys::{slow5_file_t, slow5_get, slow5_get_rids, slow5_hdr_t, slow5_rec_t};
+use slow5lib_sys::{
+    slow5_file_t, slow5_get, slow5_get_aux_enum_labels, slow5_get_rids, slow5_hdr_t, slow5_rec_t,
+};
 
 use crate::{
     error::Slow5Error,
@@ -176,6 +178,25 @@ impl FileReader {
     pub fn iter_read_ids(&self) -> Result<ReadIdIter<'_>, Slow5Error> {
         ReadIdIter::new(self)
     }
+
+    /// Returns iterator over the labels for an enum auxiliary field
+    ///
+    /// # Errors
+    /// Return Err if field's type is not an auxiliary enum or field is not within in the header
+    fn aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+    {
+        let mut n = 0;
+        let field = to_cstring(field)?;
+        let label_ptr =
+            unsafe { slow5_get_aux_enum_labels(self.header().header, field.as_ptr(), &mut n) };
+        if label_ptr.is_null() {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(AuxEnumLabelIter::new(self, label_ptr, n))
+        }
+    }
 }
 
 impl HeaderExt for FileReader {
@@ -235,6 +256,39 @@ impl<'a> Iterator for ReadIdIter<'a> {
             let rid = unsafe { CStr::from_ptr(*rid) };
             self.idx += 1;
             Some(rid.to_bytes())
+        } else {
+            None
+        }
+    }
+}
+
+/// Iterator over labels for an auxiliary field enum
+struct AuxEnumLabelIter<'a> {
+    reader: &'a FileReader,
+    label_ptr: *mut *mut c_char,
+    n: u8,
+    idx: u8,
+}
+
+impl<'a> AuxEnumLabelIter<'a> {
+    fn new(reader: &'a FileReader, label_ptr: *mut *mut c_char, n: u8) -> Self {
+        AuxEnumLabelIter {
+            reader,
+            label_ptr,
+            n,
+            idx: 0,
+        }
+    }
+}
+
+impl<'a> Iterator for AuxEnumLabelIter<'a> {
+    type Item = &'a [u8];
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx < self.n {
+            let label = unsafe { self.label_ptr.offset(self.idx as isize) };
+            let label = unsafe { CStr::from_ptr(*label) };
+            self.idx += 1;
+            Some(label.to_bytes())
         } else {
             None
         }
