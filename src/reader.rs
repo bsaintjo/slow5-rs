@@ -7,9 +7,9 @@ use std::{
 };
 
 use cstr::cstr;
-use libc::c_char;
+use libc::{c_char, c_void};
 use slow5lib_sys::{
-    slow5_file_t, slow5_get, slow5_get_aux_enum_labels, slow5_get_rids, slow5_hdr_t, slow5_rec_t,
+    slow5_file_t, slow5_get, slow5_get_aux_enum_labels, slow5_get_rids, slow5_hdr_t, slow5_rec_t, slow5_get_hdr_keys,
 };
 
 use crate::{
@@ -197,6 +197,18 @@ impl FileReader {
             Ok(AuxEnumLabelIter::new(self, label_ptr, n))
         }
     }
+
+    fn iter_attr_keys(&self) -> Result<AttrKeysIter, Slow5Error> {
+        let mut n = 0;
+        let keys =
+            unsafe { slow5_get_hdr_keys(self.header().header, &mut n)};
+        if keys.is_null() {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(AttrKeysIter { _reader: self, keys, n_keys: n, idx: 0 })
+        }
+
+    }
 }
 
 impl HeaderExt for FileReader {
@@ -264,20 +276,28 @@ impl<'a> Iterator for ReadIdIter<'a> {
 
 /// Iterator over labels for an auxiliary field enum
 struct AuxEnumLabelIter<'a> {
-    reader: &'a FileReader,
+    _reader: &'a FileReader,
     label_ptr: *mut *mut c_char,
     n: u8,
     idx: u8,
 }
 
 impl<'a> AuxEnumLabelIter<'a> {
-    fn new(reader: &'a FileReader, label_ptr: *mut *mut c_char, n: u8) -> Self {
+    fn new(_reader: &'a FileReader, label_ptr: *mut *mut c_char, n: u8) -> Self {
         AuxEnumLabelIter {
-            reader,
+            _reader,
             label_ptr,
             n,
             idx: 0,
         }
+    }
+}
+impl<'a> std::fmt::Debug for AuxEnumLabelIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AuxEnumLabelIter")
+            .field("idx", &self.idx)
+            .field("n_labels", &self.n)
+            .finish()
     }
 }
 
@@ -292,6 +312,43 @@ impl<'a> Iterator for AuxEnumLabelIter<'a> {
         } else {
             None
         }
+    }
+}
+
+struct AttrKeysIter<'a> {
+    _reader: &'a FileReader,
+    keys: *mut *const c_char,
+    n_keys: u64,
+    idx: u64,
+}
+
+impl<'a> std::fmt::Debug for AttrKeysIter<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AuxEnumLabelIter")
+            .field("idx", &self.idx)
+            .field("n_keys", &self.n_keys)
+            .finish()
+    }
+}
+
+impl<'a> Iterator for AttrKeysIter<'a> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.idx < self.n_keys {
+            let attr_key = unsafe { self.keys.offset(self.idx as isize) };
+            let attr_key = unsafe { CStr::from_ptr(*attr_key) };
+            self.idx += 1;
+            Some(attr_key.to_bytes())
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a> Drop for AttrKeysIter<'a> {
+    fn drop(&mut self) {
+        unsafe { libc::free(self.keys as *mut c_void) }
     }
 }
 
