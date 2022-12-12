@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - reader: AuxEnumLabelIter and FileReader::iter_aux_enum_label for iterating through the labels for an enum auxiliary field
+- reader: AttrKeyIter and FileReader::iter_attr_keys for iterating through the keys of all the attributes
+- auxiliary: EnumField type for getting/setting enum values for auxiliary fields
+
 
 ### Changed
 

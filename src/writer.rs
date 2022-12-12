@@ -12,6 +12,7 @@ use slow5lib_sys::{
 };
 
 use crate::{
+    auxiliary::EnumFieldType,
     header::{Header, HeaderExt},
     record::Record,
     to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
@@ -62,6 +63,7 @@ pub struct WriteOptions {
     pub(crate) num_read_groups: u32,
     attributes: HashMap<(Vec<u8>, u32), Vec<u8>>,
     auxiliary_fields: HashMap<Vec<u8>, FieldType>,
+    aux_enums: HashMap<Vec<u8>, Vec<Vec<u8>>>,
 }
 
 impl WriteOptions {
@@ -71,6 +73,7 @@ impl WriteOptions {
         num_read_groups: u32,
         attributes: HashMap<(Vec<u8>, u32), Vec<u8>>,
         auxiliary_fields: HashMap<Vec<u8>, FieldType>,
+        aux_enums: HashMap<Vec<u8>, Vec<Vec<u8>>>,
     ) -> Self {
         Self {
             rec_comp,
@@ -78,6 +81,7 @@ impl WriteOptions {
             num_read_groups,
             attributes,
             auxiliary_fields,
+            aux_enums,
         }
     }
 
@@ -144,6 +148,17 @@ impl WriteOptions {
     {
         let name = name.into();
         self.auxiliary_fields.insert(name, field_ty);
+        self
+    }
+
+    fn aux_enum<B, C>(&mut self, name: B, labels: Vec<C>) -> &mut Self
+    where
+        B: Into<Vec<u8>>,
+        C: Into<Vec<u8>>,
+    {
+        let name = name.into();
+        let labels = labels.into_iter().map(|l| l.into()).collect();
+        self.aux_enums.insert(name, labels);
         self
     }
 
@@ -230,6 +245,7 @@ impl Default for WriteOptions {
             RecordCompression::None,
             SignalCompression::None,
             0,
+            Default::default(),
             Default::default(),
             Default::default(),
         )

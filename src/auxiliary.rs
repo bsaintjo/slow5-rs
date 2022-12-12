@@ -76,8 +76,11 @@ pub enum FieldType {
 
     /// &[f64]
     DoubleArray,
+}
 
-    /// enum
+// TODO add EnumArray
+#[derive(Debug)]
+pub enum EnumFieldType {
     Enum,
 }
 
@@ -108,7 +111,6 @@ impl FieldType {
             FieldType::Uint16Array => slow5_aux_type_SLOW5_UINT16_T_ARRAY,
             FieldType::Uint32Array => slow5_aux_type_SLOW5_UINT32_T_ARRAY,
             FieldType::Uint64Array => slow5_aux_type_SLOW5_INT64_T_ARRAY,
-            FieldType::Enum => slow5_aux_type_SLOW5_ENUM,
         })
     }
 }
@@ -240,28 +242,6 @@ impl AuxField for &str {
         let data = unsafe { CStr::from_ptr(data) };
         let data = data.to_str().map_err(Slow5Error::Utf8Error)?;
         Ok(data)
-    }
-}
-
-impl AuxField for EnumField {
-    fn to_slow5_t() -> FieldType {
-        FieldType::Enum
-    }
-
-    fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
-    where
-        B: Into<Vec<u8>>,
-        R: RecordExt,
-        Self: std::marker::Sized,
-    {
-        let mut err = 0;
-        let name = to_cstring(name)?;
-        let label = unsafe { slow5_aux_get_enum(rec.ptr().ptr, name.as_ptr(), &mut err) };
-        if err < 0 {
-            Err(Slow5Error::Unknown)
-        } else {
-            Ok(EnumField(label))
-        }
     }
 }
 
