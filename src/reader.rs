@@ -183,7 +183,8 @@ impl FileReader {
     ///
     /// # Errors
     /// Return Err if field's type is not an auxiliary enum or field is not within in the header
-    fn iter_aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
+    // TODO Example
+    pub fn iter_aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
@@ -198,7 +199,9 @@ impl FileReader {
         }
     }
 
-    fn iter_attr_keys(&self) -> Result<AttrKeysIter, Slow5Error> {
+    /// Returns iterator over attribute keys for all read groups
+    // TODO Example
+    pub fn iter_attr_keys(&self) -> Result<AttrKeysIter, Slow5Error> {
         let mut n = 0;
         let keys =
             unsafe { slow5_get_hdr_keys(self.header().header, &mut n)};
@@ -226,6 +229,7 @@ impl Drop for FileReader {
 }
 
 /// Iterator over all the read IDs in a SLOW5 file
+// TODO Is liftime fine, or should I just hold the &'a FileReader?
 pub struct ReadIdIter<'a> {
     idx: u64,
     num_reads: u64,
@@ -275,7 +279,7 @@ impl<'a> Iterator for ReadIdIter<'a> {
 }
 
 /// Iterator over labels for an auxiliary field enum
-struct AuxEnumLabelIter<'a> {
+pub struct AuxEnumLabelIter<'a> {
     _reader: &'a FileReader,
     label_ptr: *mut *mut c_char,
     n: u8,
@@ -315,7 +319,7 @@ impl<'a> Iterator for AuxEnumLabelIter<'a> {
     }
 }
 
-struct AttrKeysIter<'a> {
+pub struct AttrKeysIter<'a> {
     _reader: &'a FileReader,
     keys: *mut *const c_char,
     n_keys: u64,

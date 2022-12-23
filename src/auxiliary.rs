@@ -2,12 +2,11 @@ use std::ffi::CStr;
 
 use libc::c_void;
 use slow5lib_sys::{
-    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_enum, slow5_aux_get_float,
+    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float,
     slow5_aux_get_int16, slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8,
     slow5_aux_get_string, slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64,
     slow5_aux_get_uint8, slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR,
-    slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_ENUM,
-    slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
     slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
     slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
@@ -78,12 +77,6 @@ pub enum FieldType {
     DoubleArray,
 }
 
-// TODO add EnumArray
-#[derive(Debug)]
-pub enum EnumFieldType {
-    Enum,
-}
-
 pub(crate) struct Slow5AuxType(pub(crate) u32);
 
 impl FieldType {
@@ -122,6 +115,7 @@ impl FieldType {
 /// [`AuxEnumLabelIter`]: crate::reader::AuxEnumLabelIter
 pub struct EnumField(pub usize);
 
+// TODO Use an associated type to separate FieldType from Enum related types
 /// Helper trait to get auxiliary field values from [`Record`]
 ///
 /// [`Record`]: crate::Record
