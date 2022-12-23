@@ -126,4 +126,8 @@ pub enum Slow5Error {
     /// Failed to set auxiliary field
     #[error("Failed to set auxiliary field, error code {0}")]
     AddAuxFieldError(i32),
+
+    /// Number of labels for an auxiliary enum must be less than u8::MAX
+    #[error("Number of labels for an auxiliary enum must be less than u8::MAX, got {0}")]
+    TooManyLabels(usize),
 }

@@ -12,7 +12,6 @@ use slow5lib_sys::{
 };
 
 use crate::{
-    auxiliary::EnumFieldType,
     header::{Header, HeaderExt},
     record::Record,
     to_cstring, FieldType, RecordCompression, SignalCompression, Slow5Error,
@@ -151,7 +150,8 @@ impl WriteOptions {
         self
     }
 
-    fn aux_enum<B, C>(&mut self, name: B, labels: Vec<C>) -> &mut Self
+    /// Add auxiliary enum to writer with designated labels.
+    pub fn aux_enum<B, C>(&mut self, name: B, labels: Vec<C>) -> &mut Self
     where
         B: Into<Vec<u8>>,
         C: Into<Vec<u8>>,
@@ -419,8 +419,14 @@ impl FileWriter {
                 header.set_attribute(name.clone(), value.clone(), *rg)?;
             }
 
+            // Auxiliary fields
             for (name, fty) in opts.auxiliary_fields.iter() {
                 header.add_aux_field(name.clone(), *fty)?;
+            }
+
+            // Auxiliary enum fields
+            for (name, labels) in opts.aux_enums.iter() {
+                header.add_aux_enum_field(name.clone(), labels.clone())?;
             }
 
             // Header
