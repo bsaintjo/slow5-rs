@@ -115,7 +115,12 @@ impl FieldType {
     }
 }
 
-struct EnumField(u8);
+/// Represents the value for an enum field. This struct wraps an index into the labels used for auxiiliary enum field.
+/// 
+/// The intended way to use is to index into the output from [`AuxEnumlabelIter`]
+/// 
+/// [`AuxEnumLabelIter`]: crate::reader::AuxEnumLabelIter
+pub struct EnumField(pub usize);
 
 /// Helper trait to get auxiliary field values from [`Record`]
 ///
