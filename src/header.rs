@@ -1,9 +1,13 @@
 //! Module for dealing with SLOW5 headers
-use std::{ffi::{CStr, CString}, marker::PhantomData};
+use std::{
+    ffi::{CStr, CString},
+    marker::PhantomData,
+};
 
 use libc::c_char;
 use slow5lib_sys::{
-    slow5_aux_add, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get, slow5_hdr_set, slow5_hdr_t, slow5_aux_add_enum,
+    slow5_aux_add, slow5_aux_add_enum, slow5_get_aux_names, slow5_hdr_add, slow5_hdr_get,
+    slow5_hdr_set, slow5_hdr_t,
 };
 
 use crate::{auxiliary::FieldType, error::Slow5Error, to_cstring};
@@ -185,17 +189,25 @@ impl<'a> Header<'a> {
         C: Into<Vec<u8>>,
     {
         let name = to_cstring(name)?;
-        let labels: Result<Vec<CString>, Slow5Error> = labels.into_iter().map(|l| to_cstring(l)).collect();
+        let labels: Result<Vec<CString>, Slow5Error> =
+            labels.into_iter().map(|l| to_cstring(l)).collect();
         let labels = labels?;
         let num_labels = {
             let num_labels = labels.len();
             if num_labels > (u8::MAX as usize) {
                 return Err(Slow5Error::TooManyLabels(num_labels));
-            } 
+            }
             num_labels as u8
         };
         let mut label_ptrs: Vec<_> = labels.iter().map(|l| l.as_ptr()).collect();
-        let res = unsafe { slow5_aux_add_enum(name.as_ptr(), label_ptrs.as_mut_ptr(), num_labels, self.header)};
+        let res = unsafe {
+            slow5_aux_add_enum(
+                name.as_ptr(),
+                label_ptrs.as_mut_ptr(),
+                num_labels,
+                self.header,
+            )
+        };
         if res < 0 {
             Err(Slow5Error::Unknown)
         } else {

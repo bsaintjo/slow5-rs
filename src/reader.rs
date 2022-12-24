@@ -9,7 +9,8 @@ use std::{
 use cstr::cstr;
 use libc::{c_char, c_void};
 use slow5lib_sys::{
-    slow5_file_t, slow5_get, slow5_get_aux_enum_labels, slow5_get_rids, slow5_hdr_t, slow5_rec_t, slow5_get_hdr_keys,
+    slow5_file_t, slow5_get, slow5_get_aux_enum_labels, slow5_get_hdr_keys, slow5_get_rids,
+    slow5_hdr_t, slow5_rec_t,
 };
 
 use crate::{
@@ -182,7 +183,8 @@ impl FileReader {
     /// Returns iterator over the labels for an enum auxiliary field
     ///
     /// # Errors
-    /// Return Err if field's type is not an auxiliary enum or field is not within in the header
+    /// Return Err if field's type is not an auxiliary enum or field is not
+    /// within in the header
     // TODO Example
     pub fn iter_aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
     where
@@ -203,14 +205,17 @@ impl FileReader {
     // TODO Example
     pub fn iter_attr_keys(&self) -> Result<AttrKeysIter, Slow5Error> {
         let mut n = 0;
-        let keys =
-            unsafe { slow5_get_hdr_keys(self.header().header, &mut n)};
+        let keys = unsafe { slow5_get_hdr_keys(self.header().header, &mut n) };
         if keys.is_null() {
             Err(Slow5Error::Unknown)
         } else {
-            Ok(AttrKeysIter { _reader: self, keys, n_keys: n, idx: 0 })
+            Ok(AttrKeysIter {
+                _reader: self,
+                keys,
+                n_keys: n,
+                idx: 0,
+            })
         }
-
     }
 }
 

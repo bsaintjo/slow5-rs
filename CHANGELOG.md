@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- deps: `zstd` is now an optional dependency, enabled by default but can be disabled by setting `default-features = false`
+
 ### Deprecated
 
 ### Removed

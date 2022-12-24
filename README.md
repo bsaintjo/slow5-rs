@@ -88,10 +88,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
-## TODO
+## Roadmap
 
-- [ ] Allow optional dependency on zlib and zstd
-- [ ] Handle enum auxiliary fields
 - [ ] Benchmarking
 - [ ] Allow for configuring slow5lib log level
 - [ ] Check for thread safety

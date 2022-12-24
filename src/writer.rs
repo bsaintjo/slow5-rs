@@ -592,10 +592,13 @@ mod test {
             .create(&file_path);
         assert!(writer.is_err());
 
-        let writer = FileWriter::options()
-            .record_compression(RecordCompression::ZStd)
-            .create(&file_path);
-        assert!(writer.is_err());
+        #[cfg(feature = "zstd")]
+        {
+            let writer = FileWriter::options()
+                .record_compression(RecordCompression::ZStd)
+                .create(&file_path);
+            assert!(writer.is_err());
+        }
 
         let writer = FileWriter::options()
             .signal_compression(SignalCompression::StreamVByte)
@@ -630,13 +633,30 @@ mod test {
     fn test_compression_getter() -> anyhow::Result<()> {
         let tmp_dir = TempDir::new().unwrap();
         let file_path = tmp_dir.child("test.blow5");
-        let record_press = RecordCompression::ZStd;
+        let record_press = RecordCompression::Zlib;
         let signal_press = SignalCompression::StreamVByte;
         let writer = FileWriter::options()
             .record_compression(record_press)
             .signal_compression(signal_press)
             .create(file_path)?;
         assert_eq!(record_press, writer.record_compression());
+        assert_eq!(signal_press, writer.signal_compression());
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(feature = "zstd")]
+    fn test_compression_getter_zstd() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::new().unwrap();
+        let file_path = tmp_dir.child("test.blow5");
+        let record_press = RecordCompression::ZStd;
+        let signal_press = SignalCompression::None;
+        let writer = FileWriter::options()
+            .record_compression(record_press)
+            .signal_compression(signal_press)
+            .create(file_path)?;
+        assert_eq!(record_press, writer.record_compression());
+        assert_eq!(signal_press, writer.signal_compression());
         Ok(())
     }
 }

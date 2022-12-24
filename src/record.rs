@@ -7,7 +7,7 @@ use std::{
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_file, slow5_rec_free, slow5_rec_t, slow5_aux_get_enum};
+use slow5lib_sys::{slow5_aux_get_enum, slow5_file, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
 use crate::{
@@ -262,13 +262,14 @@ impl Record {
     /// # Ok(())
     /// # }
     /// ```
-    /// 
+    ///
     /// # Note
-    /// For fields of enum type, do not use use get_aux_field with T = u8, instead use [`get_aux_enum_field`].
+    /// For fields of enum type, do not use use get_aux_field with T = u8,
+    /// instead use [`get_aux_enum_field`].
     ///
     /// # Errors
     /// Returns an Err if auxiliary field wasn't set for that record.
-    /// 
+    ///
     /// [`get_aux_enum_field`]: crate::Record::get_aux_enum_field
     pub fn get_aux_field<B, T>(&self, name: B) -> Result<T, Slow5Error>
     where
@@ -279,15 +280,16 @@ impl Record {
     }
 
     /// Get value for an enum field in a Record.
-    /// 
-    /// See [`EnumField`] to get more information about converting it into the enum label
+    ///
+    /// See [`EnumField`] to get more information about converting it into the
+    /// enum label
     pub fn get_aux_enum_field<B>(&self, name: B) -> Result<EnumField, Slow5Error>
     where
         B: Into<Vec<u8>>,
     {
         let mut err = 0;
         let name = to_cstring(name)?;
-        let ef = unsafe { slow5_aux_get_enum(self.slow5_rec, name.as_ptr(), &mut err)};
+        let ef = unsafe { slow5_aux_get_enum(self.slow5_rec, name.as_ptr(), &mut err) };
         if err < 0 {
             Err(Slow5Error::Unknown)
         } else {
@@ -561,9 +563,10 @@ impl RecPtr for Record {
 
 #[cfg(test)]
 mod test {
+    use assert_fs::{fixture::PathChild, TempDir};
+
     use super::*;
-    use crate::{auxiliary::FieldType, FileWriter, FileReader};
-        use assert_fs::{fixture::PathChild, TempDir};
+    use crate::{auxiliary::FieldType, FileReader, FileWriter};
 
     #[test]
     fn test_aux() -> anyhow::Result<()> {
@@ -591,6 +594,8 @@ mod test {
         let fp = "examples/example3.blow5";
         let mut reader = FileReader::open(fp).expect("Unable to open example3.blow5");
         let rec = reader.records().next().unwrap().unwrap();
-        let end_reason = rec.get_aux_enum_field("end_reason").expect("Unable to get end_reason enum field");
+        let end_reason = rec
+            .get_aux_enum_field("end_reason")
+            .expect("Unable to get end_reason enum field");
     }
 }

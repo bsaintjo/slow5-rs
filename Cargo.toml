@@ -34,7 +34,7 @@ cstr.workspace = true
 libc.workspace = true
 log = "0.4.17"
 paste = "1.0.9"
-slow5lib-sys = { version = "0.7.1", path = "./slow5lib-sys" }
+slow5lib-sys = { version = "0.8.0", path = "./slow5lib-sys", default-features = false }
 thiserror = "1.0.30"
 
 [dev-dependencies]
@@ -43,3 +43,7 @@ assert_fs = "1.0.7"
 doc-comment = "0.3.3"
 trybuild = "1.0.71"
 version-sync.workspace = true
+
+[features]
+default = ["zstd"]
+zstd = ["slow5lib-sys/zstd-sys"]

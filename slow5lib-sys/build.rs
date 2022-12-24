@@ -20,15 +20,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         slow5_include,
         klib_include,
     ];
-    if let Some(include) = std::env::var_os("DEP_Z_INCLUDE") {
-        includes.push(PathBuf::from(include));
+    if let Some(libz_include) = std::env::var_os("DEP_Z_INCLUDE") {
+        includes.push(PathBuf::from(libz_include));
     }
 
-    if let Some(include) = std::env::var_os("DEP_ZSTD_INCLUDE") {
-        cfg.include(include);
+    #[cfg(feature = "zstd-sys")]
+    if let Some(zstd_include) = std::env::var_os("DEP_ZSTD_INCLUDE") {
+        includes.push(PathBuf::from(zstd_include));
         cfg.define("SLOW5_USE_ZSTD", "1");
-    } else {
-        cfg.define("SLOW5_USE_ZSTD", None);
     }
 
     println!(
@@ -111,6 +110,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .expect("Couldn't write bindings");
 
     println!("cargo:rustc-link-lib=slow5");
+    #[cfg(feature = "zstd-sys")]
     println!("cargo:rustc-link-lib=zstd");
     println!("cargo:rustc-link-lib=z");
     Ok(())

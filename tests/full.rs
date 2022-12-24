@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
         .aux("string", FieldType::Str)
         .aux("not set", FieldType::Uint16)
         .signal_compression(SignalCompression::StreamVByte)
-        .record_compression(RecordCompression::ZStd)
+        .record_compression(RecordCompression::Zlib)
         .create(&file_path)?;
     assert_eq!(writer.get_attribute("attr", 0)?, b"val");
     assert_eq!(writer.get_attribute("attr", 1)?, b"other");
@@ -65,7 +65,7 @@ fn main() -> anyhow::Result<()> {
     writer.close();
 
     let reader = FileReader::open(&file_path)?;
-    assert_eq!(reader.record_compression(), RecordCompression::ZStd);
+    assert_eq!(reader.record_compression(), RecordCompression::Zlib);
     assert_eq!(reader.signal_compression(), SignalCompression::StreamVByte);
     let rec = reader.get_record("read_2")?;
     assert_eq!(rec.read_group(), 2);

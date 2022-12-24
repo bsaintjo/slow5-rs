@@ -1,6 +1,8 @@
+#[cfg(feature = "zstd")]
+use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_ZSTD;
 use slow5lib_sys::{
     slow5_press_method_SLOW5_COMPRESS_NONE, slow5_press_method_SLOW5_COMPRESS_SVB_ZD,
-    slow5_press_method_SLOW5_COMPRESS_ZLIB, slow5_press_method_SLOW5_COMPRESS_ZSTD,
+    slow5_press_method_SLOW5_COMPRESS_ZLIB,
 };
 
 /// SLOW5 record compression
@@ -10,6 +12,7 @@ pub enum RecordCompression {
     None,
     /// Compress using zlib
     Zlib,
+    #[cfg(feature = "zstd")]
     /// Compress using zstd
     ZStd,
 }
@@ -18,6 +21,7 @@ impl RecordCompression {
     pub(crate) fn to_slow5_rep(self) -> u32 {
         match self {
             Self::None => slow5_press_method_SLOW5_COMPRESS_NONE,
+            #[cfg(feature = "zstd")]
             Self::ZStd => slow5_press_method_SLOW5_COMPRESS_ZSTD,
             Self::Zlib => slow5_press_method_SLOW5_COMPRESS_ZLIB,
         }
@@ -28,6 +32,7 @@ impl RecordCompression {
         match n {
             slow5_press_method_SLOW5_COMPRESS_NONE => Self::None,
             slow5_press_method_SLOW5_COMPRESS_ZLIB => Self::Zlib,
+            #[cfg(feature = "zstd")]
             slow5_press_method_SLOW5_COMPRESS_ZSTD => Self::ZStd,
             _ => unreachable!("Invalid record compression"),
         }

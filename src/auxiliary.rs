@@ -2,11 +2,12 @@ use std::ffi::CStr;
 
 use libc::c_void;
 use slow5lib_sys::{
-    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float,
-    slow5_aux_get_int16, slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8,
-    slow5_aux_get_string, slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64,
-    slow5_aux_get_uint8, slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR,
-    slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16,
+    slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_string,
+    slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64, slow5_aux_get_uint8,
+    slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE,
+    slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT,
+    slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
     slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
     slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
@@ -108,10 +109,12 @@ impl FieldType {
     }
 }
 
-/// Represents the value for an enum field. This struct wraps an index into the labels used for auxiiliary enum field.
-/// 
-/// The intended way to use is to index into the output from [`AuxEnumlabelIter`]
-/// 
+/// Represents the value for an enum field. This struct wraps an index into the
+/// labels used for auxiiliary enum field.
+///
+/// The intended way to use is to index into the output from
+/// [`AuxEnumlabelIter`]
+///
 /// [`AuxEnumLabelIter`]: crate::reader::AuxEnumLabelIter
 pub struct EnumField(pub usize);
 
