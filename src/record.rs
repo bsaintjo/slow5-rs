@@ -279,7 +279,8 @@ impl Record {
     /// or
     /// error[E0277]: can't compare `()` with SomeType
     /// ```
-    /// In this case use turbofish syntax (as shown in the example) to help the compiler figure out the type.
+    /// In this case use turbofish syntax (as shown in the example) to help the
+    /// compiler figure out the type.
     ///
     /// # Errors
     /// Returns an Err if auxiliary field wasn't set for that record.
@@ -561,7 +562,7 @@ mod test {
     use assert_fs::{fixture::PathChild, TempDir};
 
     use super::*;
-    use crate::{auxiliary::FieldType, FileReader, FileWriter};
+    use crate::{auxiliary::FieldType, EnumField, FileReader, FileWriter};
 
     #[test]
     fn test_aux() -> anyhow::Result<()> {

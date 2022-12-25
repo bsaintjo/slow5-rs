@@ -6,10 +6,10 @@ mod auxiliary;
 mod compression;
 mod error;
 mod header;
+mod log;
 mod reader;
 mod record;
 mod writer;
-mod log;
 
 use std::ffi::CString;
 
@@ -17,7 +17,7 @@ pub use auxiliary::{AuxField, AuxFieldSetExt, EnumField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::{AuxNamesIter, Header, HeaderExt};
-pub use reader::{FileReader, ReadIdIter, AuxEnumLabelIter};
+pub use reader::{AuxEnumLabelIter, FileReader, ReadIdIter};
 pub use record::{to_picoamps, to_raw_signal, Record, RecordBuilder, RecordExt, RecordIter};
 pub use writer::{FileWriter, WriteOptions};
 

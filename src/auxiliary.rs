@@ -259,8 +259,8 @@ impl AuxField for EnumField {
 }
 
 /// Trait for values that we are allowed to set the values for in Records.
-/// Currently only primitive types, strings, and enums are allowed to be used to set
-/// auxiliary fields.
+/// Currently only primitive types, strings, and enums are allowed to be used to
+/// set auxiliary fields.
 pub trait AuxFieldSetExt {
     fn aux_set<B>(
         &self,
@@ -384,7 +384,6 @@ mod private {
     pub trait Sealed {}
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -403,10 +402,7 @@ mod test {
 
         let reader = FileReader::open("examples/example3.blow5")?;
         let rec = reader.get_record("0035aaf9-a746-4bbd-97c4-390ddc27c756")?;
-        assert_eq!(
-            rec.get_aux_field::<u64>("start_time").unwrap(),
-            335760788
-        );
+        assert_eq!(rec.get_aux_field::<u64>("start_time").unwrap(), 335760788);
         assert_eq!(rec.get_aux_field::<i32>("read_number").unwrap(), 13875);
 
         assert!(rec.get_aux_field::<u8>("not real field").is_err());

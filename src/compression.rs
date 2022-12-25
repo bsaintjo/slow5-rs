@@ -1,4 +1,3 @@
-
 #[cfg(feature = "zstd")]
 use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_ZSTD;
 use slow5lib_sys::{

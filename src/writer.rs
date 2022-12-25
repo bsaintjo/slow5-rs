@@ -132,12 +132,13 @@ impl WriteOptions {
     /// # Note
     /// If the same name is used multiple times, the last FieldType will be used
     /// in the header.
-    /// 
+    ///
     /// # Warning
-    /// While you can add auxiliary fields of any [`FieldType`] variant, only primitive
-    /// types, strings, and enums (if they implement [`AuxFieldSetExt`]) can have values set.
-    /// In the future this restriction may be lifted.
-    /// 
+    /// While you can add auxiliary fields of any [`FieldType`] variant, only
+    /// primitive types, strings, and enums (if they implement
+    /// [`AuxFieldSetExt`]) can have values set. In the future this
+    /// restriction may be lifted.
+    ///
     /// [`AuxFieldSetExt`]: crate::AuxFieldSetExt
     ///
     /// # Example
@@ -147,7 +148,7 @@ impl WriteOptions {
     /// let mut opts = WriteOptions::default();
     /// opts.aux("median", FieldType::Double);
     /// opts.aux("read_number", FieldType::Uint8);
-    /// 
+    ///
     /// // You can add an enum with FieldType::Enum or use the From impl like below
     /// opts.aux("end_reason", vec!["these", "are", "enum", "values"]);
     /// ```
