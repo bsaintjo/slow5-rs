@@ -7,13 +7,13 @@ use std::{
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_aux_get_enum, slow5_file, slow5_rec_free, slow5_rec_t};
+use slow5lib_sys::{slow5_aux_get_enum, slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
 use crate::{
     auxiliary::{AuxField, AuxFieldSetExt, EnumField},
     error::Slow5Error,
-    to_cstring, FileWriter,
+    to_cstring, FileWriter, FileReader,
 };
 
 #[derive(Error, Debug)]
@@ -190,6 +190,8 @@ unsafe fn allocate(size: usize) -> Result<*mut c_void, BuilderError> {
 pub struct Record {
     pub(crate) slow5_rec: *mut slow5_rec_t,
 }
+
+unsafe impl Send for Record {}
 
 impl Record {
     pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
@@ -386,10 +388,11 @@ impl RecordExt for Record {}
 /// [`records`]: crate::FileReader::records
 /// [`FileReader`]: crate::FileReader
 pub struct RecordIter<'a> {
-    slow5_file: *mut slow5_file,
+    reader: &'a mut FileReader,
     errored: bool,
-    _lifetime: PhantomData<&'a ()>,
 }
+
+unsafe impl<'a> Send for RecordIter<'a> {}
 
 impl<'a> std::fmt::Debug for RecordIter<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -398,11 +401,10 @@ impl<'a> std::fmt::Debug for RecordIter<'a> {
 }
 
 impl<'a> RecordIter<'a> {
-    pub(crate) fn new(slow5_file: *mut slow5_file) -> Self {
+    pub(crate) fn new(reader: &'a mut FileReader) -> Self {
         Self {
-            slow5_file,
+            reader,
             errored: false,
-            _lifetime: PhantomData,
         }
     }
 }
@@ -412,7 +414,7 @@ impl<'a> Iterator for RecordIter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut rec = null_mut() as *mut slow5_rec_t;
-        let ret = unsafe { slow5lib_sys::slow5_get_next(&mut rec, self.slow5_file) };
+        let ret = unsafe { slow5lib_sys::slow5_get_next(&mut rec, self.reader.slow5_file) };
         if self.errored {
             None
         } else if ret >= 0 {

@@ -26,10 +26,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - auxiliary: EnumField type for getting/setting enum values for auxiliary fields
 - record: Record::get_aux_enum_field to get enum label indices
 - writer: WriteOptions::aux_enum for adding enums to SLOW5 files
+- parallel: Add Send impl for FileReader, RecordIter, and Record
+- parallel: parallel read example for reading records in parallel with rayon ParallelBridge
 
 
 ### Changed
 
+- record: RecordIter now holds a FileReader instead of a *mut slow5_file
 - deps: `zstd` is now an optional dependency, enabled by default but can be disabled by setting `default-features = false`
 
 ### Deprecated

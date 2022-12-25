@@ -25,6 +25,8 @@ pub struct FileReader {
     pub(crate) slow5_file: *mut slow5_file_t,
 }
 
+unsafe impl Send for FileReader {}
+
 impl std::fmt::Debug for FileReader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("FileReader").finish()
@@ -118,7 +120,7 @@ impl FileReader {
     // and making it &mut self. RecordIter would need to do the rewinding once its
     // finished.
     pub fn records(&mut self) -> RecordIter {
-        RecordIter::new(self.slow5_file)
+        RecordIter::new(self)
     }
 
     /// Random-access a single [`Record`] by read_id.
