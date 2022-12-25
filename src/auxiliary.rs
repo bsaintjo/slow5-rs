@@ -349,6 +349,25 @@ impl AuxFieldSetExt for String {
     }
 }
 
+impl AuxFieldSetExt for EnumField {
+    fn aux_set<B>(
+        &self,
+        rec: &mut Record,
+        field: B,
+        writer: &mut FileWriter,
+    ) -> Result<(), Slow5Error>
+    where
+        Self: Sized,
+        B: Into<Vec<u8>>,
+    {
+        if self.0 > (u8::MAX as usize) {
+            Err(Slow5Error::TooManyLabels(self.0))
+        } else {
+            (self.0 as u8).aux_set(rec, field, writer)
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
