@@ -9,6 +9,7 @@ mod header;
 mod reader;
 mod record;
 mod writer;
+mod log;
 
 use std::ffi::CString;
 
