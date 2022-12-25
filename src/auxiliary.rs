@@ -262,6 +262,8 @@ impl AuxField for EnumField {
 /// Currently only primitive types, strings, and enums are allowed to be used to
 /// set auxiliary fields.
 pub trait AuxFieldSetExt {
+
+    /// Sets the value of a specific auxiliary field for the given record.
     fn aux_set<B>(
         &self,
         rec: &mut Record,

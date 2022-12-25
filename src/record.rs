@@ -270,9 +270,6 @@ impl Record {
     /// ```
     ///
     /// # Note
-    /// For fields of enum type, do not use use get_aux_field with T = u8,
-    /// instead use [`get_aux_enum_field`].
-    ///
     /// You may get a compiler error complaining about trait bounds
     /// ```ignore_test
     /// error[E0277]: the trait bound `(): AuxField` is not satisfied
@@ -284,8 +281,6 @@ impl Record {
     ///
     /// # Errors
     /// Returns an Err if auxiliary field wasn't set for that record.
-    ///
-    /// [`get_aux_enum_field`]: crate::Record::get_aux_enum_field
     pub fn get_aux_field<T>(&self, name: impl Into<Vec<u8>>) -> Result<T, Slow5Error>
     where
         T: AuxField,
