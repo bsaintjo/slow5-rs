@@ -2,12 +2,12 @@ use std::ffi::CStr;
 
 use libc::c_void;
 use slow5lib_sys::{
-    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_float, slow5_aux_get_int16,
-    slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8, slow5_aux_get_string,
-    slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64, slow5_aux_get_uint8,
-    slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR, slow5_aux_type_SLOW5_DOUBLE,
-    slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_FLOAT,
-    slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
+    slow5_aux_get_char, slow5_aux_get_double, slow5_aux_get_enum, slow5_aux_get_float,
+    slow5_aux_get_int16, slow5_aux_get_int32, slow5_aux_get_int64, slow5_aux_get_int8,
+    slow5_aux_get_string, slow5_aux_get_uint16, slow5_aux_get_uint32, slow5_aux_get_uint64,
+    slow5_aux_get_uint8, slow5_aux_set, slow5_aux_set_string, slow5_aux_type_SLOW5_CHAR,
+    slow5_aux_type_SLOW5_DOUBLE, slow5_aux_type_SLOW5_DOUBLE_ARRAY, slow5_aux_type_SLOW5_ENUM,
+    slow5_aux_type_SLOW5_FLOAT, slow5_aux_type_SLOW5_FLOAT_ARRAY, slow5_aux_type_SLOW5_INT16_T,
     slow5_aux_type_SLOW5_INT16_T_ARRAY, slow5_aux_type_SLOW5_INT32_T,
     slow5_aux_type_SLOW5_INT32_T_ARRAY, slow5_aux_type_SLOW5_INT64_T,
     slow5_aux_type_SLOW5_INT64_T_ARRAY, slow5_aux_type_SLOW5_INT8_T,
@@ -20,7 +20,7 @@ use slow5lib_sys::{
 use crate::{to_cstring, FileWriter, Record, RecordExt, Slow5Error};
 
 /// Maps between Rust types and SLOW5 C types
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum FieldType {
     /// i8
     Int8,
@@ -76,12 +76,25 @@ pub enum FieldType {
 
     /// &[f64]
     DoubleArray,
+
+    /// EnumField
+    Enum(Vec<Vec<u8>>),
 }
 
+impl<B> From<Vec<B>> for FieldType
+where
+    B: Into<Vec<u8>>,
+{
+    fn from(value: Vec<B>) -> Self {
+        FieldType::Enum(value.into_iter().map(|b| b.into()).collect())
+    }
+}
+
+/// Wrapper around slow5lib-sys aux type
 pub(crate) struct Slow5AuxType(pub(crate) u32);
 
 impl FieldType {
-    pub(crate) fn to_slow5_t(self) -> Slow5AuxType {
+    pub(crate) fn to_slow5_t(&self) -> Slow5AuxType {
         Slow5AuxType(match self {
             FieldType::Int8 => slow5_aux_type_SLOW5_INT8_T,
             FieldType::Int16 => slow5_aux_type_SLOW5_INT16_T,
@@ -105,6 +118,7 @@ impl FieldType {
             FieldType::Uint16Array => slow5_aux_type_SLOW5_UINT16_T_ARRAY,
             FieldType::Uint32Array => slow5_aux_type_SLOW5_UINT32_T_ARRAY,
             FieldType::Uint64Array => slow5_aux_type_SLOW5_INT64_T_ARRAY,
+            FieldType::Enum(_) => slow5_aux_type_SLOW5_ENUM,
         })
     }
 }
@@ -129,9 +143,6 @@ pub trait AuxField {
         B: Into<Vec<u8>>,
         R: RecordExt,
         Self: std::marker::Sized;
-
-    /// Convert Rust type into FieldType representation
-    fn to_slow5_t() -> FieldType;
 }
 
 macro_rules! impl_auxfield {
@@ -154,19 +165,9 @@ macro_rules! impl_auxfield {
                     Ok(data)
                 }
             }
-
-            fn to_slow5_t() -> FieldType {
-                use FieldType::*;
-                $ctype
-            }
         }
 
         impl AuxField for &[$rtype] {
-            fn to_slow5_t() -> FieldType {
-                use FieldType::*;
-                paste::paste! { [< $ctype Array>] }
-            }
-
             fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
             where
                 B: Into<Vec<u8>>,
@@ -219,17 +220,9 @@ impl AuxField for char {
             Ok(data as u8 as char)
         }
     }
-
-    fn to_slow5_t() -> FieldType {
-        FieldType::Char
-    }
 }
 
 impl AuxField for &str {
-    fn to_slow5_t() -> FieldType {
-        FieldType::Str
-    }
-
     fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -247,8 +240,26 @@ impl AuxField for &str {
     }
 }
 
+impl AuxField for EnumField {
+    fn aux_get<B, R>(rec: &R, name: B) -> Result<Self, Slow5Error>
+    where
+        B: Into<Vec<u8>>,
+        R: RecordExt,
+        Self: std::marker::Sized,
+    {
+        let mut err = 0;
+        let name = to_cstring(name)?;
+        let ef = unsafe { slow5_aux_get_enum(rec.ptr().ptr, name.as_ptr(), &mut err) };
+        if err < 0 {
+            Err(Slow5Error::Unknown)
+        } else {
+            Ok(EnumField(ef as usize))
+        }
+    }
+}
+
 /// Trait for values that we are allowed to set the values for in Records.
-/// Currently only primitive types and strings are allowed to be used to set
+/// Currently only primitive types, strings, and enums are allowed to be used to set
 /// auxiliary fields.
 pub trait AuxFieldSetExt {
     fn aux_set<B>(
@@ -368,6 +379,12 @@ impl AuxFieldSetExt for EnumField {
     }
 }
 
+// Seal the traits from downstream implementations
+mod private {
+    pub trait Sealed {}
+}
+
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -387,13 +404,13 @@ mod test {
         let reader = FileReader::open("examples/example3.blow5")?;
         let rec = reader.get_record("0035aaf9-a746-4bbd-97c4-390ddc27c756")?;
         assert_eq!(
-            rec.get_aux_field::<_, u64>("start_time").unwrap(),
+            rec.get_aux_field::<u64>("start_time").unwrap(),
             335760788
         );
-        assert_eq!(rec.get_aux_field::<_, i32>("read_number").unwrap(), 13875);
+        assert_eq!(rec.get_aux_field::<i32>("read_number").unwrap(), 13875);
 
-        assert!(rec.get_aux_field::<_, u8>("not real field").is_err());
-        assert!(rec.get_aux_field::<_, i64>("read_number").is_err());
+        assert!(rec.get_aux_field::<u8>("not real field").is_err());
+        assert!(rec.get_aux_field::<i64>("read_number").is_err());
         Ok(())
     }
 }

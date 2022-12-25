@@ -73,8 +73,8 @@ fn main() -> anyhow::Result<()> {
         rec.raw_signal_iter().collect::<Vec<_>>(),
         signals[2].to_vec()
     );
-    assert_eq!(rec.get_aux_field::<_, f32>("median")?, 10.0f32);
-    assert_eq!(rec.get_aux_field::<_, &str>("string")?, "here");
-    assert!(rec.get_aux_field::<_, i16>("not set").is_err());
+    assert_eq!(rec.get_aux_field::<f32>("median")?, 10.0f32);
+    assert_eq!(rec.get_aux_field::<&str>("string")?, "here");
+    assert!(rec.get_aux_field::<i16>("not set").is_err());
     Ok(())
 }

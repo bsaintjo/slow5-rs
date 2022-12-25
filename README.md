@@ -93,17 +93,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 * `zstd`:       Enable zstd-based compression (enabled by default)
 * `zlib-ng`:    Enable usage of high performance zlib-ng, requires `cmake`
 
-## Roadmap
-
-- [ ] Benchmarking
-- [ ] Allow for configuring slow5lib log level
-
 ## License
 
 Licensed under either of
 
-- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

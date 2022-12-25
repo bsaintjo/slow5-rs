@@ -7,11 +7,11 @@ use std::{
 };
 
 use libc::{c_char, c_void};
-use slow5lib_sys::{slow5_aux_get_enum, slow5_rec_free, slow5_rec_t};
+use slow5lib_sys::{slow5_rec_free, slow5_rec_t};
 use thiserror::Error;
 
 use crate::{
-    auxiliary::{AuxField, AuxFieldSetExt, EnumField},
+    auxiliary::{AuxField, AuxFieldSetExt},
     error::Slow5Error,
     to_cstring, FileReader, FileWriter,
 };
@@ -206,9 +206,9 @@ impl Record {
     /// Set the value for an auxiliary field of a record. Not all auxiliary
     /// fields need to be set, however, calling [`get_aux_field`] will
     /// return an Err if its called on an unset auxiliary field.
-    /// 
+    ///
     /// [`get_aux_field`]: crate::Record::get_aux_field
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use slow5::FileWriter;
@@ -262,6 +262,8 @@ impl Record {
     /// let slow5 = FileReader::open(path)?;
     /// let rec = slow5.get_record("r0")?;
     /// let channel_number: i32 = rec.get_aux_field("read_number")?;
+    /// // Alt turbofish syntax
+    /// let channel_number = rec.get_aux_field::<i32>("read_number")?;
     /// assert_eq!(channel_number, 4019);
     /// # Ok(())
     /// # }
@@ -271,34 +273,23 @@ impl Record {
     /// For fields of enum type, do not use use get_aux_field with T = u8,
     /// instead use [`get_aux_enum_field`].
     ///
+    /// You may get a compiler error complaining about trait bounds
+    /// ```ignore_test
+    /// error[E0277]: the trait bound `(): AuxField` is not satisfied
+    /// or
+    /// error[E0277]: can't compare `()` with SomeType
+    /// ```
+    /// In this case use turbofish syntax (as shown in the example) to help the compiler figure out the type.
+    ///
     /// # Errors
     /// Returns an Err if auxiliary field wasn't set for that record.
     ///
     /// [`get_aux_enum_field`]: crate::Record::get_aux_enum_field
-    pub fn get_aux_field<B, T>(&self, name: B) -> Result<T, Slow5Error>
+    pub fn get_aux_field<T>(&self, name: impl Into<Vec<u8>>) -> Result<T, Slow5Error>
     where
-        B: Into<Vec<u8>>,
         T: AuxField,
     {
         T::aux_get(self, name)
-    }
-
-    /// Get value for an enum field in a Record.
-    ///
-    /// See [`EnumField`] to get more information about converting it into the
-    /// enum label
-    pub fn get_aux_enum_field<B>(&self, name: B) -> Result<EnumField, Slow5Error>
-    where
-        B: Into<Vec<u8>>,
-    {
-        let mut err = 0;
-        let name = to_cstring(name)?;
-        let ef = unsafe { slow5_aux_get_enum(self.slow5_rec, name.as_ptr(), &mut err) };
-        if err < 0 {
-            Err(Slow5Error::Unknown)
-        } else {
-            Ok(EnumField(ef as usize))
-        }
     }
 }
 
@@ -600,7 +591,7 @@ mod test {
         let rec = reader.records().next().unwrap().unwrap();
         // TODO assert value
         let EnumField(_end_reason) = rec
-            .get_aux_enum_field("end_reason")
+            .get_aux_field("end_reason")
             .expect("Unable to get end_reason enum field");
     }
 }

@@ -132,6 +132,13 @@ impl WriteOptions {
     /// # Note
     /// If the same name is used multiple times, the last FieldType will be used
     /// in the header.
+    /// 
+    /// # Warning
+    /// While you can add auxiliary fields of any [`FieldType`] variant, only primitive
+    /// types, strings, and enums (if they implement [`AuxFieldSetExt`]) can have values set.
+    /// In the future this restriction may be lifted.
+    /// 
+    /// [`AuxFieldSetExt`]: crate::AuxFieldSetExt
     ///
     /// # Example
     /// ```
@@ -140,25 +147,24 @@ impl WriteOptions {
     /// let mut opts = WriteOptions::default();
     /// opts.aux("median", FieldType::Double);
     /// opts.aux("read_number", FieldType::Uint8);
+    /// 
+    /// // You can add an enum with FieldType::Enum or use the From impl like below
+    /// opts.aux("end_reason", vec!["these", "are", "enum", "values"]);
     /// ```
-    pub fn aux<B>(&mut self, name: B, field_ty: FieldType) -> &mut Self
+    pub fn aux<B>(&mut self, name: B, field_ty: impl Into<FieldType>) -> &mut Self
     where
         B: Into<Vec<u8>>,
     {
         let name = name.into();
-        self.auxiliary_fields.insert(name, field_ty);
-        self
-    }
-
-    /// Add auxiliary enum to writer with designated labels.
-    pub fn aux_enum<B, C>(&mut self, name: B, labels: Vec<C>) -> &mut Self
-    where
-        B: Into<Vec<u8>>,
-        C: Into<Vec<u8>>,
-    {
-        let name = name.into();
-        let labels = labels.into_iter().map(|l| l.into()).collect();
-        self.aux_enums.insert(name, labels);
+        let field_t = field_ty.into();
+        match field_t {
+            FieldType::Enum(labels) => {
+                self.aux_enums.insert(name, labels);
+            }
+            _ => {
+                self.auxiliary_fields.insert(name, field_t);
+            }
+        }
         self
     }
 
@@ -421,7 +427,7 @@ impl FileWriter {
 
             // Auxiliary fields
             for (name, fty) in opts.auxiliary_fields.iter() {
-                header.add_aux_field(name.clone(), *fty)?;
+                header.add_aux_field(name.clone(), fty.clone())?;
             }
 
             // Auxiliary enum fields
