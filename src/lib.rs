@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
+#![cfg_attr(doc_cfg, feature(doc_cfg))]
 
 mod auxiliary;
 mod compression;
@@ -15,7 +16,7 @@ pub use auxiliary::{AuxField, EnumField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::{AuxNamesIter, Header, HeaderExt};
-pub use reader::{FileReader, ReadIdIter};
+pub use reader::{FileReader, ReadIdIter, AuxEnumLabelIter};
 pub use record::{to_picoamps, to_raw_signal, Record, RecordBuilder, RecordExt, RecordIter};
 pub use writer::{FileWriter, WriteOptions};
 

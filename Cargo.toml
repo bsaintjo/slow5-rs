@@ -30,6 +30,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 cstr.workspace = true
 libc.workspace = true
@@ -47,4 +51,5 @@ version-sync.workspace = true
 
 [features]
 default = ["zstd"]
-zstd = ["slow5lib-sys/zstd-sys"]
+zstd = ["slow5lib-sys/zstd"]
+zlib-ng = ["slow5lib-sys/zlib-ng"]

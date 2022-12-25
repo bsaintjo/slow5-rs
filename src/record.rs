@@ -204,9 +204,11 @@ impl Record {
     }
 
     /// Set the value for an auxiliary field of a record. Not all auxiliary
-    /// fields need to be set, however, calling [`aux_get_field`] will
+    /// fields need to be set, however, calling [`get_aux_field`] will
     /// return an Err if its called on an unset auxiliary field.
-    ///
+    /// 
+    /// [`get_aux_field`]: crate::Record::get_aux_field
+    /// 
     /// # Example
     /// ```
     /// # use slow5::FileWriter;
@@ -596,7 +598,8 @@ mod test {
         let fp = "examples/example3.blow5";
         let mut reader = FileReader::open(fp).expect("Unable to open example3.blow5");
         let rec = reader.records().next().unwrap().unwrap();
-        let end_reason = rec
+        // TODO assert value
+        let EnumField(_end_reason) = rec
             .get_aux_enum_field("end_reason")
             .expect("Unable to get end_reason enum field");
     }

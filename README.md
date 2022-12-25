@@ -88,11 +88,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
+## Feature flags
+
+* `zstd`:       Enable zstd-based compression (enabled by default)
+* `zlib-ng`:    Enable usage of high performance zlib-ng, requires `cmake`
+
 ## Roadmap
 
 - [ ] Benchmarking
 - [ ] Allow for configuring slow5lib log level
-- [ ] Check for thread safety
 
 ## License
 
