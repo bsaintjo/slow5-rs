@@ -13,7 +13,7 @@ use thiserror::Error;
 use crate::{
     auxiliary::{AuxField, AuxFieldSetExt, EnumField},
     error::Slow5Error,
-    to_cstring, FileWriter, FileReader,
+    to_cstring, FileReader, FileWriter,
 };
 
 #[derive(Error, Debug)]

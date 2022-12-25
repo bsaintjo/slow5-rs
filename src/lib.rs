@@ -11,7 +11,7 @@ mod writer;
 
 use std::ffi::CString;
 
-pub use auxiliary::{AuxField, FieldType, EnumField};
+pub use auxiliary::{AuxField, EnumField, FieldType};
 pub use compression::{RecordCompression, SignalCompression};
 pub use error::Slow5Error;
 pub use header::{AuxNamesIter, Header, HeaderExt};

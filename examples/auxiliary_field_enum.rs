@@ -10,7 +10,7 @@ fn main() -> anyhow::Result<()> {
         let rec = rec?;
         let EnumField(end_reason_idx) = rec.get_aux_enum_field("end_reason")?;
         let read_id = std::str::from_utf8(rec.read_id())?;
-        println!("read_id: {read_id}", );
+        println!("read_id: {read_id}");
         println!("{:?}", labels[end_reason_idx]);
     }
     Ok(())
