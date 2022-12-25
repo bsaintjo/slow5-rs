@@ -490,7 +490,7 @@ impl<'a> Iterator for PicoAmpsSignalIter<'a> {
                     (*self.read).range,
                 );
                 self.i += 1;
-                Some(signal as f64)
+                Some(signal)
             } else {
                 None
             }
