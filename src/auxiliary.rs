@@ -20,7 +20,7 @@ use slow5lib_sys::{
 use crate::{to_cstring, FileWriter, Record, RecordExt, Slow5Error};
 
 /// Maps between Rust types and SLOW5 C types
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FieldType {
     /// i8
     Int8,

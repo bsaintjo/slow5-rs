@@ -55,7 +55,7 @@ impl Mode {
 }
 
 /// Set attributes, auxiliary fields, and record and signal compression.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct WriteOptions {
     pub(crate) rec_comp: RecordCompression,
     pub(crate) sig_comp: SignalCompression,
