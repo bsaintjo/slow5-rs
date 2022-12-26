@@ -1,8 +1,4 @@
-use std::{
-    ffi::{FromBytesWithNulError, NulError},
-    path::PathBuf,
-    str::Utf8Error,
-};
+use std::{ffi::NulError, path::PathBuf, str::Utf8Error};
 
 use thiserror::Error;
 
@@ -24,7 +20,7 @@ pub enum Slow5Error {
 
     /// Interior NUL byte inside String
     #[error("String passed with interior nul byte: {0}")]
-    InteriorNul(NulError),
+    InteriorNul(#[from] NulError),
 
     /// Incorrect argument
     #[error("Bad argument")]
@@ -86,10 +82,6 @@ pub enum Slow5Error {
     #[error("Error getting attribute, attribute doesn't exist or read_group is out of range")]
     AttributeError,
 
-    /// NUL not in correct place
-    #[error("NUL not in correct place ")]
-    NulError(FromBytesWithNulError),
-
     /// Failed to add read group
     #[error("Failed to add new read group {0}")]
     FailedAddReadGroup(u32),
@@ -104,7 +96,7 @@ pub enum Slow5Error {
 
     /// Failed to convert to UTF8
     #[error("Failed to convert to UTF8 {0}")]
-    Utf8Error(Utf8Error),
+    Utf8Error(#[from] Utf8Error),
 
     /// Compression was set but output was SLOW5. Only BLOW5 files are allowed
     /// to set compression options
@@ -130,4 +122,20 @@ pub enum Slow5Error {
     /// Number of labels for an auxiliary enum must be less than u8::MAX
     #[error("Number of labels for an auxiliary enum must be less than u8::MAX, got {0}")]
     TooManyLabels(usize),
+
+    /// Index given in EnumField is larger than number of labels
+    #[error("Enum index out of range")]
+    EnumOutOfRange,
+
+    /// The attribute was not found within the header
+    ///
+    /// Common cases include:
+    /// * Misspelled the name of the attribute
+    /// * Did not add the auxiliary field in WriteOptions before creating file
+    #[error("Attribute name was not found in header")]
+    MissingAttribute,
+
+    /// Type requested or given doesn't match type in SLOW5 file
+    #[error("Invalid input, type mismatch")]
+    AuxTypeMismatch,
 }

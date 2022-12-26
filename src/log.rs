@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use slow5lib_sys::{
     slow5_log_level_opt_SLOW5_LOG_DBUG, slow5_log_level_opt_SLOW5_LOG_ERR,
     slow5_log_level_opt_SLOW5_LOG_INFO, slow5_log_level_opt_SLOW5_LOG_OFF,

@@ -46,7 +46,6 @@ thiserror = "1.0.30"
 anyhow = "1.0.56"
 assert_fs = "1.0.7"
 doc-comment = "0.3.3"
-trybuild = "1.0.71"
 version-sync.workspace = true
 
 [features]

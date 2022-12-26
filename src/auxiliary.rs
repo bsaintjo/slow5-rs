@@ -235,7 +235,7 @@ impl AuxField for &str {
         let data =
             unsafe { slow5_aux_get_string(rec.ptr().ptr, name.as_ptr(), &mut len, &mut err) };
         let data = unsafe { CStr::from_ptr(data) };
-        let data = data.to_str().map_err(Slow5Error::Utf8Error)?;
+        let data = data.to_str()?;
         Ok(data)
     }
 }
@@ -258,11 +258,22 @@ impl AuxField for EnumField {
     }
 }
 
+/// Convert return code from slow5_aux_set into Slow5Error
+fn parse_aux_field_set_error(ret: i32) -> Slow5Error {
+    match ret {
+        -1 => Slow5Error::AuxTypeMismatch,
+        -2 => Slow5Error::MissingAttribute,
+        -3 => Slow5Error::AuxTypeMismatch,
+        -4 => Slow5Error::EnumOutOfRange,
+        _ => unreachable!("Invalid ret: {ret}")
+
+    }
+}
+
 /// Trait for values that we are allowed to set the values for in Records.
 /// Currently only primitive types, strings, and enums are allowed to be used to
 /// set auxiliary fields.
 pub trait AuxFieldSetExt {
-
     /// Sets the value of a specific auxiliary field for the given record.
     fn aux_set<B>(
         &self,
@@ -286,7 +297,7 @@ pub trait AuxFieldSetExt {
         };
         writer.auxiliary_fields.push(name);
         if ret < 0 {
-            Err(Slow5Error::SetAuxFieldError)
+            Err(parse_aux_field_set_error(ret))
         } else {
             Ok(())
         }
@@ -303,6 +314,7 @@ impl AuxFieldSetExt for i32 {}
 impl AuxFieldSetExt for i64 {}
 impl AuxFieldSetExt for f32 {}
 impl AuxFieldSetExt for f64 {}
+impl AuxFieldSetExt for char {}
 
 impl AuxFieldSetExt for &str {
     fn aux_set<B>(
@@ -326,7 +338,7 @@ impl AuxFieldSetExt for &str {
         };
         writer.auxiliary_fields.push(name);
         if ret < 0 {
-            Err(Slow5Error::SetAuxFieldError)
+            Err(parse_aux_field_set_error(ret))
         } else {
             Ok(())
         }
@@ -343,22 +355,7 @@ impl AuxFieldSetExt for String {
     where
         B: Into<Vec<u8>>,
     {
-        let name = to_cstring(field)?;
-        let value_ptr = to_cstring(self.as_bytes())?;
-        let ret = unsafe {
-            slow5_aux_set_string(
-                rec.slow5_rec,
-                name.as_ptr(),
-                value_ptr.as_ptr(),
-                writer.header().header,
-            )
-        };
-        writer.auxiliary_fields.push(name);
-        if ret < 0 {
-            Err(Slow5Error::SetAuxFieldError)
-        } else {
-            Ok(())
-        }
+        self.as_str().aux_set(rec, field, writer)
     }
 }
 
@@ -388,8 +385,10 @@ mod private {
 
 #[cfg(test)]
 mod test {
+    use assert_fs::{prelude::PathChild, TempDir};
+
     use super::*;
-    use crate::FileReader;
+    use crate::{FileReader, RecordBuilder, WriteOptions};
 
     #[test]
     fn test_aux_get() -> anyhow::Result<()> {
@@ -409,6 +408,38 @@ mod test {
 
         assert!(rec.get_aux_field::<u8>("not real field").is_err());
         assert!(rec.get_aux_field::<i64>("read_number").is_err());
+        assert!(rec.get_aux_field::<EnumField>("also not real").is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_aux_set() -> anyhow::Result<()> {
+        let tmp_dir = TempDir::new()?;
+        let enum_labels = vec!["a", "b", "c"];
+        let mut writer = WriteOptions::default()
+            .aux("enum", enum_labels)
+            .aux("char", FieldType::Char)
+            .aux("read_number", FieldType::Uint8)
+            .aux("string", FieldType::Str)
+            .aux("array", FieldType::Uint16Array)
+            .create(tmp_dir.child("test.slow5"))?;
+        let mut rec = RecordBuilder::default()
+            .digitisation(0.123)
+            .offset(0.456)
+            .range(0.999)
+            .read_group(0)
+            .read_id("new")
+            .sampling_rate(0.777)
+            .raw_signal(&[1, 2, 3])
+            .build()?;
+        assert!(rec.set_aux_field(&mut writer, "string", "a string").is_ok());
+        assert!(rec.set_aux_field(&mut writer, "char", 'a').is_ok());
+        assert!(rec.set_aux_field(&mut writer, "char", "a").is_err());
+
+        assert!(rec.set_aux_field(&mut writer, "enum", EnumField(1)).is_ok());
+        assert!(rec.set_aux_field(&mut writer, "enum", EnumField(10)).is_err());
+
         Ok(())
     }
 }

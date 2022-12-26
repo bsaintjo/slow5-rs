@@ -27,22 +27,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - parallel: Add `Send` impl for `FileReader`, `RecordIter`, and `Record`
 - parallel: parallel read example for reading records in parallel with rayon `ParallelBridge`
 - field: Add `impl Vec<B> for B: Into<Vec<u8>>` as a convience for the `FieldType::Enum` variant
+- errors: Additional errors for dealing with auxiliary setting
 
 ### Changed
 
 - record: `RecordIter` now holds a `FileReader` instead of a `*mut slow5_file`
 - deps: `zstd` is now an optional dependency, enabled by default but can be disabled by setting `default-features = false`
+- deps: `bindgen` dependency upgraded to 0.63
 - aux: AuxFieldSetExt is pub
 - write: `WriteOptions::aux` can now add enums
 - record: `Record::get_aux_field` now takes a impl `Into<Vec<u8>>` which should make the turbofish syntax less awkward
 
-### Deprecated
-
 ### Removed
 
 - aux: Removed the `to_slow5_t` required method on `AuxField` since it wasn't necessary and making dealing with enums harder
-
-### Fixed
 
 ## [0.9.0] - 2022-12-10
 

@@ -27,5 +27,5 @@ impl FieldExt for () {
 }
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
-    CString::new(x).map_err(Slow5Error::InteriorNul)
+    CString::new(x)
 }
