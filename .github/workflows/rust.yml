@@ -19,12 +19,26 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features: [--all-features, --no-default-features]
+        toolchain: [stable, nightly]
 
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-    - uses: dtolnay/rust-toolchain@stable
-    - uses: Swatinem/rust-cache@v2
+
+    - name: Install toolchain
+      uses: dtolnay/rust-toolchain
+      with:
+        toolchain: ${{ matrix.toolchain }}
+
+    - name: Check cache
+      uses: Swatinem/rust-cache@v2
+
     - name: Run tests
-      run: cargo test --workspace --verbose && cargo test --examples --verbose
+      run: cargo test --workspace --verbose ${{ matrix.features }}
+
+    - name: Run examples
+      run: cargo test --examples --verbose ${{ matrix.features }}
