@@ -21,28 +21,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- reader: AuxEnumLabelIter and FileReader::iter_aux_enum_label for iterating through the labels for an enum auxiliary field
-- reader: AttrKeyIter and FileReader::iter_attr_keys for iterating through the keys of all the attributes
-- auxiliary: EnumField type for getting/setting enum values for auxiliary fields
-- record: Record::get_aux_enum_field to get enum label indices
-- writer: WriteOptions::aux_enum for adding enums to SLOW5 files
-- parallel: Add Send impl for FileReader, RecordIter, and Record
-- parallel: parallel read example for reading records in parallel with rayon ParallelBridge
-- field: Add impl Vec<B> for B: Into<Vec<u8>> as a convience for the FieldType::Enum variant
-
+- reader: `AuxEnumLabelIter` and `FileReader::iter_aux_enum_label` for iterating through the labels for an enum auxiliary field
+- reader: `AttrKeyIter` and `FileReader::iter_attr_keys` for iterating through the keys of all the attributes
+- auxiliary: `EnumField` type for getting/setting enum values for auxiliary fields
+- parallel: Add `Send` impl for `FileReader`, `RecordIter`, and `Record`
+- parallel: parallel read example for reading records in parallel with rayon `ParallelBridge`
+- field: Add `impl Vec<B> for B: Into<Vec<u8>>` as a convience for the `FieldType::Enum` variant
 
 ### Changed
 
-- record: RecordIter now holds a FileReader instead of a *mut slow5_file
+- record: `RecordIter` now holds a `FileReader` instead of a `*mut slow5_file`
 - deps: `zstd` is now an optional dependency, enabled by default but can be disabled by setting `default-features = false`
 - aux: AuxFieldSetExt is pub
-- write: WriteOptions::aux can now add enums
-- record: Record::get_aux_field now takes a impl Into<Vec<u8>> which should make the turbofish syntax less awkward
+- write: `WriteOptions::aux` can now add enums
+- record: `Record::get_aux_field` now takes a impl `Into<Vec<u8>>` which should make the turbofish syntax less awkward
 
 ### Deprecated
 
 ### Removed
-- aux: Removed the to_slow5_t required method on AuxField since it wasn't necessary and making dealing with enums harder
+
+- aux: Removed the `to_slow5_t` required method on `AuxField` since it wasn't necessary and making dealing with enums harder
 
 ### Fixed
 
