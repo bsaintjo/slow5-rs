@@ -11,6 +11,7 @@ on:
     paths:
       - "**.rs"
       - "Cargo.toml"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
