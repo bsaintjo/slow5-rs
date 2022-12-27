@@ -23,7 +23,6 @@ jobs:
     strategy:
       matrix:
         features: [--all-features, --no-default-features]
-        toolchain: [stable, nightly]
 
     steps:
     - uses: actions/checkout@v3
@@ -31,7 +30,7 @@ jobs:
         submodules: recursive
 
     - name: Install toolchain
-      uses: dtolnay/rust-toolchain@${{ matrix.toolchain }}
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Check cache
       uses: Swatinem/rust-cache@v2
