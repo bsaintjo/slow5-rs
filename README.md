@@ -91,7 +91,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 ## Feature flags
 
 * `zstd`:       Enable zstd-based compression (enabled by default)
-* `zlib-ng`:    Enable usage of high performance zlib-ng, requires `cmake`
+* `zlib-ng`:    Enable usage of high performance zlib-ng, adds `cmake` dependency
+* `serde`:      Enable `serde` dependency (mainly for serializing `Record`)
 
 ## License
 

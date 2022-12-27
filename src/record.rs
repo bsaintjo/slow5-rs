@@ -193,6 +193,29 @@ pub struct Record {
 
 unsafe impl Send for Record {}
 
+#[cfg(feature = "serde")]
+#[cfg_attr(doc_cfg, doc(cfg(feature = "serde")))]
+/// Only primary fields (no auxiliary fields) are serialized
+impl serde::Serialize for Record {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("Record", 7)?;
+        let read_id = std::str::from_utf8(self.read_id()).map_err(|_| serde::ser::Error::custom("read_id contains non-UTF8 character"))?;
+        state.serialize_field("read_id", read_id)?;
+        state.serialize_field("read_group", &self.read_group())?;
+        state.serialize_field("digitisation", &self.digitisation())?;
+        state.serialize_field("offset", &self.offset())?;
+        state.serialize_field("range", &self.range())?;
+        state.serialize_field("sampling_rate", &self.sampling_rate())?;
+        state.serialize_field("raw_signal", &self.raw_signal_iter().collect::<Vec<_>>())?;
+        state.skip_field("aux_fields")?;
+        state.end()
+    }
+}
+
 impl Record {
     pub(crate) fn new(slow5_rec: *mut slow5_rec_t) -> Self {
         Self { slow5_rec }
@@ -589,5 +612,52 @@ mod test {
         let EnumField(_end_reason) = rec
             .get_aux_field("end_reason")
             .expect("Unable to get end_reason enum field");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_serialize() -> anyhow::Result<()> {
+        use serde_test::{Token, assert_ser_tokens};
+        let rec = RecordBuilder::default()
+            .read_id("test_id")
+            .read_group(0)
+            .digitisation(4096.0)
+            .offset(4.0)
+            .range(12.0)
+            .sampling_rate(4000.0)
+            .raw_signal(&[0, 1, 2, 3])
+            .build()?;
+        assert_ser_tokens(&rec, &[
+            Token::Struct { name: "Record", len: 7 },
+
+            Token::Str("read_id"),
+            Token::Str("test_id"),
+
+            Token::Str("read_group"),
+            Token::U32(0),
+
+            Token::Str("digitisation"),
+            Token::F64(4096.0),
+
+            Token::Str("offset"),
+            Token::F64(4.0),
+
+            Token::Str("range"),
+            Token::F64(12.0),
+
+            Token::Str("sampling_rate"),
+            Token::F64(4000.0),
+
+            Token::Str("raw_signal"),
+            Token::Seq { len: Some(4) },
+            Token::I16(0),
+            Token::I16(1),
+            Token::I16(2),
+            Token::I16(3),
+            Token::SeqEnd,
+
+            Token::StructEnd,
+        ]);
+        Ok(())
     }
 }

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - parallel: parallel read example for reading records in parallel with rayon `ParallelBridge`
 - field: Add `impl Vec<B> for B: Into<Vec<u8>>` as a convience for the `FieldType::Enum` variant
 - errors: Additional errors for dealing with auxiliary setting
+- serde: Add `Serialize` implementation for `Record` and optional `serde` dependency
 
 ### Changed
 
