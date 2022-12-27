@@ -1,6 +1,6 @@
 use slow5::FileReader;
 
-fn main() -> anyhow::Result<()>{
+fn main() -> anyhow::Result<()> {
     let mut reader = FileReader::open("examples/example.slow5")?;
     for read in reader.records() {
         let read = read?;

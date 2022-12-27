@@ -146,15 +146,15 @@ impl RecordBuilder {
 
             let read_id_cs = to_cstring(read_id.clone()).map_err(|_| {
                 libc::free(record as *mut c_void);
-                BuilderError::ReadIDError})?;
+                BuilderError::ReadIDError
+            })?;
             let read_id_ptr = read_id_cs.into_raw();
             let read_id_len = read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
-            (*record).read_id_len = read_id_len
-                .try_into()
-                .map_err(|_| {
-                    libc::free(record as *mut c_void);
-                    BuilderError::ConversionError})?;
+            (*record).read_id_len = read_id_len.try_into().map_err(|_| {
+                libc::free(record as *mut c_void);
+                BuilderError::ConversionError
+            })?;
             let _ = CString::from_raw(read_id_ptr);
 
             (*record).read_group = read_group;
@@ -163,16 +163,14 @@ impl RecordBuilder {
             (*record).range = range;
             (*record).sampling_rate = sampling_rate;
 
-            let len_raw_signal = raw_signal
-                .len()
-                .try_into()
-                .map_err(|_| {
-                    libc::free(record as *mut c_void);
-                    BuilderError::ConversionError})?;
+            let len_raw_signal = raw_signal.len().try_into().map_err(|_| {
+                libc::free(record as *mut c_void);
+                BuilderError::ConversionError
+            })?;
             (*record).len_raw_signal = len_raw_signal;
             let raw_signal_ptr = allocate(size_of::<i16>() * raw_signal.len()).map_err(|e| {
-                    libc::free(record as *mut c_void);
-                    e
+                libc::free(record as *mut c_void);
+                e
             })? as *mut i16;
 
             for (idx, &signal) in raw_signal.iter().enumerate() {
@@ -212,7 +210,8 @@ impl serde::Serialize for Record {
     {
         use serde::ser::SerializeMap;
         let mut state = serializer.serialize_map(Some(7))?;
-        let read_id = std::str::from_utf8(self.read_id()).map_err(|_| serde::ser::Error::custom("read_id contains non-UTF8 character"))?;
+        let read_id = std::str::from_utf8(self.read_id())
+            .map_err(|_| serde::ser::Error::custom("read_id contains non-UTF8 character"))?;
         state.serialize_entry("read_id", read_id)?;
         state.serialize_entry("read_group", &self.read_group())?;
         state.serialize_entry("digitisation", &self.digitisation())?;
@@ -625,7 +624,7 @@ mod test {
     #[cfg(feature = "serde")]
     #[test]
     fn test_serialize() -> anyhow::Result<()> {
-        use serde_test::{Token, assert_ser_tokens};
+        use serde_test::{assert_ser_tokens, Token};
         let rec = RecordBuilder::default()
             .read_id("test_id")
             .read_group(0)
@@ -635,37 +634,32 @@ mod test {
             .sampling_rate(4000.0)
             .raw_signal(&[0, 1, 2, 3])
             .build()?;
-        assert_ser_tokens(&rec, &[
-            Token::Map { len: Some(7) },
-
-            Token::Str("read_id"),
-            Token::Str("test_id"),
-
-            Token::Str("read_group"),
-            Token::U32(0),
-
-            Token::Str("digitisation"),
-            Token::F64(4096.0),
-
-            Token::Str("offset"),
-            Token::F64(4.0),
-
-            Token::Str("range"),
-            Token::F64(12.0),
-
-            Token::Str("sampling_rate"),
-            Token::F64(4000.0),
-
-            Token::Str("raw_signal"),
-            Token::Seq { len: Some(4) },
-            Token::I16(0),
-            Token::I16(1),
-            Token::I16(2),
-            Token::I16(3),
-            Token::SeqEnd,
-
-            Token::MapEnd,
-        ]);
+        assert_ser_tokens(
+            &rec,
+            &[
+                Token::Map { len: Some(7) },
+                Token::Str("read_id"),
+                Token::Str("test_id"),
+                Token::Str("read_group"),
+                Token::U32(0),
+                Token::Str("digitisation"),
+                Token::F64(4096.0),
+                Token::Str("offset"),
+                Token::F64(4.0),
+                Token::Str("range"),
+                Token::F64(12.0),
+                Token::Str("sampling_rate"),
+                Token::F64(4000.0),
+                Token::Str("raw_signal"),
+                Token::Seq { len: Some(4) },
+                Token::I16(0),
+                Token::I16(1),
+                Token::I16(2),
+                Token::I16(3),
+                Token::SeqEnd,
+                Token::MapEnd,
+            ],
+        );
         Ok(())
     }
 }

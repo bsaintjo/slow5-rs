@@ -43,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - aux: Removed the `to_slow5_t` required method on `AuxField` since it wasn't necessary and making dealing with enums harder
 
+
+### Fixed
+
+- mem: Fixed potential memory leaks during error paths
+
 ## [0.9.0] - 2022-12-10
 
 ### Added

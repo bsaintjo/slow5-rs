@@ -265,8 +265,7 @@ fn parse_aux_field_set_error(ret: i32) -> Slow5Error {
         -2 => Slow5Error::MissingAttribute,
         -3 => Slow5Error::AuxTypeMismatch,
         -4 => Slow5Error::EnumOutOfRange,
-        _ => unreachable!("Invalid ret: {ret}")
-
+        _ => Slow5Error::SetAuxFieldError,
     }
 }
 
@@ -438,7 +437,10 @@ mod test {
         assert!(rec.set_aux_field(&mut writer, "char", "a").is_err());
 
         assert!(rec.set_aux_field(&mut writer, "enum", EnumField(1)).is_ok());
-        assert!(rec.set_aux_field(&mut writer, "enum", EnumField(10)).is_err());
+        assert!(
+            rec.set_aux_field(&mut writer, "enum", EnumField(10))
+                .is_err()
+        );
 
         Ok(())
     }

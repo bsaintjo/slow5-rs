@@ -183,12 +183,31 @@ impl FileReader {
         ReadIdIter::new(self)
     }
 
-    /// Returns iterator over the labels for an enum auxiliary field
+    /// Returns iterator over the labels for an enum auxiliary field. Useful for
+    /// converting into an indexable collection
+    /// and using [`crate::EnumField`] to get the value for an auxiliary field
     ///
     /// # Errors
     /// Return Err if field's type is not an auxiliary enum or field is not
-    /// within in the header
-    // TODO Example
+    /// within in the header. This can be due to the wrong name being passed as
+    /// field, the field is not an enum field or more.
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::FileReader;
+    /// # use slow5::EnumField;
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut reader = FileReader::open("examples/example3.blow5")?;
+    /// let labels = reader
+    ///     .iter_aux_enum_labels("end_reason")?
+    ///     .map(|x| String::from_utf8(x.to_vec()))
+    ///     .collect::<Result<Vec<_>, _>>()?;
+    /// let rec = reader.get_record("0035aaf9-a746-4bbd-97c4-390ddc27c756")?;
+    /// let EnumField(idx) = rec.get_aux_field("end_reason")?;
+    /// assert_eq!(labels[idx], "unknown");
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn iter_aux_enum_labels<B>(&self, field: B) -> Result<AuxEnumLabelIter, Slow5Error>
     where
         B: Into<Vec<u8>>,
@@ -205,7 +224,25 @@ impl FileReader {
     }
 
     /// Returns iterator over attribute keys for all read groups
-    // TODO Example
+    ///
+    /// # Example
+    /// ```
+    /// # use slow5::FileReader;
+    /// # use slow5::EnumField;
+    /// # use std::collections::HashSet;
+    /// # fn main() -> anyhow::Result<()> {
+    /// let mut reader = FileReader::open("examples/example3.blow5")?;
+    /// let attr_keys = reader
+    ///     .iter_attr_keys()?
+    ///     .map(|attr| std::str::from_utf8(attr).unwrap())
+    ///     .collect::<HashSet<&str>>();
+    ///
+    /// assert!(attr_keys.contains("file_version"));
+    /// assert!(attr_keys.contains("asic_id"));
+    /// assert!(!attr_keys.contains("random attributefdsafs"));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn iter_attr_keys(&self) -> Result<AttrKeysIter, Slow5Error> {
         let mut n = 0;
         let keys = unsafe { slow5_get_hdr_keys(self.header().header, &mut n) };
