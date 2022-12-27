@@ -30,9 +30,7 @@ jobs:
         submodules: recursive
 
     - name: Install toolchain
-      uses: dtolnay/rust-toolchain
-      with:
-        toolchain: ${{ matrix.toolchain }}
+      uses: dtolnay/rust-toolchain@${{ matrix.toolchain }}
 
     - name: Check cache
       uses: Swatinem/rust-cache@v2
