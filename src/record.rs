@@ -201,17 +201,16 @@ impl serde::Serialize for Record {
     where
         S: serde::Serializer,
     {
-        use serde::ser::SerializeStruct;
-        let mut state = serializer.serialize_struct("Record", 7)?;
+        use serde::ser::SerializeMap;
+        let mut state = serializer.serialize_map(Some(7))?;
         let read_id = std::str::from_utf8(self.read_id()).map_err(|_| serde::ser::Error::custom("read_id contains non-UTF8 character"))?;
-        state.serialize_field("read_id", read_id)?;
-        state.serialize_field("read_group", &self.read_group())?;
-        state.serialize_field("digitisation", &self.digitisation())?;
-        state.serialize_field("offset", &self.offset())?;
-        state.serialize_field("range", &self.range())?;
-        state.serialize_field("sampling_rate", &self.sampling_rate())?;
-        state.serialize_field("raw_signal", &self.raw_signal_iter().collect::<Vec<_>>())?;
-        state.skip_field("aux_fields")?;
+        state.serialize_entry("read_id", read_id)?;
+        state.serialize_entry("read_group", &self.read_group())?;
+        state.serialize_entry("digitisation", &self.digitisation())?;
+        state.serialize_entry("offset", &self.offset())?;
+        state.serialize_entry("range", &self.range())?;
+        state.serialize_entry("sampling_rate", &self.sampling_rate())?;
+        state.serialize_entry("raw_signal", &self.raw_signal_iter().collect::<Vec<_>>())?;
         state.end()
     }
 }
@@ -628,7 +627,7 @@ mod test {
             .raw_signal(&[0, 1, 2, 3])
             .build()?;
         assert_ser_tokens(&rec, &[
-            Token::Struct { name: "Record", len: 7 },
+            Token::Map { len: Some(7) },
 
             Token::Str("read_id"),
             Token::Str("test_id"),
@@ -656,7 +655,7 @@ mod test {
             Token::I16(3),
             Token::SeqEnd,
 
-            Token::StructEnd,
+            Token::MapEnd,
         ]);
         Ok(())
     }
