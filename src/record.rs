@@ -144,13 +144,17 @@ impl RecordBuilder {
                 return Err(BuilderError::AllocationError);
             }
 
-            let read_id_cs = to_cstring(read_id.clone()).map_err(|_| BuilderError::ReadIDError)?;
+            let read_id_cs = to_cstring(read_id.clone()).map_err(|_| {
+                libc::free(record as *mut c_void);
+                BuilderError::ReadIDError})?;
             let read_id_ptr = read_id_cs.into_raw();
             let read_id_len = read_id.len();
             (*record).read_id = libc::strdup(read_id_ptr as *const c_char);
             (*record).read_id_len = read_id_len
                 .try_into()
-                .map_err(|_| BuilderError::ConversionError)?;
+                .map_err(|_| {
+                    libc::free(record as *mut c_void);
+                    BuilderError::ConversionError})?;
             let _ = CString::from_raw(read_id_ptr);
 
             (*record).read_group = read_group;
@@ -162,9 +166,14 @@ impl RecordBuilder {
             let len_raw_signal = raw_signal
                 .len()
                 .try_into()
-                .map_err(|_| BuilderError::ConversionError)?;
+                .map_err(|_| {
+                    libc::free(record as *mut c_void);
+                    BuilderError::ConversionError})?;
             (*record).len_raw_signal = len_raw_signal;
-            let raw_signal_ptr = allocate(size_of::<i16>() * raw_signal.len())? as *mut i16;
+            let raw_signal_ptr = allocate(size_of::<i16>() * raw_signal.len()).map_err(|e| {
+                    libc::free(record as *mut c_void);
+                    e
+            })? as *mut i16;
 
             for (idx, &signal) in raw_signal.iter().enumerate() {
                 *raw_signal_ptr.add(idx) = signal;

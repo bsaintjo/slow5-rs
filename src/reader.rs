@@ -154,6 +154,7 @@ impl FileReader {
             Ok(Record::new(slow5_rec))
         } else {
             // TODO Handle error code properly
+            unsafe { libc::free(slow5_rec as *mut c_void) };
             Err(Slow5Error::GetRecordFailed)
         }
     }
@@ -365,6 +366,7 @@ impl<'a> Drop for AttrKeysIter<'a> {
 
 #[cfg(test)]
 mod test {
+
     use super::*;
     use crate::RecordExt;
 
@@ -382,5 +384,20 @@ mod test {
             acc.push(rec);
         }
         assert!(!acc.is_empty());
+    }
+
+    #[test]
+    fn test_bad_path() {
+        let filename = "random_fileoufnseif";
+        let reader = FileReader::open(filename);
+        assert!(matches!(reader, Err(Slow5Error::IncorrectPath(_))));
+    }
+
+    #[test]
+    fn test_no_compression() {
+        let filename = "examples/example.slow5";
+        let reader = FileReader::open(filename).unwrap();
+        assert_eq!(reader.record_compression(), RecordCompression::None);
+        assert_eq!(reader.signal_compression(), SignalCompression::None);
     }
 }
