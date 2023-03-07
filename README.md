@@ -21,6 +21,8 @@
 
 A library for interacting with SLOW5 files in rust. Not official.
 
+For more information checkout the main [slow5lib repository](https://github.com/hasindu2008/slow5lib).
+
 *Note*: Library design is in flux and care should be taken in upgrading this crate.
 
 ## Installation
@@ -29,10 +31,8 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5 = "0.10"
+slow5 = "0.11"
 ```
-
-Note: version does not directly translate to version of slow5lib.
 
 ### Git
 

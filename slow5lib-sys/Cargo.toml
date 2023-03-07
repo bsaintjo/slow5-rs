@@ -1,6 +1,6 @@
 [package]
 name = "slow5lib-sys"
-version = "0.8.0+slow5lib.0.8.0"
+version = "0.9.0+slow5lib.1.0.0"
 readme = "README.md"
 homepage = "https://github.com/hasindu2008/slow5lib"
 description = "Low-level bindings to the slow5lib C library"
@@ -17,12 +17,12 @@ links = "slow5lib"
 
 [build-dependencies]
 bindgen = "0.63.0"
-cc = "1.0.73"
-dunce = "1.0.2"
+cc = "1.0.79"
+dunce = "1.0.3"
 
 [dependencies]
-libz-sys = { version = "1.1.5", default-features = false, features = ["libc"] }
-zstd-sys = { version = "2.0.1", optional = true }
+libz-sys = { version = "1.1.8", default-features = false, features = ["libc"] }
+zstd-sys = { version = "2.0.6+zstd.1.5.2", optional = true }
 libc.workspace = true
 
 [dev-dependencies]
