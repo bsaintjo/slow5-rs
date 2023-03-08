@@ -19,7 +19,7 @@
 [codecov-url]: https://codecov.io/gh/bsaintjo/slow5-rs
 [stability-badge]: https://img.shields.io/badge/stability-experimental-orange.svg
 
-A library for interacting with SLOW5 files in rust. Not official.
+A library for interacting with SLOW5/BLOW5 files in rust. Not official.
 
 For more information checkout the main [slow5lib repository](https://github.com/hasindu2008/slow5lib).
 
