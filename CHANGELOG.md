@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - bump slow5lib submodule to v1.1.0
 - bump slow5lib-sys to v0.9.0
-- bump slow5-rs to 0.11.0
 
 ### Fixed
 

@@ -88,6 +88,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 ```
 
+### More example code
+
+For more example code, see the [test code](tests/full.rs).
+
 ## Feature flags
 
 * `zstd`:       Enable zstd-based compression (enabled by default)
