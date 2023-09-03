@@ -17,6 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.11.0]
+
+### Changed
+
+- bump slow5lib submodule to v1.1.0
+- bump slow5lib-sys to v0.9.0
+- bump slow5-rs to 0.11.0
+
+### Fixed
+
+- Switch from deprecated bindgen::Builder rustfmt_bindings method to formatter
+
 ## [0.10.0] - 2022-12-27
 
 ### Added

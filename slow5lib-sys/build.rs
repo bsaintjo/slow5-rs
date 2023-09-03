@@ -97,7 +97,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         // .allowlist_type("ks.*")
         // .allowlist_function("ks.*")
         .size_t_is_usize(true)
-        .rustfmt_bindings(true)
+        .formatter(bindgen::Formatter::Rustfmt)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
         .ctypes_prefix("libc")
         .allowlist_recursively(false)
