@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 ### More example code
 
-For more example code, see the [test code](tests/full.rs).
+For more example code, see the [test code](tests/full.rs). Several examples from the original library have been ported to rust and can be found in the [examples](examples) directory.
 
 ## Feature flags
 
