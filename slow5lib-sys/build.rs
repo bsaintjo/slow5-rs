@@ -79,6 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .allowlist_type("slow5_.*")
         .allowlist_type("__slow5_press")
         .allowlist_type("__va_list_tag")
+        .allowlist_type("__gnuc_va_list")
         .allowlist_type("va_list")
         .allowlist_type("__darwin_va_list")
         .allowlist_type("__builtin_va_list")

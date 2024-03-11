@@ -4,7 +4,7 @@
 [![Crates.io][crates-badge]][crates-url]
 [![docs.rs][docs-badge]][docs-url]
 [![Rust][ci-badge]][ci-url]
-![Stability][stability-badge]
+[![stable][stability-badge]][stability-url]
 [![codecov][codecov-badge]][codecov-url]
 
 [license-badge]: https://img.shields.io/crates/l/slow5?style=flat-square
@@ -17,13 +17,18 @@
 [ci-url]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml
 [codecov-badge]: https://codecov.io/gh/bsaintjo/slow5-rs/branch/main/graph/badge.svg?token=MODXRVRNQ0
 [codecov-url]: https://codecov.io/gh/bsaintjo/slow5-rs
-[stability-badge]: https://img.shields.io/badge/stability-experimental-orange.svg
+[stability-badge]: http://badges.github.io/stability-badges/dist/stable.svg
+[stability-url]: http://github.com/badges/stability-badges
+A library for interacting with SLOW5/BLOW5 files in the Rust programming language.
 
-A library for interacting with SLOW5/BLOW5 files in rust. Not official.
+For more information check out the main [slow5lib repository](https://github.com/hasindu2008/slow5lib) or the [paper](https://doi.org/10.1038/s41587-021-01147-4).
 
-For more information checkout the main [slow5lib repository](https://github.com/hasindu2008/slow5lib).
+This repository provides two crates:
 
-*Note*: Library design is in flux and care should be taken in upgrading this crate.
+- `slow5lib-sys`: Bindings to the C library using `bindgen`
+- `slow5`: Rust API built on-top of `slow5lib-sys`
+
+The interface for `slow5` is largely stable and now updated primarily to follow new versions `slow5lib`. If there is additional functionality you'd like to see, please file a Github Issue.
 
 ## Installation
 
@@ -94,16 +99,19 @@ For more example code, see the [test code](tests/full.rs). Several examples from
 
 ## Feature flags
 
-* `zstd`:       Enable zstd-based compression (enabled by default)
-* `zlib-ng`:    Enable usage of high performance zlib-ng, adds `cmake` dependency
-* `serde`:      Enable `serde` dependency (mainly for serializing `Record`)
+- `zstd`:       Enable zstd-based compression
+  - enabled by default
+- `zlib-ng`:    Enable usage of high performance zlib-ng
+  - adds `cmake` dependency
+- `serde`:      Enable `serde` dependency
+  - Mainly for serializing `Record` into `serde`-compatible formats
 
 ## License
 
 Licensed under either of
 
-* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
-* MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

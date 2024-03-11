@@ -11,7 +11,7 @@
 [docs-badge]: https://img.shields.io/docsrs/slow5lib-sys?style=flat-square
 [docs-url]: https://docs.rs/slow5lib-sys
 
-Low level bindings to the `slow5lib` C library version 1.0.0
+Low level bindings to the `slow5lib` C library version 1.1.0
 
 ## Installation
 
@@ -26,8 +26,8 @@ slow5lib-sys = "0.9"
 
 Licensed under either of
 
-- Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+- Apache License, Version 2.0, ([LICENSE-APACHE](../LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](../LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 
