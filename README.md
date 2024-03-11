@@ -17,7 +17,7 @@
 [ci-url]: https://github.com/bsaintjo/slow5-rs/actions/workflows/rust.yml
 [codecov-badge]: https://codecov.io/gh/bsaintjo/slow5-rs/branch/main/graph/badge.svg?token=MODXRVRNQ0
 [codecov-url]: https://codecov.io/gh/bsaintjo/slow5-rs
-[stability-badge]: http://badges.github.io/stability-badges/dist/stable.svg
+[stability-badge]: https://img.shields.io/badge/stability-stable-green.svg
 [stability-url]: http://github.com/badges/stability-badges
 A library for interacting with SLOW5/BLOW5 files in the Rust programming language.
 
