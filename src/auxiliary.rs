@@ -130,6 +130,7 @@ impl FieldType {
 /// [`AuxEnumlabelIter`]
 ///
 /// [`AuxEnumLabelIter`]: crate::reader::AuxEnumLabelIter
+#[derive(Debug)]
 pub struct EnumField(pub usize);
 
 // TODO Use an associated type to separate FieldType from Enum related types
@@ -379,7 +380,8 @@ impl AuxFieldSetExt for EnumField {
 
 // Seal the traits from downstream implementations
 mod private {
-    pub trait Sealed {}
+    #[allow(dead_code)]
+    pub(crate) trait Sealed {}
 }
 
 #[cfg(test)]

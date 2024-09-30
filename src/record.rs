@@ -201,7 +201,6 @@ pub struct Record {
 unsafe impl Send for Record {}
 
 #[cfg(feature = "serde")]
-#[cfg_attr(doc_cfg, doc(cfg(feature = "serde")))]
 /// Only primary fields (no auxiliary fields) are serialized
 impl serde::Serialize for Record {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -561,6 +560,7 @@ impl<'a> Iterator for RawSignalIter<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct RecordPointer {
     pub(crate) ptr: *mut slow5_rec_t,
 }

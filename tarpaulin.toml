@@ -5,4 +5,4 @@ exclude-files = [
     "slow5lib-sys/*",
 ]
 all-features = true
-run-types = ["Tests", "Doctests", "Examples", "Lib", "Bins", "AllTargets"]
+run-types = ["Tests", "Doctests", "Lib", "Bins", "AllTargets"]
