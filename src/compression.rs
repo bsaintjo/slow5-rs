@@ -1,8 +1,8 @@
 #[cfg(feature = "zstd")]
 use slow5lib_sys::slow5_press_method_SLOW5_COMPRESS_ZSTD;
 use slow5lib_sys::{
-    slow5_press_method_SLOW5_COMPRESS_EX_ZD, slow5_press_method_SLOW5_COMPRESS_NONE,
-    slow5_press_method_SLOW5_COMPRESS_SVB_ZD, slow5_press_method_SLOW5_COMPRESS_ZLIB,
+    slow5_press_method_SLOW5_COMPRESS_NONE, slow5_press_method_SLOW5_COMPRESS_SVB_ZD,
+    slow5_press_method_SLOW5_COMPRESS_ZLIB, slow5_press_method_SLOW5_COMPRESS_EX_ZD
 };
 
 /// SLOW5 record compression
@@ -17,6 +17,7 @@ pub enum RecordCompression {
     #[cfg_attr(doc_cfg, doc(cfg(feature = "zstd")))]
     /// Compress using zstd
     ZStd,
+
 }
 
 impl RecordCompression {
@@ -50,7 +51,7 @@ pub enum SignalCompression {
     /// Compress using streamvbyte library
     StreamVByte,
     /// Compress using ex-zd algorithm
-    ExZd,
+    ExZd
 }
 
 impl SignalCompression {
