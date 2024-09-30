@@ -36,7 +36,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5 = "0.11"
+slow5 = "0.12"
 ```
 
 ### Git

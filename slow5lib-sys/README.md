@@ -11,7 +11,7 @@
 [docs-badge]: https://img.shields.io/docsrs/slow5lib-sys?style=flat-square
 [docs-url]: https://docs.rs/slow5lib-sys
 
-Low level bindings to the `slow5lib` C library version 1.1.0
+Low level bindings to the `slow5lib` C library version 1.3.0
 
 ## Installation
 
@@ -19,7 +19,7 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-slow5lib-sys = "0.9"
+slow5lib-sys = "0.10"
 ```
 
 ## License
