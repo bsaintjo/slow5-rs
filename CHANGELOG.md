@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed -->
 
-## [Unreleased] - yyyy-mm-dd
+## [0.12.0] - 2024-10-01
 
 ### Added
 
@@ -29,10 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mark `slow5::RecordCompression` and `slow5::SignalCompression` as non-exhaustive. This is to help future proof from new compression algorithms forcing a semantic versioning major release.
 - Update `slow5lib-sys` to version `0.10.0`
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Make `RawSignalIter` and `PicoAmpsSignalIter` iterators public
@@ -41,12 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- bump slow5lib submodule to v1.1.0
-- bump slow5lib-sys to v0.9.0
+- bump `slow5lib` submodule to v1.1.0
+- bump `slow5lib-sys` to v0.9.0
 
 ### Fixed
 
-- Switch from deprecated bindgen::Builder rustfmt_bindings method to formatter
+- Switch from deprecated `bindgen::Builder` rustfmt_bindings method to formatter
 
 ## [0.10.0] - 2022-12-27
 
