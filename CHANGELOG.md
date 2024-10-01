@@ -28,13 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Mark `slow5::RecordCompression` and `slow5::SignalCompression` as non-exhaustive. This is to help future proof from new compression algorithms forcing a semantic versioning major release.
 - Update `slow5lib-sys` to version `0.10.0`
-- Make `RawSignalIter` and `PicoAmpsSignalIter` iterators public
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Make `RawSignalIter` and `PicoAmpsSignalIter` iterators public
 
 ## [0.11.0]
 
