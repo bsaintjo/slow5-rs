@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed -->
 
+## [0.10.0] - 2024-09-30
+
+### Added
+- Support new compression algorithm with slow5_press_method_SLOW5_COMPRESS_EX_ZD
+- fn slow5lib_sys::slow5_arr_qts_round
+- fn slow5lib_sys::slow5_rec_qts_round
+- fn slow5lib_sys::slow5_idx_init_empty
+- fn slow5lib_sys::slow5_idx_read
+- fn slow5lib_sys::slow5_set_skip_rid
+
+### Changed
+- Bump version of `slow5lib` to v1.3.0
+
 ## [0.9.1] - 2024-03-11
 
 ### Added

@@ -17,6 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed -->
 
+## [Unreleased] - yyyy-mm-dd
+
+### Added
+
+- Derive a `Debug` implementation for `slow5::EnumField`
+- MSRV verified at 1.70 on ARM MacOS
+
+### Changed
+
+- Mark `slow5::RecordCompression` and `slow5::SignalCompression` as non-exhaustive. This is to help future proof from new compression algorithms forcing a semantic versioning major release.
+- Update `slow5lib-sys` to version `0.10.0`
+- Make `RawSignalIter` and `PicoAmpsSignalIter` iterators public
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
 ## [0.11.0]
 
 ### Changed
@@ -53,7 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - aux: Removed the `to_slow5_t` required method on `AuxField` since it wasn't necessary and making dealing with enums harder
-
 
 ### Fixed
 
