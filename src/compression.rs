@@ -14,7 +14,6 @@ pub enum RecordCompression {
     /// Compress using zlib
     Zlib,
     #[cfg(feature = "zstd")]
-    #[cfg_attr(doc_cfg, doc(cfg(feature = "zstd")))]
     /// Compress using zstd
     ZStd,
 
