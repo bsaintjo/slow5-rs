@@ -24,6 +24,7 @@ pub use record::{
     RecordExt, RecordIter,
 };
 pub use writer::{FileWriter, WriteOptions};
+pub use log::{LogLevel, slow5_set_log_level};
 
 pub(crate) fn to_cstring<T: Into<Vec<u8>>>(x: T) -> Result<CString, Slow5Error> {
     CString::new(x).map_err(Slow5Error::InteriorNul)
