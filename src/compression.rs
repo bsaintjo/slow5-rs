@@ -30,6 +30,7 @@ impl RecordCompression {
     }
 
     #[allow(non_upper_case_globals)]
+    #[allow(non_snake_case)]
     pub(crate) fn from_u32(n: u32) -> Self {
         match n {
             slow5_press_method_SLOW5_COMPRESS_NONE => Self::None,
@@ -63,6 +64,7 @@ impl SignalCompression {
     }
 
     #[allow(non_upper_case_globals)]
+    #[allow(non_snake_case)]
     pub(crate) fn from_u32(x: u32) -> Self {
         match x {
             slow5_press_method_SLOW5_COMPRESS_NONE => SignalCompression::None,
@@ -70,5 +72,19 @@ impl SignalCompression {
             slow5_press_method_SLOW5_COMPRESS_EX_ZD => SignalCompression::ExZd,
             _ => unreachable!("Invalid compression"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_sig_comp_from_u32() {
+        let method = slow5_press_method_SLOW5_COMPRESS_EX_ZD;
+        assert_eq!(SignalCompression::from_u32(method), SignalCompression::ExZd);
+
+        let method = slow5_press_method_SLOW5_COMPRESS_SVB_ZD;
+        assert_eq!(SignalCompression::from_u32(method), SignalCompression::StreamVByte);
     }
 }
