@@ -17,17 +17,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed -->
 
-## [0.12.0] - 2024-10-01
+## [0.12.0] - 2024-11-04
 
 ### Added
 
 - Derive a `Debug` implementation for `slow5::EnumField`
 - MSRV verified at 1.70 on ARM MacOS
+- Add support for new compression algorithm `slow5::SignalCompression::ExZd`
+- Control log output from slow5lib with `slow5::log`
+- Testing for all combinations of compression
+- Additional `Debug` implementations
+- Bump MSRV to 1.70
 
 ### Changed
 
 - Mark `slow5::RecordCompression` and `slow5::SignalCompression` as non-exhaustive. This is to help future proof from new compression algorithms forcing a semantic versioning major release.
 - Update `slow5lib-sys` to version `0.10.0`
+- Update `slow5-rs` to version `0.12.0`
 
 ### Fixed
 
