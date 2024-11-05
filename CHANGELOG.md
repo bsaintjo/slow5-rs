@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed -->
 
+## [0.12.1] - 2024-11-05
+
+### Fixed
+
+- Remove include to fix upload so source files build correctly
+
 ## [0.12.0] - 2024-11-04
 
 ### Added
